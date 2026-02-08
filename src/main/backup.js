@@ -19,6 +19,8 @@ function runPowerShell(cmd) {
   })
 }
 
+
+
 function changeRestorePointCooldown() {
   return runPowerShell(
     "New-ItemProperty -Path 'HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore' -Name 'SystemRestorePointCreationFrequency' -Value 0 -PropertyType DWord -Force",
