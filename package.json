@@ -1,0 +1,134 @@
+{
+  "name": "maxify",
+  "version": "1.0.0",
+  "description": "maxify",
+  "main": "./out/main/index.js",
+  "author": "piolhocabuloso",
+
+  "scripts": {
+    "format": "prettier --write .",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev -w",
+
+    "build:vite": "electron-vite build",
+    "build:electron": "electron-builder",
+    "build": "npm run build:vite && npm run build:electron",
+
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir"
+  },
+
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@headlessui/react": "^2.2.7",
+    "@lucide/lab": "^0.1.2",
+    "@sentry/electron": "^6.11.0",
+    "@sentry/react": "^9.46.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "clsx": "^2.1.1",
+    "discord-rpc": "^4.0.1",
+    "electron-log": "^5.4.3",
+    "electron-store": "8.1.0",
+    "electron-updater": "^6.7.3",
+    "framer-motion": "^12.33.0",
+    "fs-extra": "^11.3.3",
+    "lucide-react": "^0.542.0",
+    "posthog-js": "^1.261.7",
+    "react-router-dom": "^7.8.2",
+    "react-toastify": "^11.0.5",
+    "recharts": "^3.7.0",
+    "systeminformation": "^5.30.7",
+    "tailwindcss": "^4.1.18",
+    "zustand": "^5.0.8"
+  },
+
+  "devDependencies": {
+    "@electron-toolkit/eslint-config": "^2.1.0",
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.24",
+    "electron": "38.0.0",
+    "electron-builder": "^26.7.0",
+    "electron-vite": "4.0.0",
+    "postcss": "^8.5.6",
+    "postcss-load-config": "^6.0.1",
+    "prettier": "^3.6.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "vite": "^6.3.5"
+  },
+
+  "build": {
+    "appId": "com.parcoil.sparkle",
+    "productName": "maxify",
+
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "piolhocabuloso",
+        "repo": "maxify",
+        "releaseType": "release",
+        "channel": "latest"
+      }
+    ],
+
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": ["*.exe", "*.nip", "*.pow"]
+      },
+      {
+        "from": "tweaks",
+        "to": "tweaks"
+      },
+      {
+        "from": "scripts",
+        "to": "scripts",
+        "filter": ["**/*"]
+      }
+    ],
+
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+
+    "files": [
+      "out/**/*",
+      "!**/.vscode/*",
+      "!src/*",
+      "!docs/**",
+      "!scripts/**",
+      "!dist-old",
+      "!dist-2"
+    ],
+
+    "asarUnpack": [
+      "resources/**",
+      "scripts/**"
+    ],
+
+    "win": {
+      "executableName": "maxify",
+      "requestedExecutionLevel": "requireAdministrator",
+      "icon": "resources/sparkle2.ico",
+      "target": ["nsis", "zip"],
+      "publish": ["github"]
+    },
+
+    "nsis": {
+      "artifactName": "${name}-${version}-setup.${ext}",
+      "shortcutName": "${productName}",
+      "uninstallDisplayName": "${productName}",
+      "createDesktopShortcut": "always",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+
+    "npmRebuild": false
+  },
+
+  "packageManager": "yarn@1.22.22"
+}
