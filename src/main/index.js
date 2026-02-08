@@ -20,7 +20,6 @@ import { initAutoUpdater, triggerAutoUpdateCheck } from "./updates.js"
 import { ensureWinget } from "./system"
 const si = require('systeminformation');
 import os from "os"
-import { initAutoUpdater } from "./updater"
 
 app.whenReady().then(() => {
   const win = createWindow()

@@ -1,23 +1,19 @@
 {
-  "name": "maxify",
+  "name": "Maxify",
   "version": "1.0.0",
-  "description": "maxify",
+  "description": "Maxify",
   "main": "./out/main/index.js",
   "author": "piolhocabuloso",
-
   "scripts": {
     "format": "prettier --write .",
     "start": "electron-vite preview",
     "dev": "electron-vite dev -w",
-
     "build:vite": "electron-vite build",
     "build:electron": "electron-builder",
     "build": "npm run build:vite && npm run build:electron",
-
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir"
   },
-
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
@@ -42,7 +38,6 @@
     "tailwindcss": "^4.1.18",
     "zustand": "^5.0.8"
   },
-
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.1.0",
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
@@ -58,11 +53,9 @@
     "react-dom": "^19.1.1",
     "vite": "^6.3.5"
   },
-
   "build": {
     "appId": "com.parcoil.sparkle",
-    "productName": "maxify",
-
+    "productName": "Maxify",
     "publish": [
       {
         "provider": "github",
@@ -72,12 +65,16 @@
         "channel": "latest"
       }
     ],
-
     "extraResources": [
       {
         "from": "resources",
         "to": ".",
-        "filter": ["*.exe", "*.nip", "*.pow"]
+        "filter": [
+          "*.exe",
+          "*.nip",
+          "*.pow",
+          "*.ico"
+        ]
       },
       {
         "from": "tweaks",
@@ -86,15 +83,15 @@
       {
         "from": "scripts",
         "to": "scripts",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
-
     "directories": {
       "buildResources": "build",
       "output": "dist"
     },
-
     "files": [
       "out/**/*",
       "!**/.vscode/*",
@@ -104,20 +101,22 @@
       "!dist-old",
       "!dist-2"
     ],
-
     "asarUnpack": [
       "resources/**",
       "scripts/**"
     ],
-
     "win": {
-      "executableName": "maxify",
+      "executableName": "Maxify",
       "requestedExecutionLevel": "requireAdministrator",
       "icon": "resources/sparkle2.ico",
-      "target": ["nsis", "zip"],
-      "publish": ["github"]
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "publish": [
+        "github"
+      ]
     },
-
     "nsis": {
       "artifactName": "${name}-${version}-setup.${ext}",
       "shortcutName": "${productName}",
@@ -126,9 +125,6 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-
     "npmRebuild": false
-  },
-
-  "packageManager": "yarn@1.22.22"
+  }
 }
