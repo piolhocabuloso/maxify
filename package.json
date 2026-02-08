@@ -1,5 +1,5 @@
 {
-  "name": "Maxify",
+  "name": "maxify",
   "version": "1.0.0",
   "description": "Maxify",
   "main": "./out/main/index.js",
@@ -14,6 +14,7 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir"
   },
+  "include": "build/installer.nsh",
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
@@ -123,7 +124,11 @@
       "uninstallDisplayName": "${productName}",
       "createDesktopShortcut": "always",
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerSidebar": "build/installerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "license": "build/license.txt"
     },
     "npmRebuild": false
   }
