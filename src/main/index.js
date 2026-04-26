@@ -54,7 +54,7 @@ ipcMain.handle("install-update-now", () => {
 
 
 
-
+let updateInterval = null
 
 
 autoUpdater.logger = log
@@ -69,7 +69,14 @@ function sendUpdateStatus(data) {
 
 export function setupAutoUpdater() {
   if (!app.isPackaged) return
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
 
+  autoUpdater.checkForUpdates()
+
+  updateInterval = setInterval(() => {
+    autoUpdater.checkForUpdates()
+  }, 5 * 60 * 1000)
   autoUpdater.on("checking-for-update", () => {
     sendUpdateStatus({
       type: "checking",
@@ -767,9 +774,9 @@ ipcMain.handle("auto-launch:set", (event, value) => {
 
 // ==================== APP READY ====================
 app.whenReady().then(() => {
-  setupAutoUpdater()
   logsManager = new LogsManager();
   createWindow()
+  setupAutoUpdater()
 
   if (store.get("showTray")) setTimeout(() => (trayInstance = createTray(mainWindow)), 50)
   setTimeout(() => {
@@ -795,5 +802,8 @@ app.whenReady().then(() => {
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+  app.on("before-quit", () => {
+    if (updateInterval) clearInterval(updateInterval)
   })
 })
