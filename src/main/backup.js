@@ -38,8 +38,8 @@ function getTimestamp() {
   return `${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}`
 }
 
-ipcMain.handle("create-sparkle-restore-point", async () => {
-  const label = `MaxifyBackup-${getTimestamp()}`
+ipcMain.handle("create-maxify-restore-point", async () => {
+  const label = `Maxify-Backup-${getTimestamp()}`
   try {
     await runPowerShell(`Checkpoint-Computer -Description '${label}'`)
     await changeRestorePointCooldown()
@@ -106,14 +106,14 @@ ipcMain.handle("restore-restore-point", async (_, sequenceNumber) => {
   }
 })
 
-ipcMain.handle("delete-old-sparkle-backups", async () => {
+ipcMain.handle("delete-old-maxify-backups", async () => {
   return new Promise((resolve, reject) => {
-    const sparkleRoot = `C:\\Maxify`
-    if (!fs.existsSync(sparkleRoot)) {
+    const maxifyRoot = `C:\\Maxify`
+    if (!fs.existsSync(maxifyRoot)) {
       return resolve({ success: true, message: "Maxify folder does not exist" })
     }
 
-    fs.rm(sparkleRoot, { recursive: true, force: true }, (err) => {
+    fs.rm(maxifyRoot, { recursive: true, force: true }, (err) => {
       if (err) return reject(err)
       resolve({ success: true, message: "Maxify folder deleted" })
     })

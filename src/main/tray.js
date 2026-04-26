@@ -1,13 +1,12 @@
-import { Tray, Menu, app } from "electron"
+import { Tray, Menu, app, shell } from "electron"
 import path from "path"
 
 function getIconPath() {
-  // Modo empacotado
   if (app.isPackaged) {
-    return path.join(process.resourcesPath, "sparkle2.ico")
+    return path.join(process.resourcesPath, "maxify2.ico")
   }
 
-  return path.join(__dirname, "../../resources/sparkle2.ico")
+  return path.join(__dirname, "../../resources/maxify2.ico")
 }
 
 export function createTray(mainWindow) {
@@ -15,6 +14,14 @@ export function createTray(mainWindow) {
 
   const contextMenu = Menu.buildFromTemplate([
     { label: "🚀 Abrir Maxify", click: () => mainWindow.show() },
+
+    { type: "separator" },
+
+    { label: "💬 Discord", click: () => shell.openExternal("https://discord.gg/45zyQEe2s3") },
+    { label: "📺 YouTube", click: () => shell.openExternal("https://www.youtube.com/@PiolhoCabluloso") },
+
+    { type: "separator" },
+
     { label: "❌ Fechar", click: () => app.quit() },
   ])
 

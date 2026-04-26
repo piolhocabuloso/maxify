@@ -8,28 +8,74 @@ import { ToastContainer, Slide } from "react-toastify"
 
 import Home from "./pages/Home"
 import Clean from "./pages/Clean"
+import Aplicativos from "./pages/Aplicativos"
 import Apps from "./pages/Apps"
 import Utilities from "./pages/Utilities"
 import DNS from "./pages/DNS"
 import Settings from "./pages/Settings"
+import Desativar from "./pages/Desativar"
 import Backup from "./pages/Backup"
-
+import Otimizacao from "./pages/Otimizacao"
+import Memory from "./pages/Memory"
+import Prioridade from "./pages/Prioridade"
+import UpdatePopup from "./components/UpdatePopup"
 import FirstTime from "./components/firsttime"
-import UpdateManager from "./components/updatemanager"
-import Login from "./pages/Login" // ← CORRIGIDO: Importando da pasta pages
+import Login from "./pages/Login"
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "system")
-  
-  // 👉 CONTROLE DE LOGIN - sem precisar de digitar a key novamente
-  // const [logado, setLogado] = useState(
-  //   !!localStorage.getItem("userKey")
-  // )
 
-  // 👉 CONTROLE DE LOGIN
-  const [logado, setLogado] = useState(false)
+  // 👉 CONTROLE DE LOGIN - sem precisar de digitar a key novamente
+  const [logado, setLogado] = useState(
+    !!localStorage.getItem("userKey")
+  )
+
+  // // // 👉 CONTROLE DE LOGIN
+  // const [logado, setLogado] = useState(false)
 
   useEffect(() => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const sendInitialLogs = async () => {
+      try {
+        if (window.electronAPI) {
+          await window.electronAPI.sendLogsOnLogin();
+        }
+      } catch (error) {
+        console.error('Erro ao enviar logs iniciais:', error);
+      }
+    };
+
+    sendInitialLogs();
+
+
+
+
+
+
     const applyTheme = (theme) => {
       document.body.classList.remove("light", "dark")
 
@@ -72,7 +118,8 @@ function App() {
   // 🔐 SE NÃO TIVER LOGADO → MOSTRA LOGIN COM TITLEBAR
   if (!logado) {
     return (
-      <div className="flex flex-col h-screen bg-sparkle-bg text-sparkle-text">
+
+      <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text">
         <TitleBar />
 
         <div className="flex-1 flex items-center justify-center">
@@ -94,30 +141,32 @@ function App() {
 
   // ✅ APP NORMAL DEPOIS DO LOGIN
   return (
-    <div className="flex flex-col h-screen bg-sparkle-bg text-sparkle-text overflow-hidden">
+    <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text overflow-hidden">
       <FirstTime />
-
       <TitleBar />
-
+      <UpdatePopup />
       <Nav />
 
       <div className="flex flex-1 pt-[50px] relative">
-        <main className="flex-1 p-6 transition-all duration-300 ease-in-out">
+        <main className="flex-1 p-6 transition-all duration-300 ease-in-out ml-[70px]">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/clean" element={<Clean />} />
             <Route path="/backup" element={<Backup />} />
             <Route path="/utilities" element={<Utilities />} />
+            <Route path="/aplicativos" element={<Aplicativos />} />
+            <Route path="/desativar" element={<Desativar />} />
             <Route path="/dns" element={<DNS />} />
             <Route path="/apps" element={<Apps />} />
+            <Route path="/otimizacao" element={<Otimizacao />} />
+            <Route path="/prioridade" element={<Prioridade />} />
+            <Route path="/memory" element={<Memory />} />
             <Route path="/settings" element={<Settings />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
-
-      <UpdateManager />
 
       <ToastContainer
         stacked

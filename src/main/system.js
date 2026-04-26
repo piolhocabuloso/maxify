@@ -135,7 +135,7 @@ function restartExplorer() {
 function getUserName() {
   return os.userInfo().username
 }
-function clearSparkleCache() {
+function clearMaxifyCache() {
   try {
     const appDataPath = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming")
     const scriptsPath = path.join(appDataPath, "maxify", "scripts")
@@ -459,7 +459,7 @@ function ensureWinget() {
 export { ensureWinget }
 ipcMain.handle("restart", restartSystem)
 ipcMain.handle("open-log-folder", openLogFolder)
-ipcMain.handle("clear-sparkle-cache", clearSparkleCache)
+ipcMain.handle("clear-maxify-cache", clearMaxifyCache)
 ipcMain.handle("get-system-info", getSystemInfo)
 ipcMain.handle("get-user-name", getUserName)
 ipcMain.handle("restart-explorer", restartExplorer)

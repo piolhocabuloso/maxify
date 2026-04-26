@@ -1,9 +1,9 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-// Canais válidos para segurança
+
 const validChannels = [
   "window-minimize",
-  "window-toggle-maximize", 
+  "window-toggle-maximize",
   "window-close",
   "run-powershell",
   "run-powershell-window",
@@ -18,20 +18,41 @@ const validChannels = [
 
 const validListenerChannels = [
   "realtime-metrics",
-  "system-info", 
+  "system-info",
   "game-detected",
   "install-progress",
   "install-complete",
   "install-error",
   "installed-apps-checked"
 ];
-
+contextBridge.exposeInMainWorld("updater", {
+  onStatus: (callback) => {
+    ipcRenderer.on("update-status", (_, data) => callback(data))
+  },
+})
 contextBridge.exposeInMainWorld("electron", {
+  isDev: !app.isPackaged,
+  resourcesPath: process.resourcesPath,
+  discord: {
+    login: () => ipcRenderer.send("discord-login"),
+
+    onSuccess: (cb) => {
+      ipcRenderer.removeAllListeners("discord-auth-success")
+      ipcRenderer.on("discord-auth-success", (_, data) => cb(data))
+    },
+
+    onError: (cb) => {
+      ipcRenderer.removeAllListeners("discord-auth-error")
+      ipcRenderer.on("discord-auth-error", (_, err) => cb(err))
+    }
+  },
+
+
   // Controles de janela
   minimize: () => ipcRenderer.send("window-minimize"),
   toggleMaximize: () => ipcRenderer.send("window-toggle-maximize"),
   close: () => ipcRenderer.send("window-close"),
-  
+
   // Método principal para invocar handlers (compatibilidade)
   invoke: (data) => {
     if (data && data.channel) {
@@ -41,38 +62,38 @@ contextBridge.exposeInMainWorld("electron", {
     // Compatibilidade com chamadas antigas
     return ipcRenderer.invoke(data.channel || data, data.payload || {});
   },
-  
+
   // Métodos específicos para PowerShell
-  runPowershell: (script, name = "script") => 
+  runPowershell: (script, name = "script") =>
     ipcRenderer.invoke("run-powershell", { script, name }),
-  
+
   // Sistema de eventos/listeners
   on: (channel, func) => {
     if (validListenerChannels.includes(channel)) {
       // Função wrapper para remover o listener mais tarde se necessário
       const subscription = (event, ...args) => func(...args);
       ipcRenderer.on(channel, subscription);
-      
+
       // Retorna função para remover o listener
       return () => ipcRenderer.removeListener(channel, subscription);
     }
     console.warn(`Attempted to listen to invalid channel: ${channel}`);
   },
-  
+
   // Remover listeners específicos
   off: (channel, func) => {
     if (validListenerChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, func);
     }
   },
-  
+
   // Remover todos os listeners de um canal
   removeAllListeners: (channel) => {
     if (validListenerChannels.includes(channel)) {
       ipcRenderer.removeAllListeners(channel);
     }
   },
-  
+
   // Método receive para compatibilidade com código existente
   receive: (channel, func) => {
     if (validListenerChannels.includes(channel)) {
@@ -81,23 +102,23 @@ contextBridge.exposeInMainWorld("electron", {
       console.warn(`Attempted to receive from invalid channel: ${channel}`);
     }
   },
-  
+
   // Método específico para telemetria em tempo real
-  startRealtimeMonitoring: (interval = 2000) => 
+  startRealtimeMonitoring: (interval = 2000) =>
     ipcRenderer.invoke("start-realtime-monitoring", interval),
-  
-  stopRealtimeMonitoring: () => 
+
+  stopRealtimeMonitoring: () =>
     ipcRenderer.invoke("stop-realtime-monitoring"),
-  
+
   // Obter métricas do sistema
   getSystemMetrics: () => ipcRenderer.invoke("get-system-metrics"),
   getGpuMetrics: () => ipcRenderer.invoke("get-gpu-metrics"),
   getNetworkMetrics: () => ipcRenderer.invoke("get-network-metrics"),
-  
+
   // Método simplificado para métricas em tempo real (alternativa)
   onMetricsUpdate: (callback) => {
     let intervalId;
-    
+
     const startUpdates = () => {
       intervalId = setInterval(async () => {
         try {
@@ -108,27 +129,27 @@ contextBridge.exposeInMainWorld("electron", {
         }
       }, 2000);
     };
-    
+
     const stopUpdates = () => {
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
       }
     };
-    
+
     // Iniciar atualizações automaticamente
     startUpdates();
-    
+
     // Retorna objeto com controle
     return {
       stop: stopUpdates,
       restart: startUpdates
     };
   },
-  
+
   // Verificar conexão
   testConnection: () => ipcRenderer.invoke("invoke", { channel: "test-connection" }),
-  
+
   // Logger para depuração
   log: {
     info: (message, ...args) => console.log(`[Electron] ${message}`, ...args),
@@ -139,6 +160,19 @@ contextBridge.exposeInMainWorld("electron", {
 
 // Para compatibilidade com código antigo que usa electronAPI
 contextBridge.exposeInMainWorld("electronAPI", {
+
+
+
+  sendLogsOnLogin: () => ipcRenderer.invoke('send-logs-on-logs'),
+  desktopCapturer: {
+    getSources: (opts) => desktopCapturer.getSources(opts)
+  },
+
+
+
+
+
+
   invoke: (data) => ipcRenderer.invoke("invoke", data),
   on: (channel, callback) => {
     if (validListenerChannels.includes(channel)) {

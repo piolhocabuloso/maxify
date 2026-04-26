@@ -88,9 +88,9 @@ async function loadTweaks() {
 
 const getNipPath = () => {
   if (isDev) {
-    return path.resolve(process.cwd(), "resources", "sparklenvidia.nip")
+    return path.resolve(process.cwd(), "resources", "maxifynvidia.nip")
   }
-  return path.join(process.resourcesPath, "sparklenvidia.nip")
+  return path.join(process.resourcesPath, "maxifynvidia.nip")
 }
 
 async function detectGPU() {
@@ -238,7 +238,13 @@ export const setupTweaksHandlers = () => {
 
 const getActiveTweaks = () => {
   try {
-    const data = fsSync.readFileSync(tweaksStatePath, "utf8")
+    // Cria o arquivo vazio se não existir
+    if (!fsSync.existsSync(tweaksStatePath)) {
+      fsSync.mkdirSync(path.dirname(tweaksStatePath), { recursive: true })
+      fsSync.writeFileSync(tweaksStatePath, '{}', 'utf8')
+    }
+
+    const data = fsSync.readFileSync(tweaksStatePath, 'utf8')
     const parsed = JSON.parse(data)
     return Object.keys(parsed).filter((key) => parsed[key])
   } catch (error) {
@@ -246,6 +252,7 @@ const getActiveTweaks = () => {
     return {}
   }
 }
+
 
 ipcMain.handle("tweak:active", () => {
   return getActiveTweaks()

@@ -1,6 +1,6 @@
 import { Minus, Square, X, Moon, Sun } from "lucide-react"
 import { close, minimize, toggleMaximize } from "../lib/electron"
-import sparkleLogo from "../../../../resources/sparklelogo.png"
+import maxifylogo from "../../../../resources/maxifylogo.png"
 import { motion } from "framer-motion"
 import { useState } from "react"
 
@@ -25,14 +25,14 @@ function TitleBar() {
       style={{ WebkitAppRegion: "drag" }}
       className="
     h-[55px] fixed top-0 left-0 right-0 z-50
-    bg-sparkle-bg
-    border-b border-sparkle-border-secondary
+    bg-maxify-bg
+    border-b border-maxify-border-secondary
   "
     >
       {/* CENTRO — MAXIFY */}
       <div className="absolute left-1/2 top-0 h-full flex items-center gap-4 -translate-x-1/2">
         <motion.img
-          src={sparkleLogo}
+          src={maxifylogo}
           alt="maxify"
           className="h-7 w-7"
           animate={{ rotate: [0, 360] }}
@@ -42,7 +42,7 @@ function TitleBar() {
         <span
           className="
     text-base font-semibold tracking-wide
-    text-sparkle-text-primary
+    text-maxify-text-primary
   "
         >
           Maxify
@@ -75,7 +75,7 @@ function TitleBar() {
       >
         <button
           onClick={toggleTheme}
-          className="h-[55px] w-14 flex items-center justify-center hover:bg-sparkle-accent"
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
         >
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
@@ -83,14 +83,14 @@ function TitleBar() {
 
         <button
           onClick={minimize}
-          className="h-[55px] w-14 flex items-center justify-center hover:bg-sparkle-accent"
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
         >
           <Minus size={18} />
         </button>
 
         <button
           onClick={toggleMaximize}
-          className="h-[55px] w-14 flex items-center justify-center hover:bg-sparkle-accent"
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
         >
           <Square size={16} />
         </button>

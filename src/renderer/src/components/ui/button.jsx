@@ -22,11 +22,11 @@ const Button = ({
 
   const variants = {
     primary:
-      "bg-sparkle-primary text-white hover:brightness-110 border-sparkle-secondary hover:bg-sparkle-secondary hover:border-sparkle-primary",
+      "bg-maxify-primary text-white hover:brightness-110 border-maxify-secondary hover:bg-maxify-secondary hover:border-maxify-primary",
     outline:
-      "border border-sparkle-primary text-sparkle-primary hover:bg-sparkle-primary hover:text-white",
+      "border border-maxify-primary text-maxify-primary hover:bg-maxify-primary hover:text-white",
     secondary:
-      "bg-sparkle-card border border-sparkle-secondary text-sparkle-text hover:bg-sparkle-secondary hover:border-sparkle-card",
+      "bg-maxify-card border border-maxify-secondary text-maxify-text hover:bg-maxify-secondary hover:border-maxify-card",
     danger:
       "bg-red-600 text-white border border-red-700 hover:bg-red-700 hover:border-red-800 focus:ring-red-500",
   }

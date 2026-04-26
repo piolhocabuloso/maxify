@@ -4,10 +4,11 @@ import RootDiv from "@/components/rootdiv"
 import Button from "@/components/ui/button"
 import Modal from "@/components/ui/modal"
 import { toast } from "react-toastify"
-import { Globe, Shield, Settings, RefreshCw, AlertCircle, Info, Check, Zap, Cloud, Wifi, Cpu, Database, Clock, BarChart3, TrendingUp, HardDrive } from "lucide-react"
+import { Globe, Shield, Settings, RefreshCw, AlertCircle, Info, Check, Zap, Cloud, Wifi, Cpu, Database, Clock, BarChart3, TrendingUp, HardDrive, ArrowLeft, Sparkles } from "lucide-react"
 import log from "electron-log/renderer"
 import Card from "@/components/ui/Card"
 import Toggle from "@/components/ui/toggle"
+import { useNavigate } from "react-router-dom"
 
 const dnsProviders = [
   {
@@ -87,6 +88,7 @@ const categories = [
 ]
 
 export default function DNSPage() {
+  const navigate = useNavigate()
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [currentDNS, setCurrentDNS] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -124,13 +126,13 @@ export default function DNSPage() {
 
       if (result.success) {
         setCurrentDNS(result.data)
-        
+
         // Try to identify current provider
         const servers = result.data[0]?.servers || ""
-        let provider = dnsProviders.find(p => 
+        let provider = dnsProviders.find(p =>
           servers.includes(p.primary.replace('.', '\\.'))
         ) || dnsProviders.find(p => p.id === "automatic")
-        
+
         setStats(prev => ({
           ...prev,
           currentProvider: provider?.name || "Unknown"
@@ -163,7 +165,7 @@ export default function DNSPage() {
       servers: `${provider.primary} / ${provider.secondary}`,
       type: provider.id
     }, ...dnsHistory.slice(0, 9)]
-    
+
     setDnsHistory(newHistory)
     localStorage.setItem("dns:history", JSON.stringify(newHistory))
   }
@@ -174,7 +176,7 @@ export default function DNSPage() {
       lastChanged: new Date().toISOString(),
       currentProvider: providerName
     }
-    
+
     setStats(newStats)
     localStorage.setItem("dns:stats", JSON.stringify(newStats))
   }
@@ -209,18 +211,18 @@ export default function DNSPage() {
           isLoading: false,
           autoClose: 3000,
         })
-        
+
         // Save to history
         saveToHistory(provider, `${provider.primary} / ${provider.secondary}`)
-        
+
         // Update stats
         updateStats(provider.name)
-        
+
         // Reset custom DNS if applied
         if (provider.id === "custom") {
           setCustomDNS({ primary: "", secondary: "" })
         }
-        
+
         await getCurrentDNS()
       } else {
         throw new Error(result.error)
@@ -264,46 +266,46 @@ export default function DNSPage() {
   const toggleAutoSwitch = () => {
     const newState = !autoSwitch
     setAutoSwitch(newState)
-    
+
     const config = {
       enabled: newState,
       lastChanged: new Date().toISOString()
     }
-    
+
     localStorage.setItem("dns:auto-switch", JSON.stringify(config))
-    
+
     toast.info(`Auto DNS switch ${newState ? 'enabled' : 'disabled'}`, {
       autoClose: 3000
     })
   }
 
-  const filteredProviders = categoryActive === "all" 
-    ? dnsProviders 
+  const filteredProviders = categoryActive === "all"
+    ? dnsProviders
     : dnsProviders.filter(provider => {
-        if (categoryActive === "privacy") return ["cloudflare", "quad9"].includes(provider.id)
-        if (categoryActive === "speed") return ["cloudflare", "google"].includes(provider.id)
-        if (categoryActive === "security") return ["quad9", "adguard", "opendns"].includes(provider.id)
-        return true
-      })
+      if (categoryActive === "privacy") return ["cloudflare", "quad9"].includes(provider.id)
+      if (categoryActive === "speed") return ["cloudflare", "google"].includes(provider.id)
+      if (categoryActive === "security") return ["quad9", "adguard", "opendns"].includes(provider.id)
+      return true
+    })
 
   const formatDate = (dateString) => {
     if (!dateString) return "Never"
     const date = new Date(dateString)
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
     <>
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        <div className="bg-sparkle-card p-6 rounded-2xl border border-sparkle-border text-sparkle-text w-[90vw] max-w-md">
+        <div className="bg-maxify-card p-6 rounded-2xl border border-maxify-border text-maxify-text w-[90vw] max-w-md">
           <h2 className="text-lg font-semibold mb-4">Confirm DNS Change</h2>
           {selectedProvider && (
             <>
               <p className="mb-4">
                 Você está prestes a alterar seus servidores DNS para{" "}
-                <span className="text-sparkle-primary font-medium">{selectedProvider.name}</span>.
+                <span className="text-maxify-primary font-medium">{selectedProvider.name}</span>.
               </p>
-              <div className="bg-sparkle-border-secondary border border-sparkle-border p-3 rounded-md mb-4">
+              <div className="bg-maxify-border-secondary border border-maxify-border p-3 rounded-md mb-4">
                 <div className="text-sm">
                   <div>
                     <strong>Primário:</strong> {selectedProvider.primary}
@@ -313,7 +315,7 @@ export default function DNSPage() {
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-sparkle-text-secondary mb-4">
+              <p className="text-sm text-maxify-text-secondary mb-4">
                 Isso irá alterar as configurações de DNS para todos os adaptadores de rede ativos e limpar o cache DNS.
               </p>
             </>
@@ -328,11 +330,44 @@ export default function DNSPage() {
           </div>
         </div>
       </Modal>
-      
+
       <RootDiv>
+
         <div className="max-w-[2000px] mx-auto px-6 pb-16">
           {/* === HEADER WITH STATISTICS === */}
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6 relative overflow-hidden">
+<div className="max-w-[2000px] mx-auto px-6 pt-8">
+  <button
+    onClick={() => navigate("/aplicativos")}
+    className="
+      group relative overflow-hidden rounded-2xl
+      border border-maxify-border
+      bg-maxify-card/80 backdrop-blur-xl
+      px-5 py-3
+      shadow-lg shadow-black/10
+      transition-all duration-300
+      hover:-translate-y-0.5 hover:border-blue-500/30 hover:shadow-blue-500/10
+    "
+  >
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_right,rgba(14,165,233,0.12),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+    <div className="relative z-10 flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-300 transition-all duration-300 group-hover:scale-105 group-hover:bg-blue-500/15">
+        <ArrowLeft size={18} />
+      </div>
+
+      <div className="flex flex-col items-start">
+        <span className="text-sm font-medium tracking-wide text-maxify-text-secondary">
+          Central
+        </span>
+        <span className="flex items-center gap-2 text-base font-semibold text-maxify-text">
+          Voltar para Aplicativos
+          <Sparkles size={14} className="text-blue-300 opacity-80" />
+        </span>
+      </div>
+    </div>
+  </button>
+</div>
+          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-transparent"></div>
 
             <div className="relative z-10">
@@ -341,8 +376,8 @@ export default function DNSPage() {
                   <Globe className="text-blue-500" size={28} />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-sparkle-text mb-1">Configuração de DNS</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-2xl font-bold text-maxify-text mb-1">Configuração de DNS</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     Altere os servidores DNS para uma navegação mais rápida e segura
                   </p>
                 </div>
@@ -375,12 +410,12 @@ export default function DNSPage() {
                     icon: currentDNS ? <Check className="inline mr-1" size={16} /> : <AlertCircle className="inline mr-1" size={16} />
                   },
                 ].map((stat, index) => (
-                  <div key={index} className="bg-sparkle-border/20 p-4 rounded-xl text-center">
+                  <div key={index} className="bg-maxify-border/20 p-4 rounded-xl text-center">
                     <p className={`text-2xl font-bold ${stat.color} flex items-center justify-center`}>
                       {stat.icon}
                       {stat.value}
                     </p>
-                    <p className="text-sm text-sparkle-text-secondary mt-1">{stat.label}</p>
+                    <p className="text-sm text-maxify-text-secondary mt-1">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -388,15 +423,15 @@ export default function DNSPage() {
           </Card>
 
           {/* === CURRENT DNS SETTINGS === */}
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
+          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/20 rounded-xl">
                   <HardDrive className="text-green-500" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-sparkle-text">Configurações Atuais de DNS</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-xl font-bold text-maxify-text">Configurações Atuais de DNS</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     Configuração ativa de DNS em seus adaptadores de rede
                   </p>
                 </div>
@@ -410,14 +445,14 @@ export default function DNSPage() {
             {currentDNS && currentDNS.length > 0 ? (
               <div className="space-y-4">
                 {currentDNS.map((dns, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-sparkle-border/20 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-maxify-border/20 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <div>
-                        <p className="text-sm font-medium text-sparkle-text">
+                        <p className="text-sm font-medium text-maxify-text">
                           {dns.adapter}
                         </p>
-                        <p className="text-xs text-sparkle-text-secondary">
+                        <p className="text-xs text-maxify-text-secondary">
                           {dns.servers}
                         </p>
                       </div>
@@ -426,7 +461,7 @@ export default function DNSPage() {
                       <p className="text-sm font-bold text-green-500">
                         Ativo
                       </p>
-                      <p className="text-xs text-sparkle-text-secondary">
+                      <p className="text-xs text-maxify-text-secondary">
                         IPv4
                       </p>
                     </div>
@@ -434,7 +469,7 @@ export default function DNSPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-center py-12 flex-col gap-3 text-sparkle-text-secondary">
+              <div className="flex items-center justify-center py-12 flex-col gap-3 text-maxify-text-secondary">
                 <RefreshCw className="animate-spin" size={32} />
                 <p>Carregando informações da rede...</p>
                 <p className="text-sm">Isso pode levar alguns segundos</p>
@@ -443,15 +478,15 @@ export default function DNSPage() {
           </Card>
 
           {/* === DNS CATEGORIES FILTER === */}
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
+          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/20 rounded-xl">
                   <Shield className="text-purple-500" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-sparkle-text">Categorias de DNS</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-xl font-bold text-maxify-text">Categorias de DNS</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     Filtrar provedores de DNS por tipo
                   </p>
                 </div>
@@ -466,7 +501,7 @@ export default function DNSPage() {
                   disabled={loading}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${categoryActive === categoria.id
                     ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                    : 'bg-sparkle-border/40 text-sparkle-text-secondary hover:bg-sparkle-border/60'
+                    : 'bg-maxify-border/40 text-maxify-text-secondary hover:bg-maxify-border/60'
                     } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {categoria.icon}
@@ -477,21 +512,21 @@ export default function DNSPage() {
           </Card>
 
           {/* === DNS PROVIDERS GRID === */}
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
+          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/20 rounded-xl">
                   <BarChart3 className="text-blue-500" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-sparkle-text">Provedores de DNS</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-xl font-bold text-maxify-text">Provedores de DNS</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     {filteredProviders.length} provedor(es) disponível(eis)
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-sparkle-text-secondary">Troca automática</span>
+                <span className="text-sm text-maxify-text-secondary">Troca automática</span>
                 <Toggle
                   checked={autoSwitch}
                   onChange={toggleAutoSwitch}
@@ -504,7 +539,7 @@ export default function DNSPage() {
               {filteredProviders.map((provider) => (
                 <div
                   key={provider.id}
-                  className={`relative border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:border-sparkle-primary'} ${provider.recommended ? 'ring-1 ring-orange-500 ring-opacity-50' : ''}`}
+                  className={`relative border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:border-maxify-primary'} ${provider.recommended ? 'ring-1 ring-orange-500 ring-opacity-50' : ''}`}
                   onClick={() => !loading && openConfirmationModal(provider)}
                 >
                   {provider.recommended && (
@@ -514,7 +549,7 @@ export default function DNSPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className={`p-2 rounded-lg mt-1 ${provider.bgColor}`}>
@@ -525,19 +560,19 @@ export default function DNSPage() {
 
                       <div className="flex flex-col flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-base font-semibold text-sparkle-text truncate">
+                          <span className="text-base font-semibold text-maxify-text truncate">
                             {provider.name}
                           </span>
                         </div>
-                        <span className="text-sm text-sparkle-text-secondary mt-1">
+                        <span className="text-sm text-maxify-text-secondary mt-1">
                           {provider.primary} / {provider.secondary}
                         </span>
-                        <p className="text-xs text-sparkle-text-secondary mt-2">
+                        <p className="text-xs text-maxify-text-secondary mt-2">
                           {provider.description}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-3">
                           {provider.features.map((feature, index) => (
-                            <span key={index} className="px-2 py-1 bg-sparkle-border text-xs rounded-md">
+                            <span key={index} className="px-2 py-1 bg-maxify-border text-xs rounded-md">
                               {feature}
                             </span>
                           ))}
@@ -551,21 +586,21 @@ export default function DNSPage() {
           </Card>
 
           {/* === CUSTOM DNS === */}
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
+          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-teal-500/20 rounded-xl">
                   <Settings className="text-teal-500" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-sparkle-text">DNS personalizado</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-xl font-bold text-maxify-text">DNS personalizado</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     Insira seus próprios servidores DNS
                   </p>
                 </div>
               </div>
-              <Button 
-                onClick={() => setShowCustom(!showCustom)} 
+              <Button
+                onClick={() => setShowCustom(!showCustom)}
                 size="sm"
                 variant={showCustom ? "secondary" : "outline"}
               >
@@ -577,7 +612,7 @@ export default function DNSPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-sparkle-text">DNS primário</label>
+                    <label className="block text-sm font-medium mb-2 text-maxify-text">DNS primário</label>
                     <input
                       type="text"
                       value={customDNS.primary}
@@ -585,11 +620,11 @@ export default function DNSPage() {
                         setCustomDNS((prev) => ({ ...prev, primary: e.target.value }))
                       }
                       placeholder="e.g., 1.1.1.1"
-                      className="w-full px-4 py-3 bg-sparkle-card border border-sparkle-border rounded-xl text-sparkle-text focus:outline-hidden focus:border-sparkle-primary focus:ring-2 focus:ring-sparkle-primary/20 transition-all"
+                      className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text focus:outline-hidden focus:border-maxify-primary focus:ring-2 focus:ring-maxify-primary/20 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-sparkle-text">
+                    <label className="block text-sm font-medium mb-2 text-maxify-text">
                       DNS secundário (opcional)
                     </label>
                     <input
@@ -599,14 +634,14 @@ export default function DNSPage() {
                         setCustomDNS((prev) => ({ ...prev, secondary: e.target.value }))
                       }
                       placeholder="e.g., 1.0.0.1"
-                      className="w-full px-4 py-3 bg-sparkle-card border border-sparkle-border rounded-xl text-sparkle-text focus:outline-hidden focus:border-sparkle-primary focus:ring-2 focus:ring-sparkle-primary/20 transition-all"
+                      className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text focus:outline-hidden focus:border-maxify-primary focus:ring-2 focus:ring-maxify-primary/20 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <Info className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-sparkle-text-secondary">
+                  <span className="text-sm text-maxify-text-secondary">
                     Insira endereços IPv4 válidos para servidores DNS personalizados (por exemplo, 8.8.8.8, 1.1.1.1)
                   </span>
                 </div>
@@ -632,14 +667,14 @@ export default function DNSPage() {
 
           {/* === DNS HISTORY === */}
           {dnsHistory.length > 0 && (
-            <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
+            <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-purple-500/20 rounded-xl">
                   <Clock className="text-purple-500" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-sparkle-text">Histórico de DNS</h2>
-                  <p className="text-sparkle-text-secondary text-sm">
+                  <h2 className="text-xl font-bold text-maxify-text">Histórico de DNS</h2>
+                  <p className="text-maxify-text-secondary text-sm">
                     Mudanças recentes de DNS
                   </p>
                 </div>
@@ -647,23 +682,23 @@ export default function DNSPage() {
 
               <div className="space-y-3">
                 {dnsHistory.slice(0, 5).map((history, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-sparkle-border/20 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-maxify-border/20 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <div>
-                        <p className="text-sm font-medium text-sparkle-text">
+                        <p className="text-sm font-medium text-maxify-text">
                           {history.provider}
                         </p>
-                        <p className="text-xs text-sparkle-text-secondary">
+                        <p className="text-xs text-maxify-text-secondary">
                           {new Date(history.timestamp).toLocaleString()}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-sparkle-text">
+                      <p className="text-sm font-bold text-maxify-text">
                         {history.servers}
                       </p>
-                      <p className="text-xs text-sparkle-text-secondary">
+                      <p className="text-xs text-maxify-text-secondary">
                         {history.type === 'custom' ? 'Custom' : 'Preset'}
                       </p>
                     </div>

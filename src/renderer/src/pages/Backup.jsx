@@ -1,5 +1,22 @@
-import { useEffect, useState } from "react"
-import { RefreshCw, PlusCircle, Shield, RotateCcw, Loader2, Search, Trash } from "lucide-react"
+import { useEffect, useState, useMemo } from "react"
+import {
+  RefreshCw,
+  PlusCircle,
+  Shield,
+  RotateCcw,
+  Loader2,
+  Search,
+  Trash,
+  ArchiveRestore,
+  Clock3,
+  FolderClock,
+  AlertTriangle,
+  Sparkles,
+  CheckCircle2,
+  History,
+  ArrowLeft,
+} from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import RootDiv from "@/components/rootdiv"
 import { invoke } from "@/lib/electron"
 import Button from "@/components/ui/button"
@@ -8,9 +25,10 @@ import { toast } from "react-toastify"
 import log from "electron-log/renderer"
 import { LargeInput } from "@/components/ui/input"
 import Card from "@/components/ui/Card"
-import CleanIcon from "../../../../resources/sparklelogo.png";
 
 export default function GerenciadorPontosRestaure() {
+  const navigate = useNavigate()
+
   const [pontos, setPontos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [processando, setProcessando] = useState(false)
@@ -33,16 +51,16 @@ export default function GerenciadorPontosRestaure() {
           const parse = (str) =>
             new Date(
               str.slice(0, 4) +
-              "-" +
-              str.slice(4, 6) +
-              "-" +
-              str.slice(6, 8) +
-              "T" +
-              str.slice(8, 10) +
-              ":" +
-              str.slice(10, 12) +
-              ":" +
-              str.slice(12, 14),
+                "-" +
+                str.slice(4, 6) +
+                "-" +
+                str.slice(6, 8) +
+                "T" +
+                str.slice(8, 10) +
+                ":" +
+                str.slice(10, 12) +
+                ":" +
+                str.slice(12, 14),
             )
           return parse(b.CreationTime) - parse(a.CreationTime)
         })
@@ -66,7 +84,7 @@ export default function GerenciadorPontosRestaure() {
   const criarPontoRapido = async () => {
     setProcessando(true)
     try {
-      await invoke({ channel: "create-sparkle-restore-point" })
+      await invoke({ channel: "create-maxify-restore-point" })
       toast.success("Ponto de restauração criado!")
       await buscarPontos()
     } catch (err) {
@@ -124,246 +142,364 @@ export default function GerenciadorPontosRestaure() {
     await buscarPontos()
   }
 
-  const pontosFiltrados = pontos.filter((p) =>
-    (p.Description || "").toLowerCase().includes(busca.toLowerCase()),
-  )
+  const pontosFiltrados = useMemo(() => {
+    return pontos.filter((p) =>
+      (p.Description || "").toLowerCase().includes(busca.toLowerCase()),
+    )
+  }, [pontos, busca])
+
+  const formatarData = (creationTime) => {
+    if (!creationTime) return "Data inválida"
+
+    try {
+      const data = new Date(
+        creationTime.slice(0, 4) +
+          "-" +
+          creationTime.slice(4, 6) +
+          "-" +
+          creationTime.slice(6, 8) +
+          "T" +
+          creationTime.slice(8, 10) +
+          ":" +
+          creationTime.slice(10, 12) +
+          ":" +
+          creationTime.slice(12, 14),
+      )
+
+      return data.toLocaleString("pt-BR")
+    } catch {
+      return "Data inválida"
+    }
+  }
+
+  const stats = [
+    {
+      title: "Total de pontos",
+      value: pontos.length,
+      icon: <History size={18} />,
+      text: "text-cyan-300",
+      bg: "from-cyan-500/20 to-blue-500/5",
+    },
+    {
+      title: "Filtrados",
+      value: pontosFiltrados.length,
+      icon: <Search size={18} />,
+      text: "text-blue-300",
+      bg: "from-blue-500/20 to-sky-500/5",
+    },
+    {
+      title: "Estado",
+      icon: processando ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />,
+      text: processando ? "text-blue-300" : "text-cyan-300",
+      bg: "from-sky-500/20 to-cyan-500/5",
+    },
+  ]
 
   if (carregando) {
     return (
       <RootDiv>
         <div className="fixed inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-
-            {/* ícone mais simples e sério */}
-            <div className="flex items-center gap-3">
-              <Shield className="text-blue-500 animate-pulse" size={26} />
-              <RotateCcw className="text-sparkle-text-secondary animate-spin" size={22} />
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-3xl border border-blue-500/20 bg-blue-500/10 flex items-center justify-center">
+                <Shield className="text-blue-400" size={34} />
+              </div>
+              <div className="absolute -right-2 -bottom-2 w-9 h-9 rounded-xl bg-maxify-card border border-maxify-border flex items-center justify-center">
+                <RotateCcw className="text-cyan-300 animate-spin" size={18} />
+              </div>
             </div>
 
-            <h1 className="text-sparkle-text font-medium text-lg">
-              Carregando pontos de restauração
-              <span className="animate-pulse">...</span>
-            </h1>
-
-            {/* barrinha clean */}
-            <div className="w-56 h-1 bg-sparkle-border rounded-full overflow-hidden">
-              <div className="h-full w-1/3 bg-blue-500 animate-[loading_1.4s_ease-in-out_infinite]" />
+            <div className="text-center">
+              <h1 className="text-maxify-text font-semibold text-lg">
+                Carregando pontos de restauração...
+              </h1>
+              <p className="text-maxify-text-secondary text-sm mt-1">
+                Lendo informações do sistema
+              </p>
             </div>
 
-            <p className="text-sparkle-text-secondary text-sm">
-              Lendo informações do sistema
-            </p>
+            <div className="w-64 h-2 bg-maxify-border rounded-full overflow-hidden">
+              <div className="h-full w-1/3 bg-gradient-to-r from-blue-500 to-cyan-400 animate-[loading_1.4s_ease-in-out_infinite]" />
+            </div>
           </div>
         </div>
 
         <style>{`
-        @keyframes loading {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(120%); }
-          100% { transform: translateX(-100%); }
-        }
-      `}</style>
+          @keyframes loading {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(120%); }
+            100% { transform: translateX(-100%); }
+          }
+        `}</style>
       </RootDiv>
     )
   }
 
-
   return (
     <RootDiv>
-      <div className="max-w-[2000px] mx-auto px-6 pb-16">
-        {/* === HEADER COM CONTROLES === */}
-        <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent"></div>
-
+      <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
+        <Card className="relative overflow-hidden rounded-[30px] border border-maxify-border bg-maxify-card p-7">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.12),transparent_28%)]" />
           <div className="relative z-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Shield className="text-blue-500" size={28} />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 text-sm font-medium mb-5">
+              <Sparkles size={15} />
+              Proteção e recuperação
+            </div>
+
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/20 shadow-lg shadow-blue-500/10">
+                  <ArchiveRestore className="text-blue-400" size={30} />
                 </div>
+
                 <div>
-                  <h1 className="text-2xl font-bold text-sparkle-text">Gerenciador de Pontos de Restauração</h1>
-                  <p className="text-sparkle-text-secondary text-sm">
-                    Crie e restaure pontos de recuperação do sistema
+                  <h1 className="text-3xl md:text-4xl font-bold text-maxify-text leading-tight">
+                    Pontos de restauração
+                  </h1>
+                  <p className="text-maxify-text-secondary mt-3 max-w-2xl">
+                    Crie backups do estado do sistema, pesquise pontos já existentes e restaure seu Windows com mais segurança.
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="danger"
-                  onClick={deletarTodos}
-                  disabled={carregando || processando}
-                  className="flex items-center gap-2"
-                >
-                  <Trash size={16} /> Deletar Todos
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={buscarPontos}
-                  className="flex items-center gap-2"
-                  disabled={carregando || processando}
-                >
-                  <RefreshCw size={16} /> Atualizar
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={criarPontoRapido}
-                  className="flex items-center gap-2"
-                  disabled={carregando || processando}
-                >
-                  {processando ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <PlusCircle size={16} />
-                  )}
-                  Ponto Rápido
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => setModalPersonalizadoAberto(true)}
-                  disabled={carregando || processando}
-                  className="flex items-center gap-2"
-                >
-                  <PlusCircle size={16} />
-                  Personalizado
-                </Button>
-              </div>
+              <button
+                onClick={() => navigate("/aplicativos")}
+                className="
+                  group flex items-center gap-2
+                  px-4 py-2.5 rounded-xl
+                  border border-maxify-border
+                  bg-maxify-card/70 backdrop-blur
+                  text-maxify-text-secondary
+                  transition-all duration-300
+                  hover:text-maxify-text
+                  hover:border-blue-500/30
+                  hover:bg-blue-500/10
+                "
+              >
+                <ArrowLeft
+                  size={16}
+                  className="transition-transform duration-300 group-hover:-translate-x-1"
+                />
+                <span className="text-sm font-medium">Voltar</span>
+              </button>
             </div>
 
-            {/* Barra de busca */}
-            <div className="mt-6">
-              <div className="relative w-full md:w-96">
-                <LargeInput
-                  type="text"
-                  placeholder="Buscar pontos de restauração..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  icon={Search}
-                />
-              </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
+                variant="primary"
+                onClick={criarPontoRapido}
+                className="flex items-center gap-2"
+                disabled={carregando || processando}
+              >
+                {processando ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />}
+                Ponto rápido
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setModalPersonalizadoAberto(true)}
+                disabled={carregando || processando}
+                className="flex items-center gap-2"
+              >
+                <PlusCircle size={16} />
+                Personalizado
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={buscarPontos}
+                className="flex items-center gap-2"
+                disabled={carregando || processando}
+              >
+                <RefreshCw size={16} />
+                Atualizar
+              </Button>
+
+              <Button
+                variant="danger"
+                onClick={deletarTodos}
+                disabled={carregando || processando}
+                className="flex items-center gap-2"
+              >
+                <Trash size={16} />
+                Deletar todos
+              </Button>
             </div>
           </div>
         </Card>
 
-        {/* === LISTA DE PONTOS DE RESTAURAÇÃO === */}
-        {pontosFiltrados.length === 0 ? (
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-8 text-center">
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="p-4 bg-blue-500/20 rounded-full mb-4">
-                <Shield size={32} className="text-blue-500" />
-              </div>
-              <h3 className="text-xl font-medium mb-3 text-sparkle-text">
-                Nenhum ponto de restauração encontrado
-              </h3>
-              <p className="text-sparkle-text-secondary max-w-md mb-6">
-                {busca
-                  ? "Nenhum ponto corresponde à sua pesquisa."
-                  : "Crie um ponto de restauração para preservar o estado do sistema. Você poderá restaurar seu sistema a qualquer momento."}
-              </p>
-              {!busca && (
-                <Button
-                  variant="primary"
-                  icon={<PlusCircle size={16} />}
-                  onClick={criarPontoRapido}
-                  disabled={processando}
-                  className="flex items-center gap-2"
-                >
-                  {processando ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <PlusCircle size={16} />
-                  )}
-                  Criar Ponto Rápido
-                </Button>
-              )}
-            </div>
-          </Card>
-        ) : (
-          <Card className="mt-8 bg-sparkle-card border border-sparkle-border rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-green-500/20 rounded-xl">
-                <Shield className="text-green-500" size={24} />
+        <div className="grid grid-cols-1 xl:grid-cols-[0.8fr_1.2fr] gap-6">
+          <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                <Search className="text-blue-400" size={22} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-sparkle-text">Pontos de Restauração</h2>
-                <p className="text-sparkle-text-secondary text-sm">
-                  {pontosFiltrados.length} ponto(s) encontrado(s)
+                <h2 className="text-xl font-bold text-maxify-text">Pesquisar e controlar</h2>
+                <p className="text-sm text-maxify-text-secondary">
+                  Encontre pontos e acompanhe o estado do gerenciador
                 </p>
               </div>
             </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-sparkle-text-secondary uppercase bg-sparkle-card sticky top-0">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Descrição</th>
-                    <th className="px-6 py-4 w-32 text-center font-semibold">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pontosFiltrados.map((ponto, index) => (
-                    <tr key={index} className="border-t border-sparkle-border hover:bg-sparkle-border/20 transition-colors">
-                      <td className="px-6 py-4 font-medium text-sparkle-text">
-                        {ponto.Description}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Button
-                          variant="ghost"
-                          className="p-2 hover:bg-blue-500/20 rounded-xl transition-all"
-                          onClick={() => restaurar(ponto)}
-                          disabled={processando}
-                          title="Restaurar Sistema"
-                        >
-                          <RotateCcw size={18} className="text-blue-500" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-4">
+              <LargeInput
+                type="text"
+                placeholder="Buscar pontos de restauração..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                icon={Search}
+              />
+
+              <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+                <p className="text-sm text-maxify-text-secondary">Status do sistema</p>
+                <p className="text-lg font-bold text-maxify-text mt-1">
+                  {processando ? "Executando operação..." : "Aguardando ação"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+                <p className="text-sm text-maxify-text-secondary">Observação</p>
+                <p className="text-sm text-maxify-text mt-1 leading-relaxed">
+                  Restaurar um ponto pode reiniciar o computador. Arquivos pessoais normalmente não são apagados, mas apps e ajustes recentes podem voltar ao estado anterior.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4 flex items-start gap-3">
+                <AlertTriangle className="text-yellow-400 mt-0.5 shrink-0" size={18} />
+                <p className="text-sm text-yellow-200/90 leading-relaxed">
+                  A listagem de pontos de restauração está em beta e pode ser instável, mas a criação funciona normalmente.
+                </p>
+              </div>
             </div>
           </Card>
-        )}
 
-        {/* Mensagem de beta */}
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-yellow-500">
-              A listagem de pontos de restauração está em beta e pode ser instável, mas a criação funciona normalmente.
-            </span>
-          </div>
+          {pontosFiltrados.length === 0 ? (
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-8">
+              <div className="h-full flex flex-col items-center justify-center text-center py-8">
+                <div className="p-4 bg-blue-500/15 border border-blue-500/20 rounded-full mb-4">
+                  <Shield size={32} className="text-blue-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-maxify-text mb-3">
+                  Nenhum ponto de restauração encontrado
+                </h3>
+                <p className="text-maxify-text-secondary max-w-md mb-6">
+                  {busca
+                    ? "Nenhum ponto corresponde à sua pesquisa."
+                    : "Crie um ponto de restauração para preservar o estado do sistema e poder voltar atrás quando precisar."}
+                </p>
+
+                {!busca && (
+                  <Button
+                    variant="primary"
+                    onClick={criarPontoRapido}
+                    disabled={processando}
+                    className="flex items-center gap-2"
+                  >
+                    {processando ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <PlusCircle size={16} />
+                    )}
+                    Criar ponto rápido
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ) : (
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+                    <FolderClock className="text-cyan-300" size={22} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-maxify-text">Histórico de restauração</h2>
+                    <p className="text-sm text-maxify-text-secondary">
+                      {pontosFiltrados.length} ponto(s) encontrado(s)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+                {pontosFiltrados.map((ponto, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-maxify-border bg-maxify-border/10 hover:border-blue-400/40 transition-all p-4"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                          <Shield size={18} />
+                        </div>
+
+                        <div className="min-w-0">
+                          <h3 className="text-[15px] font-semibold text-maxify-text break-words">
+                            {ponto.Description}
+                          </h3>
+
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-maxify-text-secondary">
+                            <span className="inline-flex items-center gap-1.5">
+                              <Clock3 size={14} />
+                              {formatarData(ponto.CreationTime)}
+                            </span>
+
+                            {ponto.SequenceNumber && (
+                              <span className="px-2 py-1 rounded-full bg-maxify-card border border-maxify-border text-xs">
+                                ID {ponto.SequenceNumber}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2"
+                          onClick={() => restaurar(ponto)}
+                          disabled={processando}
+                        >
+                          <RotateCcw size={16} />
+                          Restaurar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
-      {/* Modal de restauração */}
       <Modal
         open={modal.aberto}
-        onClose={() =>
-          !processando && setModal({ aberto: false, tipo: null, ponto: null })
-        }
+        onClose={() => !processando && setModal({ aberto: false, tipo: null, ponto: null })}
       >
         {modal.tipo === "restaurar" && modal.ponto && (
-          <div className="bg-sparkle-card border border-sparkle-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
+          <div className="bg-maxify-card border border-maxify-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-500/20 rounded-xl">
                 <RotateCcw className="text-blue-500" size={24} />
               </div>
-              <h3 className="text-xl font-bold text-sparkle-text">Restaurar Sistema</h3>
+              <h3 className="text-xl font-bold text-maxify-text">Restaurar sistema</h3>
             </div>
 
-            <div className="p-4">
-              <p className="text-sparkle-text-secondary mb-6">
+            <div className="p-2">
+              <p className="text-maxify-text-secondary mb-6 leading-relaxed">
                 Tem certeza que deseja restaurar seu sistema para{" "}
-                <span className="font-bold text-sparkle-text">"{modal.ponto.Description}"?</span> Seu PC será
-                reiniciado e o ponto de restauração será aplicado.
-                <br /><br />
-                Seus arquivos não serão afetados, mas aplicativos e configurações recentes podem
-                ser perdidos.
-                <br /><br />
-                Isso reverterá todas as alterações feitas pelo Maxify desde a criação deste ponto.
+                <span className="font-bold text-maxify-text">"{modal.ponto.Description}"</span>?
+                Seu PC será reiniciado e o ponto de restauração será aplicado.
+                <br />
+                <br />
+                Seus arquivos não serão afetados, mas aplicativos e configurações recentes podem ser perdidos.
+                <br />
+                <br />
+                Isso reverterá alterações feitas depois da criação desse ponto.
               </p>
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="secondary"
@@ -372,8 +508,9 @@ export default function GerenciadorPontosRestaure() {
                 >
                   Cancelar
                 </Button>
+
                 <Button variant="primary" onClick={executarRestauracao} disabled={processando}>
-                  {processando ? <Loader2 size={16} className="animate-spin" /> : "Restaurar Sistema"}
+                  {processando ? <Loader2 size={16} className="animate-spin" /> : "Restaurar sistema"}
                 </Button>
               </div>
             </div>
@@ -381,19 +518,21 @@ export default function GerenciadorPontosRestaure() {
         )}
       </Modal>
 
-      {/* Modal de ponto personalizado */}
-      <Modal open={modalPersonalizadoAberto} onClose={() => !processando && setModalPersonalizadoAberto(false)}>
-        <div className="bg-sparkle-card border border-sparkle-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
+      <Modal
+        open={modalPersonalizadoAberto}
+        onClose={() => !processando && setModalPersonalizadoAberto(false)}
+      >
+        <div className="bg-maxify-card border border-maxify-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-500/20 rounded-xl">
               <PlusCircle className="text-blue-500" size={24} />
             </div>
-            <h3 className="text-xl font-bold text-sparkle-text">Criar Ponto Personalizado</h3>
+            <h3 className="text-xl font-bold text-maxify-text">Criar ponto personalizado</h3>
           </div>
 
-          <div className="p-4 space-y-6">
+          <div className="p-2 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-sparkle-text-secondary mb-2">
+              <label className="block text-sm font-medium text-maxify-text-secondary mb-2">
                 Nome do ponto de restauração
               </label>
               <input
@@ -401,9 +540,15 @@ export default function GerenciadorPontosRestaure() {
                 value={nomePersonalizado}
                 onChange={(e) => setNomePersonalizado(e.target.value)}
                 placeholder="Digite o nome do ponto de restauração"
-                className="w-full px-4 py-3 bg-sparkle-card border border-sparkle-border rounded-xl text-sparkle-text placeholder-sparkle-text-secondary focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text placeholder-maxify-text-secondary focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 disabled={processando}
               />
+            </div>
+
+            <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+              <p className="text-sm text-maxify-text-secondary">
+                Use um nome fácil de lembrar, como antes da limpeza, antes de atualizar driver ou antes de testar algo novo.
+              </p>
             </div>
 
             <div className="flex justify-end gap-3">
@@ -414,22 +559,19 @@ export default function GerenciadorPontosRestaure() {
               >
                 Cancelar
               </Button>
+
               <Button
                 variant="primary"
                 onClick={criarPontoPersonalizado}
                 disabled={processando || !nomePersonalizado.trim()}
                 className="flex items-center gap-2"
               >
-                {processando ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <PlusCircle size={16} />
-                )}
-                Criar Ponto
+                {processando ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />}
+                Criar ponto
               </Button>
             </div>
 
-            <p className="text-xs text-center text-sparkle-text-secondary">
+            <p className="text-xs text-center text-maxify-text-secondary">
               Isso pode levar algum tempo dependendo do seu hardware
             </p>
           </div>

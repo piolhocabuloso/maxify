@@ -19,7 +19,7 @@ export function Dropdown({ options, value, onChange }) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 rounded-lg border border-sparkle-border bg-sparkle-bg text-sparkle-text hover:border-sparkle-primary transition-all duration-200 flex items-center gap-2 min-w-[180px] justify-between shadow-sm hover:shadow"
+        className="px-4 py-2 rounded-lg border border-maxify-border bg-maxify-bg text-maxify-text hover:border-maxify-primary transition-all duration-200 flex items-center gap-2 min-w-[180px] justify-between shadow-sm hover:shadow"
       >
         <span>{value}</span>
         <ChevronDown
@@ -27,7 +27,7 @@ export function Dropdown({ options, value, onChange }) {
         />
       </button>
       <div
-        className={`absolute top-full mt-1 w-full bg-sparkle-bg border border-sparkle-border rounded-lg shadow-lg z-10 overflow-hidden transition-all duration-200 origin-top ${
+        className={`absolute top-full mt-1 w-full bg-maxify-bg border border-maxify-border rounded-lg shadow-lg z-10 overflow-hidden transition-all duration-200 origin-top ${
           isOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
       >
@@ -41,8 +41,8 @@ export function Dropdown({ options, value, onChange }) {
             style={{ transitionDelay: isOpen ? `${index * 30}ms` : "0ms" }}
             className={`w-full px-4 py-1.5 text-left transition-all duration-200 relative group ${
               value === option
-                ? "bg-sparkle-primary text-white font-medium"
-                : "text-sparkle-text hover:bg-sparkle-border"
+                ? "bg-maxify-primary text-white font-medium"
+                : "text-maxify-text hover:bg-maxify-border"
             }`}
           >
             <span className="relative z-10 text-sm">{option}</span>

@@ -8,8 +8,8 @@ function Input({ type, defaultValue, onChange, className, placeholder, ...props 
       defaultValue={defaultValue}
       onChange={onChange}
       className={cn(
-        "w-full bg-sparkle-card border border-sparkle-border rounded-lg px-3 py-2 text-sparkle-text",
-        "focus:ring-0 focus:outline-hidden focus:border-sparkle-primary transition-colors",
+        "w-full bg-maxify-card border border-maxify-border rounded-lg px-3 py-2 text-maxify-text",
+        "focus:ring-0 focus:outline-hidden focus:border-maxify-primary transition-colors",
         className
       )}
       placeholder={placeholder}
@@ -22,19 +22,19 @@ function Input({ type, defaultValue, onChange, className, placeholder, ...props 
 function LargeInput({ placeholder, value, onChange, icon: Icon, className, ...props }) {
   return (
     <div className={cn(
-      "flex items-center gap-3 bg-sparkle-card border border-sparkle-border",
+      "flex items-center gap-3 bg-maxify-card border border-maxify-border",
       "rounded-xl px-4 backdrop-blur-xs transition-colors",
-      "focus-within:border-sparkle-primary",
+      "focus-within:border-maxify-primary",
       className
     )}>
-      {Icon && <Icon className="w-5 h-5 text-sparkle-text-secondary" />}
+      {Icon && <Icon className="w-5 h-5 text-maxify-text-secondary" />}
       <input
         type="text"
         placeholder={placeholder}
         className={cn(
           "w-full py-3 px-0 bg-transparent border-none",
-          "focus:outline-hidden focus:ring-0 text-sparkle-text",
-          "placeholder:text-sparkle-text-secondary"
+          "focus:outline-hidden focus:ring-0 text-maxify-text",
+          "placeholder:text-maxify-text-secondary"
         )}
         value={value}
         onChange={onChange}
