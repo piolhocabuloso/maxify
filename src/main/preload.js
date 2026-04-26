@@ -25,16 +25,43 @@ const validListenerChannels = [
   "install-error",
   "installed-apps-checked"
 ];
-contextBridge.exposeInMainWorld("updater", {
-  updater: {
-    onStatus: (callback) => {
-      ipcRenderer.on("update-status", (_, data) => callback(data))
-    },
-    installNow: () => ipcRenderer.invoke("install-update-now"),
+
+
+
+
+
+
+ipcMain.handle("check-for-updates", async () => {
+  try {
+    if (!app.isPackaged) {
+      return {
+        success: false,
+        message: "Atualizações só funcionam no app instalado.",
+      }
+    }
+
+    await autoUpdater.checkForUpdates()
+
+    return {
+      success: true,
+      message: "Verificação iniciada.",
+    }
+  } catch (err) {
+    return {
+      success: false,
+      message: err.message,
+    }
   }
 })
+
+
+
+
+
+
 contextBridge.exposeInMainWorld("electron", {
-  isDev: !app.isPackaged,
+
+  isDev: process.env.NODE_ENV === "development",
   resourcesPath: process.resourcesPath,
   discord: {
     login: () => ipcRenderer.send("discord-login"),

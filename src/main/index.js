@@ -41,7 +41,25 @@ const execFileAsync = promisify(execFile)
 
 
 
+ipcMain.handle("check-for-updates", async () => {
+  console.log("🔥 CHECK UPDATE CHAMADO")
 
+  try {
+    if (!app.isPackaged) {
+      return {
+        success: false,
+        message: "Só funciona no app instalado",
+      }
+    }
+
+    await autoUpdater.checkForUpdates()
+
+    return { success: true }
+  } catch (err) {
+    console.error(err)
+    return { success: false, message: err.message }
+  }
+})
 
 
 
@@ -127,15 +145,6 @@ export function setupAutoUpdater() {
     autoUpdater.checkForUpdates()
   }, 3000)
 }
-
-
-
-
-
-
-
-
-
 
 
 

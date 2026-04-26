@@ -109,11 +109,10 @@ StatCard.displayName = "StatCard"
 const CategoryButton = memo(({ category, isActive, onClick, count }) => (
   <button
     onClick={onClick}
-    className={`group relative px-5 py-3 rounded-2xl text-sm font-medium transition-all border flex items-center gap-2 overflow-hidden ${
-      isActive
-        ? "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30 shadow-lg shadow-blue-500/10"
-        : "bg-maxify-border/20 text-maxify-text-secondary border-maxify-border hover:bg-maxify-border/35 hover:scale-105"
-    }`}
+    className={`group relative px-5 py-3 rounded-2xl text-sm font-medium transition-all border flex items-center gap-2 overflow-hidden ${isActive
+      ? "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30 shadow-lg shadow-blue-500/10"
+      : "bg-maxify-border/20 text-maxify-text-secondary border-maxify-border hover:bg-maxify-border/35 hover:scale-105"
+      }`}
   >
     <span className="relative z-10 flex items-center gap-2">
       {category.icon}
@@ -133,29 +132,27 @@ const CategoryButton = memo(({ category, isActive, onClick, count }) => (
 CategoryButton.displayName = "CategoryButton"
 
 // Componente de Card de Ação Melhorado
-const ActionCard = memo(({ 
-  action, 
-  isSelected, 
-  isApplied, 
-  isLoading, 
-  onToggle, 
-  onApply, 
+const ActionCard = memo(({
+  action,
+  isSelected,
+  isApplied,
+  isLoading,
+  onToggle,
+  onApply,
   onRestore,
-  viewMode 
+  viewMode
 }) => {
   const [isHovered, setIsHovered] = useState(false)
-  
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative rounded-2xl border transition-all duration-300 ${
-        viewMode === ViewMode.GRID ? 'p-5' : 'p-4'
-      } ${
-        isSelected
+      className={`relative rounded-2xl border transition-all duration-300 ${viewMode === ViewMode.GRID ? 'p-5' : 'p-4'
+        } ${isSelected
           ? "border-blue-500 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 shadow-lg shadow-blue-500/10"
           : "border-maxify-border bg-maxify-border/5 hover:border-blue-400/40 hover:bg-maxify-border/10"
-      } ${isLoading ? "opacity-80" : ""} ${isHovered ? 'transform -translate-y-1' : ''}`}
+        } ${isLoading ? "opacity-80" : ""} ${isHovered ? 'transform -translate-y-1' : ''}`}
     >
       {/* Badge de Efeito */}
       {action.badge && (
@@ -170,11 +167,10 @@ const ActionCard = memo(({
         <div className={`flex ${viewMode === ViewMode.GRID ? 'flex-col' : 'flex-row'} items-start gap-3 flex-1 min-w-0`}>
           {/* Ícone Animado */}
           <div
-            className={`mt-0.5 p-3 rounded-xl transition-all duration-300 ${
-              isApplied
-                ? "bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-lg shadow-cyan-500/20"
-                : "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"
-            } ${isHovered ? 'scale-110' : ''}`}
+            className={`mt-0.5 p-3 rounded-xl transition-all duration-300 ${isApplied
+              ? "bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-lg shadow-cyan-500/20"
+              : "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"
+              } ${isHovered ? 'scale-110' : ''}`}
           >
             {action.icon}
           </div>
@@ -192,14 +188,13 @@ const ActionCard = memo(({
               )}
 
               {action.risk && (
-                <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                  action.risk === 'low' ? 'bg-green-500/20 text-green-300' :
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${action.risk === 'low' ? 'bg-green-500/20 text-green-300' :
                   action.risk === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                  'bg-red-500/20 text-red-300'
-                }`}>
+                    'bg-red-500/20 text-red-300'
+                  }`}>
                   {action.risk === 'low' ? '🟢 Baixo risco' :
-                   action.risk === 'medium' ? '🟡 Médio risco' :
-                   '🔴 Alto risco'}
+                    action.risk === 'medium' ? '🟡 Médio risco' :
+                      '🔴 Alto risco'}
                 </span>
               )}
             </div>
@@ -254,7 +249,7 @@ ActionCard.displayName = "ActionCard"
 // Componente Principal
 export default function ModoJogo() {
   const queryClient = useQueryClient()
-  
+
   // Estados
   const [isActive, setIsActive] = useState(() => {
     try {
@@ -301,14 +296,14 @@ export default function ModoJogo() {
     let filtered = categoriaAtiva === "all"
       ? gameActions
       : gameActions.filter((a) => a.category === categoriaAtiva)
-    
+
     if (searchTerm) {
-      filtered = filtered.filter(action => 
+      filtered = filtered.filter(action =>
         action.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         action.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-    
+
     return filtered
   }, [categoriaAtiva, searchTerm])
 
@@ -362,7 +357,7 @@ export default function ModoJogo() {
     const checkInitialStates = async () => {
       try {
         const states = {}
-        
+
         for (let i = 0; i < gameActions.length; i += BATCH_SIZE) {
           const batch = gameActions.slice(i, i + BATCH_SIZE)
           const checkPromises = batch.map(async (action) => {
@@ -419,7 +414,6 @@ export default function ModoJogo() {
         setActionStates((prev) => ({ ...prev, [actionId]: true }))
         stateCache.set(actionId, { value: true, timestamp: Date.now() })
         toast.success(`✨ ${action.label} aplicado com sucesso!`, {
-          icon: "🎮",
           position: "bottom-right"
         })
       } else {
@@ -428,7 +422,7 @@ export default function ModoJogo() {
     } catch (err) {
       console.error(`Error applying ${actionId}:`, err)
       log.error(`Error applying ${actionId}:`, err)
-      toast.error(`❌ Falha ao aplicar ${action.label}`, {
+      toast.error(`Falha ao aplicar ${action.label}`, {
         position: "bottom-right"
       })
     } finally {
@@ -450,7 +444,7 @@ export default function ModoJogo() {
       if (result.success) {
         setActionStates((prev) => ({ ...prev, [actionId]: false }))
         stateCache.set(actionId, { value: false, timestamp: Date.now() })
-        toast.info(`🔄 ${action.label} restaurado com sucesso!`, {
+        toast.info(`${action.label} restaurado com sucesso!`, {
           position: "bottom-right"
         })
       } else {
@@ -459,7 +453,7 @@ export default function ModoJogo() {
     } catch (err) {
       console.error(`Error restoring ${actionId}:`, err)
       log.error(`Error restoring ${actionId}:`, err)
-      toast.error(`❌ Falha ao restaurar ${action.label}`, {
+      toast.error(`Falha ao restaurar ${action.label}`, {
         position: "bottom-right"
       })
     } finally {
@@ -484,7 +478,7 @@ export default function ModoJogo() {
 
         for (let i = 0; i < actionsToApply.length; i += APPLY_BATCH_SIZE) {
           const batch = actionsToApply.slice(i, i + APPLY_BATCH_SIZE)
-          
+
           await Promise.allSettled(
             batch.map(async (actionId) => {
               const action = gameActions.find((a) => a.id === actionId)
@@ -513,7 +507,7 @@ export default function ModoJogo() {
         setIsActive(true)
         toast.success(
           <div className="flex flex-col">
-            <span className="font-bold">🎮 Gaming Engine Ativada!</span>
+            <span className="font-bold">Gaming Engine Ativada!</span>
             <span className="text-sm">{totalApplied} otimizações aplicadas</span>
           </div>,
           { position: "bottom-right", autoClose: 3000 }
@@ -524,7 +518,7 @@ export default function ModoJogo() {
 
         for (let i = 0; i < actionsToRestore.length; i += APPLY_BATCH_SIZE) {
           const batch = actionsToRestore.slice(i, i + APPLY_BATCH_SIZE)
-          
+
           await Promise.allSettled(
             batch.map(async (actionId) => {
               const action = gameActions.find((a) => a.id === actionId)
@@ -553,7 +547,7 @@ export default function ModoJogo() {
         setIsActive(false)
         toast.info(
           <div className="flex flex-col">
-            <span className="font-bold">🛑 Gaming Engine Desativada</span>
+            <span className="font-bold">Gaming Engine Desativada</span>
             <span className="text-sm">Sistema restaurado ao estado original</span>
           </div>,
           { position: "bottom-right", autoClose: 3000 }
@@ -570,7 +564,7 @@ export default function ModoJogo() {
 
   const toggleAction = useCallback(async (id) => {
     const isSelected = selecionados.includes(id)
-    
+
     if (isSelected) {
       setSelecionados((prev) => prev.filter((item) => item !== id))
       if (actionStates[id]) {
@@ -586,13 +580,13 @@ export default function ModoJogo() {
 
   const handlePreset = useCallback((type) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    
+
     debounceTimer.current = setTimeout(() => {
       if (type === "max") {
         setSelecionados(gameActions.map((a) => a.id))
         toast.success(
           <div>
-            <span className="font-bold">🚀 Preset Máximo Carregado</span>
+            <span className="font-bold">Preset Máximo Carregado</span>
             <br />
             <span className="text-sm">Todas as otimizações selecionadas</span>
           </div>,
@@ -606,7 +600,7 @@ export default function ModoJogo() {
         )
         toast.info(
           <div>
-            <span className="font-bold">⚖️ Preset Equilibrado Carregado</span>
+            <span className="font-bold">Preset Equilibrado Carregado</span>
             <br />
             <span className="text-sm">Otimizações seguras selecionadas</span>
           </div>,
@@ -696,7 +690,7 @@ export default function ModoJogo() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.1),transparent_40%)]" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 text-blue-300 text-sm font-medium mb-5 backdrop-blur-sm">
@@ -714,19 +708,19 @@ export default function ModoJogo() {
                     Gaming Engine
                   </h1>
                   <p className="text-maxify-text-secondary mt-3 text-lg max-w-2xl">
-                    Ative otimizações avançadas, reduza latência e maximize o desempenho 
+                    Ative otimizações avançadas, reduza latência e maximize o desempenho
                     do seu sistema para uma experiência de jogo incomparável.
                   </p>
 
                   <div className="flex flex-wrap gap-3 mt-6">
                     <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border backdrop-blur-sm">
-                      🎮 {totalActions} otimizações
+                      {totalActions} otimizações
                     </div>
                     <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border backdrop-blur-sm">
-                      ⚡ {totalSelected} selecionadas
+                      {totalSelected} selecionadas
                     </div>
                     <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border backdrop-blur-sm">
-                      🚀 Boost de +35%
+                      Boost de +35%
                     </div>
                   </div>
                 </div>
@@ -746,7 +740,7 @@ export default function ModoJogo() {
         {(loading || initializing) && progress > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50">
             <div className="h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 transition-all duration-300"
-                 style={{ width: `${progress}%` }}></div>
+              style={{ width: `${progress}%` }}></div>
           </div>
         )}
 
@@ -978,7 +972,7 @@ export default function ModoJogo() {
                     <p className="text-2xl font-bold text-blue-300">{progressPercentage.toFixed(0)}%</p>
                   </div>
                   <div className="h-2 bg-maxify-border rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>

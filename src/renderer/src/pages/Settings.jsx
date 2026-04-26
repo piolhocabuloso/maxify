@@ -80,7 +80,33 @@ function Settings({ onCheckForUpdates }) {
     setDiscordEnabled(newStatus)
     setDiscordLoading(false)
   }
+  const handleCheckUpdates = async () => {
+    setChecking(true)
 
+    try {
+      const updater = window.updater?.checkForUpdates
+        ? window.updater
+        : window.updater?.updater
+
+      if (!updater?.checkForUpdates) {
+        toast.error("Sistema de atualização não encontrado.")
+        console.log("window.updater:", window.updater)
+        return
+      }
+
+      toast.info("Verificando atualizações...")
+      const result = await updater.checkForUpdates()
+
+      if (result?.success === false) {
+        toast.warning(result.message || "Não foi possível verificar atualização.")
+      }
+    } catch (err) {
+      toast.error("Erro ao verificar atualizações.")
+      console.error(err)
+    } finally {
+      setChecking(false)
+    }
+  }
   const handleToggleAutoLaunch = async () => {
     setAutoLaunchLoading(true)
     const newStatus = !autoLaunch
@@ -113,7 +139,7 @@ function Settings({ onCheckForUpdates }) {
     return total
   }, [autoLaunch, discordEnabled, trayEnabled, posthogDisabled])
 
- 
+
 
   return (
     <>
@@ -373,7 +399,7 @@ function Settings({ onCheckForUpdates }) {
               </div>
             </SettingCard>
           </SettingSection>
-          
+
           <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
@@ -395,29 +421,54 @@ function Settings({ onCheckForUpdates }) {
             </div>
           </Card>
           <div className="relative overflow-hidden rounded-[24px] border border-maxify-border bg-maxify-card p-6 mt-6">
-  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.15),transparent_35%),radial-gradient(circle_at_left,rgba(59,130,246,0.10),transparent_30%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.15),transparent_35%),radial-gradient(circle_at_left,rgba(59,130,246,0.10),transparent_30%)]" />
 
-  <div className="relative z-10 flex flex-col gap-3">
-    <span className="text-sm text-maxify-text-secondary">Projeto desenvolvido por</span>
+            <div className="relative z-10 flex flex-col gap-3">
+              <span className="text-sm text-maxify-text-secondary">Projeto desenvolvido por</span>
 
-    <h3 className="text-2xl font-bold text-maxify-text">
-      Piolho Cabuloso
-    </h3>
+              <h3 className="text-2xl font-bold text-maxify-text">
+                Piolho Cabuloso
+              </h3>
 
-    <p className="text-sm text-maxify-text-secondary">
-      Acompanhe o conteúdo e novidades no canal oficial.
-    </p>
+              <p className="text-sm text-maxify-text-secondary">
+                Acompanhe o conteúdo e novidades no canal oficial.
+              </p>
 
-    <a
-      href="https://www.youtube.com/@PiolhoCabluloso"
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex w-fit items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:scale-[1.02] hover:bg-red-500/20"
-    >
-      Ir para o YouTube
-    </a>
-  </div>
-</div>
+              <a
+                href="https://www.youtube.com/@PiolhoCabluloso"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:scale-[1.02] hover:bg-red-500/20"
+              >
+                Ir para o YouTube
+              </a>
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-[24px] border border-blue-500/25 bg-maxify-card p-6 mt-6">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_left,rgba(14,165,233,0.12),transparent_30%)]" />
+
+            <div className="relative z-10 flex flex-col gap-3">
+              <span className="text-sm text-maxify-text-secondary">
+                Sistema de atualização
+              </span>
+
+              <h3 className="text-2xl font-bold text-maxify-text">
+                Verificar atualizações
+              </h3>
+
+              <p className="text-sm text-maxify-text-secondary">
+                Versão atual instalada: Maxify v{jsonData.version}
+              </p>
+
+              <button
+                onClick={handleCheckUpdates}
+                disabled={checking}
+                className="inline-flex w-fit items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:scale-[1.02] hover:bg-blue-500/20 disabled:opacity-60"
+              >
+                {checking ? "Verificando..." : "Verificar atualização"}
+              </button>
+            </div>
+          </div>
         </div>
       </RootDiv>
     </>
@@ -427,8 +478,8 @@ function Settings({ onCheckForUpdates }) {
 const StatusBadge = ({ enabled }) => (
   <span
     className={`text-xs font-medium px-2 py-1 rounded-full ${enabled
-        ? "text-cyan-300 bg-cyan-500/10"
-        : "text-maxify-text-secondary bg-maxify-border-secondary/20"
+      ? "text-cyan-300 bg-cyan-500/10"
+      : "text-maxify-text-secondary bg-maxify-border-secondary/20"
       }`}
   >
     {enabled ? "Ativado" : "Desativado"}
@@ -453,7 +504,7 @@ const SettingSection = ({ title, icon, children }) => (
     </div>
     {children}
   </div>
-  
+
 )
 
 const SettingRow = ({ icon, iconWrap = "", title, description, extra, control }) => (
@@ -478,9 +529,9 @@ const SettingRow = ({ icon, iconWrap = "", title, description, extra, control })
 
       <div className="shrink-0">{control}</div>
     </div>
-    
+
   </div>
-  
+
 )
 
 export default Settings

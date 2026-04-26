@@ -37,11 +37,11 @@ export default function FirstTime() {
   }
 
   const updateNow = async () => {
-    try {
-      await window.updater.installNow()
-    } catch (err) {
-      console.error("Erro ao instalar atualização:", err)
-    }
+    const updater = window.updater?.installNow
+      ? window.updater
+      : window.updater?.updater
+
+    await updater?.installNow?.()
   }
 
   const percent = status?.percent || 0
