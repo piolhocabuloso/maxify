@@ -1084,6 +1084,14 @@ export default function ModoJogo() {
                   </div>
                 </div>
 
+
+
+
+
+
+
+
+
                 <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4 group hover:border-blue-500/30 transition-all">
                   <div className="flex items-start gap-3">
                     <Trophy size={18} className="text-yellow-400 mt-0.5" />
