@@ -53,6 +53,8 @@ const execFileAsync = promisify(execFile)
 
 
 
+
+
 autoUpdater.logger = log
 autoUpdater.autoDownload = true
 autoUpdater.autoInstallOnAppQuit = true
