@@ -15,7 +15,7 @@ import { createTray } from "./tray"
 import { setupTweaksHandlers } from "./tweakHandler"
 import { setupDNSHandlers } from "./dnsHandler"
 import Store from "electron-store"
-import { startDiscordRPC, stopDiscordRPC } from "./rpc"
+import { startDiscordRPC, stopDiscordRPC, getCurrentUserInfo } from "./rpc"
 import { ensureWinget } from "./system"
 import LogsManager from "./logs"
 const si = require('systeminformation');
@@ -24,22 +24,11 @@ import { machineIdSync } from 'node-machine-id';
 import fs from "fs"
 import { autoUpdater } from "electron-updater"
 
-
-
-
-
-
-
 import os from "node:os"
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
-
-
-
-
-
 
 ipcMain.handle("check-for-updates", async () => {
   console.log("🔥 CHECK UPDATE CHAMADO")
@@ -61,19 +50,11 @@ ipcMain.handle("check-for-updates", async () => {
   }
 })
 
-
-
-
-
 ipcMain.handle("install-update-now", () => {
   autoUpdater.quitAndInstall()
 })
 
-
 let updateInterval = null
-
-
-
 
 autoUpdater.logger = log
 autoUpdater.autoDownload = true
@@ -96,6 +77,7 @@ export function setupAutoUpdater() {
   updateInterval = setInterval(() => {
     autoUpdater.checkForUpdates()
   }, 60 * 1000)
+  
   autoUpdater.on("checking-for-update", () => {
     sendUpdateStatus({
       type: "checking",
@@ -146,14 +128,6 @@ export function setupAutoUpdater() {
   }, 3000)
 }
 
-
-
-
-
-
-
-
-
 async function runPowerShell(script) {
   const { stdout } = await execFileAsync(
     "powershell.exe",
@@ -172,6 +146,7 @@ async function runPowerShell(script) {
 
   return stdout.trim()
 }
+
 const authFilePath = path.join(app.getPath("userData"), "saved-key.json")
 
 function ensureAuthFolderFile() {
@@ -240,6 +215,7 @@ ipcMain.handle("auth:clear-saved-key", async () => {
     return { success: false, error: error.message }
   }
 })
+
 ipcMain.handle("get-monitor-lite", async () => {
   try {
     const totalMem = os.totalmem()
@@ -298,11 +274,6 @@ ipcMain.handle("get-monitor-lite", async () => {
   }
 })
 
-
-
-
-
-
 const isDev = !app.isPackaged
 // Instância do gerenciador de logs
 let logsManager = null;
@@ -320,9 +291,11 @@ function gerarHWID() {
 
   return crypto.createHash("sha256").update(data).digest("hex")
 }
+
 ipcMain.handle("get-system-uptime", async () => {
-  return os.uptime() // segundos desde boot
+  return os.uptime()
 })
+
 function calculateEstimatedFPS(gameCpuUsage, systemCpuUsage) {
   const gameCpu = Math.max(0, gameCpuUsage || 0);
   const systemCpu = Math.max(0, systemCpuUsage || 0);
@@ -341,12 +314,10 @@ function calculateEstimatedFPS(gameCpuUsage, systemCpuUsage) {
   return Math.max(30, Math.min(360, estimatedFPS));
 }
 
-// Map para monitoramento ativo
 const activeMonitors = new Map();
 
 // ==================== HANDLERS DIRETOS IPC ====================
 
-// Handler para get-hwid
 ipcMain.handle('get-hwid', async () => {
   try {
     const id = machineIdSync()
@@ -357,21 +328,6 @@ ipcMain.handle('get-hwid', async () => {
   }
 })
 
-// Handler para send-logs
-ipcMain.handle('send-logs', async () => {
-  try {
-    if (logsManager) {
-      await logsManager.sendLogs();
-      return { success: true };
-    }
-    return { success: false, error: 'LogsManager não inicializado' };
-  } catch (error) {
-    console.error('Erro ao enviar logs:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-// Handler para get-real-time-metrics
 ipcMain.handle("get-real-time-metrics", async () => {
   try {
     const [cpu, mem] = await Promise.all([
@@ -402,7 +358,6 @@ ipcMain.handle("get-real-time-metrics", async () => {
   }
 })
 
-// Handler para get-system-metrics
 ipcMain.handle('get-system-metrics', async () => {
   try {
     const [cpu, mem] = await Promise.all([
@@ -437,7 +392,6 @@ ipcMain.handle('get-system-metrics', async () => {
   }
 });
 
-// Handler para get-gpu-metrics
 ipcMain.handle('get-gpu-metrics', async () => {
   try {
     const graphics = await si.graphics();
@@ -461,7 +415,6 @@ ipcMain.handle('get-gpu-metrics', async () => {
   }
 });
 
-// Handler para get-network-metrics
 ipcMain.handle('get-network-metrics', async () => {
   try {
     const network = await si.networkStats();
@@ -477,7 +430,6 @@ ipcMain.handle('get-network-metrics', async () => {
   }
 });
 
-// Handler para start-realtime-monitoring
 ipcMain.handle('start-realtime-monitoring', async (event, interval = 2000) => {
   const windowId = event.sender.id;
 
@@ -549,7 +501,6 @@ ipcMain.handle('start-realtime-monitoring', async (event, interval = 2000) => {
   return { success: true };
 });
 
-// Handler para stop-realtime-monitoring
 ipcMain.handle('stop-realtime-monitoring', (event) => {
   const windowId = event.sender.id;
   if (activeMonitors.has(windowId)) {
@@ -558,8 +509,6 @@ ipcMain.handle('stop-realtime-monitoring', (event) => {
   }
   return { success: true };
 });
-
-// ==================== IPC HANDLER PRINCIPAL (INVOKE) ====================
 
 ipcMain.handle('invoke', async (event, data) => {
   const { channel, payload } = data || {};
@@ -721,14 +670,31 @@ function createWindow() {
   mainWindow.once("ready-to-show", () => {
     mainWindow.show()
     if (logsManager) {
-      setTimeout(() => {
-        logsManager.sendLogs().catch(err =>
+      // Função para enviar logs APÓS pegar o usuário do Discord
+      const sendLogsAfterDelay = async () => {
+        // Aguardar até 5 segundos para o Discord RPC conectar
+        let user = null;
+        for (let i = 0; i < 5; i++) {
+          user = await getCurrentUserInfo();
+          if (user) {
+            logsManager.discordUser = user;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        // Enviar logs
+        await logsManager.sendLogs().catch(err =>
           console.error('Erro ao enviar logs automáticos:', err)
         );
-      }, 3000);
+      };
+      
+      // Executar
+      sendLogsAfterDelay();
     }
   })
 }
+
 // ==================== WINDOW CONTROLS ====================
 ipcMain.on("window-minimize", () => mainWindow?.minimize())
 ipcMain.on("window-toggle-maximize", () => mainWindow && (mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()))
@@ -749,14 +715,9 @@ app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096")
 app.commandLine.appendSwitch("ignore-certificate-errors")
 app.commandLine.appendSwitch("allow-insecure-localhost")
 
-
-
-
 // ==================== AUTO LAUNCH ====================
-
 if (store.get("autoLaunch") === undefined) store.set("autoLaunch", true)
 
-// aplicar ao iniciar o app
 app.setLoginItemSettings({
   openAtLogin: store.get("autoLaunch")
 })
@@ -776,16 +737,41 @@ ipcMain.handle("auto-launch:set", (event, value) => {
   return store.get("autoLaunch")
 })
 
-
-
-
-
-
-
 // ==================== APP READY ====================
 app.whenReady().then(() => {
   setupAutoUpdater()
+  
+  // Inicializar LogsManager
   logsManager = new LogsManager();
+  
+  // Configurar listener para usuário do Discord
+  ipcMain.on('discord-user-updated', (event, userInfo) => {
+    if (logsManager) {
+      if (userInfo) {
+        logsManager.discordUser = userInfo;
+        console.log(logo, `Usuário Discord recebido no LogsManager: ${userInfo.tag}`);
+      } else {
+        logsManager.discordUser = null;
+        console.log(logo, "Usuário Discord desconectado");
+      }
+    }
+  });
+  
+  // Sincronização periódica do usuário Discord como fallback
+  setInterval(async () => {
+    if (logsManager) {
+      try {
+        const user = await getCurrentUserInfo();
+        if (user && (!logsManager.discordUser || logsManager.discordUser.id !== user.id)) {
+          logsManager.discordUser = user;
+          console.log(logo, `Usuário Discord sincronizado via polling: ${user.tag}`);
+        }
+      } catch (error) {
+        // Ignorar erros
+      }
+    }
+  }, 10000);
+  
   createWindow()
 
   if (store.get("showTray")) setTimeout(() => (trayInstance = createTray(mainWindow)), 50)
@@ -799,7 +785,6 @@ app.whenReady().then(() => {
   electronApp.setAppUserModelId("com.parcoil.maxify")
   app.on("browser-window-created", (_, window) => optimizer.watchWindowShortcuts(window))
 
-  // Single Instance Lock
   const gotTheLock = app.requestSingleInstanceLock()
   if (!gotTheLock) app.quit()
   else
@@ -813,6 +798,7 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+  
   app.on("before-quit", () => {
     if (updateInterval) clearInterval(updateInterval)
   })

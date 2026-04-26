@@ -44,7 +44,7 @@ export default function Login({ onLogin }) {
             { id: 5, icon: BrainCircuit, x: -10, y: 70, delay: 1.5 },
         ]
         setFloatingIcons(icons)
-    }, [])          
+    }, [])
 
     useEffect(() => {
         async function loadSavedKey() {
@@ -125,7 +125,7 @@ export default function Login({ onLogin }) {
 
             if (keyData.used) {
                 if (keyData.user !== deviceID) {
-                    return falha("Esta key já está vinculada a outro computador.")
+                    return falha("Esta key já está vinculada a outro computador. Solicite reset no suporte.")
                 }
             }
 

