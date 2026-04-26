@@ -29,6 +29,9 @@ export default function FirstTime() {
       ) {
         setOpen(true)
       }
+      if (data.type === "none") {
+        toast.success("Seu Maxify já está atualizado.")
+      }
     })
   }, [])
 
