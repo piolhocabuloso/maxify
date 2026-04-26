@@ -26,9 +26,12 @@ const validListenerChannels = [
   "installed-apps-checked"
 ];
 contextBridge.exposeInMainWorld("updater", {
-  onStatus: (callback) => {
-    ipcRenderer.on("update-status", (_, data) => callback(data))
-  },
+  updater: {
+    onStatus: (callback) => {
+      ipcRenderer.on("update-status", (_, data) => callback(data))
+    },
+    installNow: () => ipcRenderer.invoke("install-update-now"),
+  }
 })
 contextBridge.exposeInMainWorld("electron", {
   isDev: !app.isPackaged,

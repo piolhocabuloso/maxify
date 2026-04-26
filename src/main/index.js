@@ -47,7 +47,9 @@ const execFileAsync = promisify(execFile)
 
 
 
-
+ipcMain.handle("install-update-now", () => {
+  autoUpdater.quitAndInstall()
+})
 
 
 
