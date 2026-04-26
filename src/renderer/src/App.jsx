@@ -18,7 +18,6 @@ import Backup from "./pages/Backup"
 import Otimizacao from "./pages/Otimizacao"
 import Memory from "./pages/Memory"
 import Prioridade from "./pages/Prioridade"
-import UpdatePopup from "./components/UpdatePopup"
 import FirstTime from "./components/firsttime"
 import Login from "./pages/Login"
 
@@ -144,7 +143,6 @@ function App() {
     <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text overflow-hidden">
       <FirstTime />
       <TitleBar />
-      <UpdatePopup />
       <Nav />
 
       <div className="flex flex-1 pt-[50px] relative">
