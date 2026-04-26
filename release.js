@@ -7,31 +7,48 @@ function run(cmd) {
     execSync(cmd, { stdio: "inherit" })
 }
 
+function exists(file) {
+    return fs.existsSync(path.join(__dirname, file))
+}
+
 try {
+    run("gh auth status")
+
     run("git add .")
     run('git commit -m "update release" || echo Nada para commitar')
+
     run("npm version patch")
-    run("git push --follow-tags")
-    run("npm run build")
 
     const pkg = require("./package.json")
     const version = `v${pkg.version}`
 
-    const dist = path.join(__dirname, "dist")
-    const files = fs
-        .readdirSync(dist)
-        .filter(file =>
-            file.endsWith(".exe") ||
-            file.endsWith(".yml") ||
-            file.endsWith(".blockmap")
-        )
-        .map(file => `"dist/${file}"`)
+    run("git push origin main")
+    run(`git push origin ${version}`)
+
+    run("npm run build")
+
+    const distFiles = [
+        `dist/latest.yml`,
+        `dist/maxify-${pkg.version}-setup.exe`,
+        `dist/maxify-${pkg.version}-setup.exe.blockmap`,
+    ]
+
+    const files = distFiles
+        .filter(exists)
+        .map((file) => `"${file}"`)
         .join(" ")
 
-    run(`gh release create ${version} ${files} --title "${version}" --notes "Nova atualização do Maxify"`)
+    if (!files) {
+        throw new Error("Nenhum arquivo encontrado na pasta dist.")
+    }
 
-    console.log("\n✅ Atualização publicada com sucesso!")
+    run(
+        `gh release create ${version} ${files} --title "${version}" --notes "Nova atualização do Maxify" --latest`
+    )
+
+    console.log("\n✅ Release publicada com sucesso!")
+    console.log(`🚀 Versão: ${version}`)
 } catch (err) {
-    console.error("\n❌ Erro ao publicar atualização:")
+    console.error("\n❌ Erro:")
     console.error(err.message)
 }
