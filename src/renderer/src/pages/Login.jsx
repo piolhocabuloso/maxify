@@ -44,7 +44,7 @@ export default function Login({ onLogin }) {
             { id: 5, icon: BrainCircuit, x: -10, y: 70, delay: 1.5 },
         ]
         setFloatingIcons(icons)
-    }, [])
+    }, [])          
 
     useEffect(() => {
         async function loadSavedKey() {

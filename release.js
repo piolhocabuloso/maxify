@@ -29,9 +29,9 @@ try {
 
     const distFiles = [
         `dist/latest.yml`,
-        `dist/maxify-${pkg.version}-setup.exe`,
-        `dist/maxify-${pkg.version}-setup.exe.blockmap`,
-    ]
+        `dist/Maxify-${pkg.version}-setup.exe`,
+        `dist/Maxify-${pkg.version}-setup.exe.blockmap`,
+    ] 
 
     const files = distFiles
         .filter(exists)
