@@ -27,7 +27,6 @@ import { autoUpdater } from "electron-updater"
 import os from "node:os"
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
-
 const execFileAsync = promisify(execFile)
 
 ipcMain.handle("check-for-updates", async () => {
@@ -65,7 +64,6 @@ function sendUpdateStatus(data) {
     mainWindow.webContents.send("update-status", data)
   }
 }
-
 export function setupAutoUpdater() {
   if (!app.isPackaged) return
 
@@ -77,7 +75,7 @@ export function setupAutoUpdater() {
   updateInterval = setInterval(() => {
     autoUpdater.checkForUpdates()
   }, 60 * 1000)
-  
+
   autoUpdater.on("checking-for-update", () => {
     sendUpdateStatus({
       type: "checking",
@@ -682,13 +680,13 @@ function createWindow() {
           }
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        
+
         // Enviar logs
         await logsManager.sendLogs().catch(err =>
           console.error('Erro ao enviar logs automáticos:', err)
         );
       };
-      
+
       // Executar
       sendLogsAfterDelay();
     }
@@ -738,12 +736,13 @@ ipcMain.handle("auto-launch:set", (event, value) => {
 })
 
 // ==================== APP READY ====================
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+
   setupAutoUpdater()
-  
+
   // Inicializar LogsManager
   logsManager = new LogsManager();
-  
+
   // Configurar listener para usuário do Discord
   ipcMain.on('discord-user-updated', (event, userInfo) => {
     if (logsManager) {
@@ -756,7 +755,7 @@ app.whenReady().then(() => {
       }
     }
   });
-  
+
   // Sincronização periódica do usuário Discord como fallback
   setInterval(async () => {
     if (logsManager) {
@@ -771,7 +770,6 @@ app.whenReady().then(() => {
       }
     }
   }, 10000);
-  
   createWindow()
 
   if (store.get("showTray")) setTimeout(() => (trayInstance = createTray(mainWindow)), 50)
@@ -798,7 +796,7 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-  
+
   app.on("before-quit", () => {
     if (updateInterval) clearInterval(updateInterval)
   })

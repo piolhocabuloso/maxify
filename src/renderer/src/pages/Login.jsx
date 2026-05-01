@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react"
-import { invoke } from "@/lib/electron"
+import { useState, useEffect, useRef } from "react"
 import { MotionConfig, motion, AnimatePresence } from "framer-motion"
 import {
     Shield,
@@ -12,17 +11,28 @@ import {
     Check,
     MessageCircle,
     X,
+    ClipboardPaste,
+    ClipboardCopy,
+    Eraser,
+    MousePointerClick,
 } from "lucide-react"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/button"
 import LoginIcon from "../../../../resources/maxifylogo.png"
 import jsonData from "../../../../package.json"
-import { supabase } from "../lib/supabase"
 import { getDeviceID, getDeviceSource } from "../lib/device"
 
 const DISCORD_INVITE_URL = "https://discord.gg/45zyQEe2s3"
+const API_URL = "https://apikey-kohl.vercel.app"
 
 export default function Login({ onLogin }) {
+    const inputKeyRef = useRef(null)
+
+    const [contextMenu, setContextMenu] = useState({
+        open: false,
+        x: 0,
+        y: 0,
+    })
     const [key, setKey] = useState("")
     const [loading, setLoading] = useState(false)
     const [pulse, setPulse] = useState(false)
@@ -34,16 +44,132 @@ export default function Login({ onLogin }) {
     const [rememberKey, setRememberKey] = useState(false)
     const [loadingSavedKey, setLoadingSavedKey] = useState(true)
     const [showDiscordModal, setShowDiscordModal] = useState(false)
+    const closeContextMenu = () => {
+        setContextMenu({
+            open: false,
+            x: 0,
+            y: 0,
+        })
+    }
+
+    const handleKeyContextMenu = (e) => {
+        e.preventDefault()
+
+        if (loading || loadingSavedKey) return
+
+        setContextMenu({
+            open: true,
+            x: e.clientX,
+            y: e.clientY,
+        })
+
+        setTimeout(() => {
+            inputKeyRef.current?.focus()
+        }, 10)
+    }
+
+    const inserirTextoNaKey = (texto) => {
+        const input = inputKeyRef.current
+
+        if (!input) {
+            handleKeyChange(texto)
+            return
+        }
+
+        const start = input.selectionStart ?? key.length
+        const end = input.selectionEnd ?? key.length
+
+        const novaKey = key.slice(0, start) + texto + key.slice(end)
+
+        handleKeyChange(novaKey)
+
+        setTimeout(() => {
+            input.focus()
+            const pos = start + texto.length
+            input.setSelectionRange(pos, pos)
+        }, 0)
+    }
+
+    const colarKey = async () => {
+        try {
+            const texto = await navigator.clipboard.readText()
+
+            if (!texto.trim()) {
+                return falha("Área de transferência vazia.")
+            }
+
+            inserirTextoNaKey(texto.trim())
+            closeContextMenu()
+        } catch (error) {
+            console.error("Erro ao colar:", error)
+            falha("Não foi possível colar a key.")
+            closeContextMenu()
+        }
+    }
+
+    const copiarKey = async () => {
+        try {
+            if (!key.trim()) {
+                return falha("Nenhuma key para copiar.")
+            }
+
+            await navigator.clipboard.writeText(key.trim())
+            closeContextMenu()
+        } catch (error) {
+            console.error("Erro ao copiar:", error)
+            falha("Não foi possível copiar a key.")
+            closeContextMenu()
+        }
+    }
+
+    const limparKey = async () => {
+        await handleKeyChange("")
+        closeContextMenu()
+
+        setTimeout(() => {
+            inputKeyRef.current?.focus()
+        }, 0)
+    }
+
+
+
+
+
+
+
 
     useEffect(() => {
-        const icons = [
+        const handleClick = () => closeContextMenu()
+
+        const handleEsc = (e) => {
+            if (e.key === "Escape") closeContextMenu()
+        }
+
+        window.addEventListener("click", handleClick)
+        window.addEventListener("keydown", handleEsc)
+        window.addEventListener("blur", closeContextMenu)
+
+        return () => {
+            window.removeEventListener("click", handleClick)
+            window.removeEventListener("keydown", handleEsc)
+            window.removeEventListener("blur", closeContextMenu)
+        }
+    }, [])
+
+
+
+
+
+
+
+    useEffect(() => {
+        setFloatingIcons([
             { id: 1, icon: Shield, x: 10, y: 20, delay: 0 },
             { id: 2, icon: Zap, x: 85, y: 60, delay: 0.5 },
             { id: 3, icon: Key, x: 15, y: 100, delay: 1 },
             { id: 4, icon: ChevronsLeftRightEllipsis, x: 90, y: 30, delay: 1.5 },
             { id: 5, icon: BrainCircuit, x: -10, y: 70, delay: 1.5 },
-        ]
-        setFloatingIcons(icons)
+        ])
     }, [])
 
     useEffect(() => {
@@ -55,9 +181,6 @@ export default function Login({ onLogin }) {
                     if (saved?.remember && saved?.key) {
                         setRememberKey(true)
                         setKey(saved.key)
-                    } else {
-                        setRememberKey(false)
-                        setKey("")
                     }
                 }
             } catch (error) {
@@ -84,16 +207,23 @@ export default function Login({ onLogin }) {
         }
     }
 
-    const openDiscord = () => {
-        window.open(DISCORD_INVITE_URL, "_blank")
+    function falha(msg) {
+        setErrorMessage(msg)
+        setErroAnim(true)
+        setLoading(false)
+        setPulse(false)
     }
 
-    const handleDiscordClick = () => {
-        setShowDiscordModal(true)
+    function sucesso(sessionToken) {
+        setAnimando(true)
+        setLoading(false)
+        setPulse(false)
+
+        localStorage.setItem("maxifySessionToken", sessionToken)
+
         setTimeout(() => {
-            openDiscord()
-            setShowDiscordModal(false)
-        }, 1500)
+            onLogin()
+        }, 2000)
     }
 
     async function verificarKey() {
@@ -107,82 +237,37 @@ export default function Login({ onLogin }) {
             const deviceID = await getDeviceID()
             const deviceSource = getDeviceSource()
 
-            console.log("📱 Device ID:", deviceID)
-            console.log("🔧 Fonte do device:", deviceSource)
+            console.log("Device ID:", deviceID)
+            console.log("Fonte:", deviceSource)
 
-            const { data: keyData, error: keyError } = await supabase
-                .from("keys")
-                .select("*")
-                .eq("key", key.trim())
-                .single()
+            const response = await fetch(`${API_URL}/verify-key`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    key: key.trim(),
+                    hwid: deviceID,
+                }),
+            })
 
-            if (keyError || !keyData) {
-                console.error("❌ Erro na busca da key:", keyError)
-                return falha("Key inválida.")
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                return falha(result.message || "Key inválida.")
             }
 
-            console.log("✅ Key encontrada:", keyData)
-
-            if (keyData.used) {
-                if (keyData.user !== deviceID) {
-                    return falha("Esta key já está vinculada a outro computador. Solicite reset no suporte.")
-                }
-            }
-
-            if (keyData.expires_at) {
-                const exp = new Date(keyData.expires_at)
-                const now = new Date()
-
-                if (exp < now) {
-                    return falha("Key expirada.")
-                }
-            }
-
-            if (!keyData.used) {
-                const updateData = {
-                    used: true,
-                    user: deviceID,
-                }
-
-                const { data: updateResult, error: updateError } = await supabase
-                    .from("keys")
-                    .update(updateData)
-                    .eq("key", key.trim())
-                    .select()
-
-                if (updateError) {
-                    console.error("❌ Erro ao atualizar key:", updateError)
-                    return falha("Erro ao registrar uso da key.")
-                }
-
-                console.log("✅ Key atualizada com sucesso:", updateResult)
+            if (!result.sessionToken) {
+                return falha("Servidor não retornou sessão.")
             }
 
             await salvarKeySeNecessario(key, rememberKey)
-            sucesso()
+            sucesso(result.sessionToken)
+
         } catch (err) {
-            console.error("💥 Erro inesperado:", err)
-            falha("Erro ao verificar key. Tente novamente.")
+            console.error("Erro ao verificar key:", err)
+            falha("Erro ao conectar com o servidor.")
         }
-    }
-
-    function falha(msg) {
-        setErrorMessage(msg)
-        setErroAnim(true)
-        setLoading(false)
-        setPulse(false)
-    }
-
-    function sucesso() {
-        setAnimando(true)
-        setLoading(false)
-        setPulse(false)
-
-        localStorage.setItem("isLoggedIn", "true")
-
-        setTimeout(() => {
-            onLogin()
-        }, 2000)
     }
 
     const handleLogin = async (e) => {
@@ -201,15 +286,13 @@ export default function Login({ onLogin }) {
         try {
             if (!window.electron?.auth) return
 
-            if (checked) {
-                if (key.trim()) {
-                    await window.electron.auth.saveKey(key.trim())
-                }
+            if (checked && key.trim()) {
+                await window.electron.auth.saveKey(key.trim())
             } else {
                 await window.electron.auth.clearSavedKey()
             }
         } catch (error) {
-            console.error("Erro ao alterar opção de lembrar key:", error)
+            console.error("Erro ao alterar lembrar key:", error)
         }
     }
 
@@ -231,35 +314,32 @@ export default function Login({ onLogin }) {
         }
     }
 
+    const openDiscord = () => {
+        window.open(DISCORD_INVITE_URL, "_blank")
+    }
+
+    const handleDiscordClick = () => {
+        setShowDiscordModal(true)
+
+        setTimeout(() => {
+            openDiscord()
+            setShowDiscordModal(false)
+        }, 1500)
+    }
+
     useEffect(() => {
         if (erroAnim) {
             const timer = setTimeout(() => {
                 setErroAnim(false)
                 setErrorMessage("")
             }, 3000)
+
             return () => clearTimeout(timer)
         }
     }, [erroAnim])
 
-    useEffect(() => {
-        async function testarConexao() {
-            try {
-                const { error } = await supabase.from("keys").select("*").limit(1)
-
-                if (error) {
-                    console.error("❌ Erro na conexão com Supabase:", error)
-                } else {
-                    console.log("✅ Supabase conectado com sucesso!")
-                }
-            } catch (err) {
-                console.error("💥 Erro no teste de conexão:", err)
-            }
-        }
-
-        testarConexao()
-    }, [])
-
     return (
+
         <MotionConfig transition={{ duration: 0.8, ease: "easeInOut" }}>
             <div className="w-full h-full relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden">
@@ -312,7 +392,6 @@ export default function Login({ onLogin }) {
                 >
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Card className="bg-maxify-card border border-maxify-border rounded-2xl p-5 shadow-lg w-[260px]">
-
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-maxify-border/30 flex items-center justify-center">
                                     <MessageCircle size={18} className="text-blue-400" />
@@ -333,16 +412,7 @@ export default function Login({ onLogin }) {
                                 onClick={handleDiscordClick}
                                 whileHover={{ scale: 1.01 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="
-                    mt-4 w-full
-                    flex items-center justify-between
-                    px-4 py-3
-                    rounded-xl
-                    border border-maxify-border
-                    bg-maxify-border/20
-                    hover:bg-maxify-border/30
-                    transition-all
-                "
+                                className="mt-4 w-full flex items-center justify-between px-4 py-3 rounded-xl border border-maxify-border bg-maxify-border/20 hover:bg-maxify-border/30 transition-all"
                             >
                                 <span className="text-sm font-medium text-maxify-text">
                                     Ir para o Discord
@@ -356,7 +426,6 @@ export default function Login({ onLogin }) {
                                     →
                                 </motion.span>
                             </motion.button>
-
                         </Card>
                     </motion.div>
                 </motion.div>
@@ -376,63 +445,27 @@ export default function Login({ onLogin }) {
                                 initial={{ scale: 0.8, opacity: 0, y: 20 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.8, opacity: 0, y: 20 }}
-                                className="
-                                    fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]
-                                    bg-gradient-to-br from-maxify-bg to-maxify-card
-                                    border border-maxify-border-secondary
-                                    rounded-2xl p-8
-                                    shadow-2xl
-                                    max-w-md w-full mx-4
-                                "
+                                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] bg-gradient-to-br from-maxify-bg to-maxify-card border border-maxify-border-secondary rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4"
                             >
                                 <div className="text-center">
-                                    <motion.div
-                                        animate={{
-                                            rotate: [0, 10, -10, 10, 0],
-                                            scale: [1, 1.1, 1],
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            ease: "easeInOut",
-                                        }}
-                                        className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-[#5865F2] to-[#3f4ed6] mb-6"
-                                    >
+                                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-[#5865F2] to-[#3f4ed6] mb-6">
                                         <MessageCircle size={36} className="text-white" />
-                                    </motion.div>
+                                    </div>
 
                                     <h3 className="text-2xl font-bold text-maxify-text mb-2">
                                         Redirecionando para o Discord! 🚀
                                     </h3>
 
                                     <p className="text-maxify-text-secondary mb-6">
-                                        Você será levado para o nosso servidor do Discord em instantes...
+                                        Você será levado para o nosso servidor do Discord.
                                     </p>
 
-                                    <div className="flex justify-center mb-6">
-                                        <div className="relative">
-                                            <div className="w-12 h-12 border-4 border-maxify-border-secondary rounded-full" />
-                                            <motion.div
-                                                className="absolute top-0 left-0 w-12 h-12 border-4 border-[#5865F2] rounded-full border-t-transparent"
-                                                animate={{ rotate: 360 }}
-                                                transition={{
-                                                    duration: 1,
-                                                    repeat: Infinity,
-                                                    ease: "linear",
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="text-xs text-maxify-text-secondary">
-                                        Se nada acontecer, clique aqui:{" "}
-                                        <button
-                                            onClick={openDiscord}
-                                            className="text-[#5865F2] hover:underline font-medium"
-                                        >
-                                            discord.gg/45zyQEe2s3
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={openDiscord}
+                                        className="text-[#5865F2] hover:underline font-medium"
+                                    >
+                                        discord.gg/45zyQEe2s3
+                                    </button>
                                 </div>
 
                                 <button
@@ -445,7 +478,110 @@ export default function Login({ onLogin }) {
                         </>
                     )}
                 </AnimatePresence>
+                <AnimatePresence>
+                    {contextMenu.open && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                            transition={{ duration: 0.15 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="
+                fixed z-[10000]
+                w-[220px]
+                rounded-2xl
+                border border-maxify-border
+                bg-maxify-card/95
+                backdrop-blur-xl
+                shadow-2xl shadow-blue-500/20
+                p-2
+                overflow-hidden
+            "
+                            style={{
+                                left: contextMenu.x,
+                                top: contextMenu.y,
+                            }}
+                        >
+                            <div className="px-3 py-2 mb-1 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                <div className="flex items-center gap-2 text-blue-300 text-xs font-semibold">
+                                    <MousePointerClick size={14} />
+                                    Ações da key
+                                </div>
+                            </div>
 
+                            <button
+                                type="button"
+                                onClick={colarKey}
+                                className="
+                    w-full flex items-center gap-3
+                    px-3 py-3 rounded-xl
+                    text-sm text-maxify-text
+                    hover:bg-blue-500/15
+                    transition-all
+                "
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-300">
+                                    <ClipboardPaste size={16} />
+                                </div>
+
+                                <div className="flex flex-col items-start">
+                                    <span className="font-semibold">Colar</span>
+                                    <span className="text-[11px] text-maxify-text-secondary">
+                                        Colar key copiada
+                                    </span>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={copiarKey}
+                                className="
+                    w-full flex items-center gap-3
+                    px-3 py-3 rounded-xl
+                    text-sm text-maxify-text
+                    hover:bg-blue-500/15
+                    transition-all
+                "
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-maxify-border/30 flex items-center justify-center text-blue-300">
+                                    <ClipboardCopy size={16} />
+                                </div>
+
+                                <div className="flex flex-col items-start">
+                                    <span className="font-semibold">Copiar</span>
+                                    <span className="text-[11px] text-maxify-text-secondary">
+                                        Copiar key digitada
+                                    </span>
+                                </div>
+                            </button>
+
+                            <div className="h-px bg-maxify-border/50 my-1" />
+
+                            <button
+                                type="button"
+                                onClick={limparKey}
+                                className="
+                    w-full flex items-center gap-3
+                    px-3 py-3 rounded-xl
+                    text-sm text-red-300
+                    hover:bg-red-500/15
+                    transition-all
+                "
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center text-red-300">
+                                    <Eraser size={16} />
+                                </div>
+
+                                <div className="flex flex-col items-start">
+                                    <span className="font-semibold">Limpar</span>
+                                    <span className="text-[11px] text-maxify-text-secondary">
+                                        Apagar campo da key
+                                    </span>
+                                </div>
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 <AnimatePresence>
                     {erroAnim && (
                         <>
@@ -457,46 +593,9 @@ export default function Login({ onLogin }) {
                             />
 
                             <motion.div
-                                className="fixed top-1/2 left-1/2 z-[9999]"
-                                initial={{
-                                    scale: 0,
-                                    opacity: 0.8,
-                                    x: "-50%",
-                                    y: "-50%",
-                                }}
-                                animate={{
-                                    scale: [0, 1.5, 4, 6],
-                                    opacity: [0.8, 1, 0.9, 0],
-                                }}
-                                exit={{ opacity: 0 }}
-                                transition={{
-                                    duration: 0.8,
-                                    ease: "easeOut",
-                                    times: [0, 0.3, 0.6, 1],
-                                }}
-                                style={{
-                                    width: "200px",
-                                    height: "200px",
-                                    borderRadius: "50%",
-                                    boxShadow: `
-                    0 0 40px 20px rgba(255, 0, 0, 0.9),
-                    0 0 120px rgba(255, 0, 0, 0.6),
-                    inset 0 0 40px rgba(255, 0, 0, 0.9)
-                  `,
-                                    background:
-                                        "radial-gradient(circle, rgba(255,0,0,0.6) 20%, rgba(140,0,0,0.4) 60%, transparent 100%)",
-                                    backdropFilter: "blur(10px)",
-                                    filter: "blur(2px)",
-                                }}
-                            />
-
-                            <motion.div
                                 className="fixed top-1/2 left-1/2 text-red-500 font-bold z-[9999] text-center"
                                 initial={{ scale: 0, opacity: 0, x: "-50%", y: "-50%" }}
-                                animate={{
-                                    scale: [0, 1.3, 1],
-                                    opacity: [0, 1, 1],
-                                }}
+                                animate={{ scale: [0, 1.3, 1], opacity: [0, 1, 1] }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.5 }}
                                 style={{
@@ -505,6 +604,7 @@ export default function Login({ onLogin }) {
                                 }}
                             >
                                 ✖
+
                                 {errorMessage && (
                                     <motion.div
                                         className="text-white text-lg mt-4 font-normal max-w-xs"
@@ -516,12 +616,6 @@ export default function Login({ onLogin }) {
                                     </motion.div>
                                 )}
                             </motion.div>
-
-                            <motion.div
-                                className="fixed inset-0 z-[9998]"
-                                animate={{ x: [-10, 10, -10, 10, 0] }}
-                                transition={{ duration: 0.4 }}
-                            />
                         </>
                     )}
                 </AnimatePresence>
@@ -547,40 +641,6 @@ export default function Login({ onLogin }) {
                                 }}
                                 transition={{ duration: 2.3 }}
                             />
-
-                            <motion.div
-                                className="fixed top-1/2 left-1/2 z-[9998]"
-                                initial={{
-                                    scale: 0,
-                                    opacity: 0.7,
-                                    x: "-50%",
-                                    y: "-50%",
-                                }}
-                                animate={{
-                                    scale: [0, 1.5, 4, 8, 12],
-                                    opacity: [0.7, 1, 1, 0.8, 1],
-                                }}
-                                transition={{
-                                    duration: 1.8,
-                                    ease: "easeInOut",
-                                    times: [0, 0.2, 0.5, 0.8, 1],
-                                    delay: 0.6,
-                                }}
-                                style={{
-                                    width: "250px",
-                                    height: "250px",
-                                    borderRadius: "50%",
-                                    boxShadow: `
-                    0 0 40px 20px rgba(0, 140, 255, 0.9),
-                    0 0 120px rgba(0, 140, 255, 0.6),
-                    inset 0 0 40px rgba(0, 140, 255, 0.9)
-                  `,
-                                    background:
-                                        "radial-gradient(circle, rgba(0,120,255,0.6) 20%, rgba(0,50,150,0.8) 60%, rgba(0,20,100,1) 100%)",
-                                    backdropFilter: "blur(10px)",
-                                    filter: "blur(2px)",
-                                }}
-                            />
                         </>
                     )}
                 </AnimatePresence>
@@ -593,6 +653,7 @@ export default function Login({ onLogin }) {
                     <div className="max-w-md w-full relative">
                         {floatingIcons.map((item) => {
                             const IconComponent = item.icon
+
                             return (
                                 <motion.div
                                     key={item.id}
@@ -636,7 +697,6 @@ export default function Login({ onLogin }) {
                                     <motion.div
                                         className="w-20 h-20 bg-maxify-card border border-maxify-border rounded-2xl flex items-center justify-center shadow-lg"
                                         whileHover={{ scale: 1.05, rotate: 5 }}
-                                        transition={{ type: "spring", stiffness: 300 }}
                                     >
                                         <img src={LoginIcon} className="w-12 h-12" alt="Logo" />
                                     </motion.div>
@@ -661,121 +721,108 @@ export default function Login({ onLogin }) {
                                 </motion.p>
                             </div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4 }}
-                            >
-                                <Card className="bg-maxify-card border border-maxify-border rounded-2xl p-8 shadow-lg shadow-maxify-border/30">
-                                    <form onSubmit={handleLogin} className="space-y-6">
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-maxify-text-secondary mb-2 flex items-center gap-2">
-                                                    <Key size={16} />
-                                                    Chave de Acesso
-                                                </label>
+                            <Card className="bg-maxify-card border border-maxify-border rounded-2xl p-8 shadow-lg shadow-maxify-border/30">
+                                <form onSubmit={handleLogin} className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-maxify-text-secondary mb-2 flex items-center gap-2">
+                                            <Key size={16} />
+                                            Chave de Acesso
+                                        </label>
 
-                                                <div className="relative">
-                                                    <input
-                                                        type={showPassword ? "text" : "password"}
-                                                        value={key}
-                                                        onChange={(e) => handleKeyChange(e.target.value)}
-                                                        placeholder={
-                                                            loadingSavedKey
-                                                                ? "Carregando key salva..."
-                                                                : "Digite sua chave de acesso"
-                                                        }
-                                                        className="w-full p-4 bg-maxify-border/20 border border-maxify-border rounded-xl text-maxify-text placeholder-maxify-text-secondary transition-all hover:border-blue-400 hover:bg-blue-500/10 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 outline-none pr-12"
-                                                        required
-                                                        disabled={loading || loadingSavedKey}
-                                                    />
+                                        <div className="relative">
+                                            <input
+                                                ref={inputKeyRef}
+                                                type={showPassword ? "text" : "password"}
+                                                value={key}
+                                                onChange={(e) => handleKeyChange(e.target.value)}
+                                                onContextMenu={handleKeyContextMenu}
+                                                placeholder={
+                                                    loadingSavedKey
+                                                        ? "Carregando key salva..."
+                                                        : "Digite sua chave de acesso"
+                                                }
+                                                className="w-full p-4 bg-maxify-border/20 border border-maxify-border rounded-xl text-maxify-text placeholder-maxify-text-secondary transition-all hover:border-blue-400 hover:bg-blue-500/10 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 outline-none pr-12"
+                                                required
+                                                disabled={loading || loadingSavedKey}
+                                            />
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-maxify-text-secondary hover:text-maxify-text transition-colors"
-                                                        disabled={loading || loadingSavedKey}
-                                                    >
-                                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-maxify-text-secondary hover:text-maxify-text transition-colors"
+                                                disabled={loading || loadingSavedKey}
+                                            >
+                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                                            <label className="flex items-center gap-3 cursor-pointer select-none rounded-xl border border-maxify-border/40 bg-maxify-border/10 px-4 py-3 hover:bg-maxify-border/20 transition-all">
-                                                <div className="relative">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={rememberKey}
-                                                        onChange={(e) => handleRememberChange(e.target.checked)}
-                                                        className="sr-only"
-                                                        disabled={loading || loadingSavedKey}
-                                                    />
+                                    <label className="flex items-center gap-3 cursor-pointer select-none rounded-xl border border-maxify-border/40 bg-maxify-border/10 px-4 py-3 hover:bg-maxify-border/20 transition-all">
+                                        <input
+                                            type="checkbox"
+                                            checked={rememberKey}
+                                            onChange={(e) => handleRememberChange(e.target.checked)}
+                                            className="sr-only"
+                                            disabled={loading || loadingSavedKey}
+                                        />
 
-                                                    <div
-                                                        className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${rememberKey
-                                                            ? "bg-blue-500 border-blue-500 text-white"
-                                                            : "border-maxify-border bg-transparent text-transparent"
-                                                            }`}
-                                                    >
-                                                        <Check size={14} />
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium text-maxify-text">
-                                                        Lembrar key neste computador
-                                                    </span>
-                                                    <span className="text-xs text-maxify-text-secondary/70">
-                                                        Salva a key automaticamente e apaga ao desmarcar
-                                                    </span>
-                                                </div>
-                                            </label>
+                                        <div
+                                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${rememberKey
+                                                ? "bg-blue-500 border-blue-500 text-white"
+                                                : "border-maxify-border bg-transparent text-transparent"
+                                                }`}
+                                        >
+                                            <Check size={14} />
                                         </div>
 
-                                        <motion.div
-                                            whileHover={{ scale: loading ? 1 : 1.02 }}
-                                            whileTap={{ scale: loading ? 1 : 0.98 }}
-                                        >
-                                            <Button
-                                                type="submit"
-                                                disabled={loading || loadingSavedKey}
-                                                className="w-full !bg-gradient-to-r from-blue-500 to-blue-600 hover:!bg-gradient-to-l !text-white py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 shadow-md shadow-blue-500/30 hover:shadow-blue-500/50 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {loading ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <motion.div
-                                                            animate={{ rotate: 360 }}
-                                                            transition={{
-                                                                duration: 1,
-                                                                repeat: Infinity,
-                                                                ease: "linear",
-                                                            }}
-                                                            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                                                        />
-                                                        Verificando Key...
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <Zap size={20} />
-                                                        <span>Acessar Sistema</span>
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </motion.div>
-                                    </form>
-                                </Card>
-                            </motion.div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium text-maxify-text">
+                                                Lembrar key neste computador
+                                            </span>
+                                            <span className="text-xs text-maxify-text-secondary/70">
+                                                Salva a key automaticamente
+                                            </span>
+                                        </div>
+                                    </label>
 
-                            <motion.div
-                                className="text-center mt-8"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.8 }}
-                            >
+                                    <motion.div
+                                        whileHover={{ scale: loading ? 1 : 1.02 }}
+                                        whileTap={{ scale: loading ? 1 : 0.98 }}
+                                    >
+                                        <Button
+                                            type="submit"
+                                            disabled={loading || loadingSavedKey}
+                                            className="w-full !bg-gradient-to-r from-blue-500 to-blue-600 hover:!bg-gradient-to-l !text-white py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 shadow-md shadow-blue-500/30 hover:shadow-blue-500/50 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {loading ? (
+                                                <div className="flex items-center gap-2">
+                                                    <motion.div
+                                                        animate={{ rotate: 360 }}
+                                                        transition={{
+                                                            duration: 1,
+                                                            repeat: Infinity,
+                                                            ease: "linear",
+                                                        }}
+                                                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                                    />
+                                                    Verificando Key...
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <Zap size={20} />
+                                                    <span>Acessar Sistema</span>
+                                                </>
+                                            )}
+                                        </Button>
+                                    </motion.div>
+                                </form>
+                            </Card>
+
+                            <div className="text-center mt-8">
                                 <p className="text-maxify-text-secondary/60 text-sm">
                                     v{jsonData.version || "2.1.0"} • Piolho OptimizeX
                                 </p>
-                            </motion.div>
+                            </div>
                         </motion.div>
                     </div>
                 </motion.div>

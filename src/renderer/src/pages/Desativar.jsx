@@ -40,14 +40,6 @@ const comandosDesativar = [
         command: `bcdedit /set disabledynamictick yes`,
     },
     {
-        id: "cstates",
-        label: "Desativar C-States",
-        description: "Mantém o processador mais ativo para resposta mais rápida.",
-        icon: <Cpu size={18} />,
-        category: "cpu",
-        command: `powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR IDLEDISABLE 1 && powercfg -setactive SCHEME_CURRENT`,
-    },
-    {
         id: "coreParking",
         label: "Desativar Core Parking",
         description: "Desativa o estacionamento de núcleos.",

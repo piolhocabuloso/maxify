@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
+import { motion } from "framer-motion"
+import { ShieldCheck, LockKeyhole, Sparkles, Cpu, Zap } from "lucide-react"
+
 import TitleBar from "./components/titlebar"
 import Nav from "./components/nav"
 import "./app.css"
@@ -21,64 +24,247 @@ import Prioridade from "./pages/Prioridade"
 import FirstTime from "./components/firsttime"
 import Login from "./pages/Login"
 
+import { getDeviceID } from "./lib/device"
+
+const API_URL = "https://apikey-kohl.vercel.app"
+
+function CheckingAccessScreen() {
+  return (
+    <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text overflow-hidden relative">
+      <TitleBar />
+
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -top-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, 80, 0],
+            y: [0, 40, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        <motion.div
+          className="absolute -bottom-28 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, -80, 0],
+            y: [0, -40, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {[...Array(18)].map((_, index) => (
+          <motion.div
+            key={index}
+            className="absolute w-1 h-1 rounded-full bg-blue-400/50"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -18, 0],
+              opacity: [0.25, 0.8, 0.25],
+              scale: [1, 1.4, 1],
+            }}
+            transition={{
+              duration: 2.5 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="
+            w-[420px] max-w-[90%]
+            rounded-3xl
+            border border-maxify-border
+            bg-maxify-card/80
+            backdrop-blur-xl
+            shadow-2xl shadow-blue-500/10
+            p-8
+            relative
+            overflow-hidden
+          "
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-blue-700/10"
+            animate={{
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="relative mb-7">
+              <motion.div
+                className="absolute inset-0 rounded-3xl bg-blue-500/30 blur-xl"
+                animate={{
+                  scale: [1, 1.25, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              <motion.div
+                className="
+                  relative
+                  w-24 h-24
+                  rounded-3xl
+                  border border-blue-400/40
+                  bg-blue-500/10
+                  flex items-center justify-center
+                  shadow-lg shadow-blue-500/20
+                "
+                animate={{
+                  rotate: [0, 2, -2, 0],
+                  scale: [1, 1.04, 1],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <ShieldCheck size={42} className="text-blue-400" />
+
+                <motion.div
+                  className="absolute -right-2 -top-2 w-8 h-8 rounded-xl bg-maxify-card border border-maxify-border flex items-center justify-center"
+                  animate={{
+                    y: [0, -4, 0],
+                    rotate: [0, 8, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <LockKeyhole size={16} className="text-blue-300" />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            <motion.h1
+              className="text-3xl font-bold text-maxify-text mb-2"
+              animate={{
+                opacity: [0.85, 1, 0.85],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              Validando acesso
+            </motion.h1>
+
+            <p className="text-sm text-maxify-text-secondary max-w-xs leading-relaxed mb-7">
+              Estamos confirmando sua sessão com segurança antes de liberar o Maxify.
+            </p>
+
+            <div className="w-full mb-6">
+              <div className="w-full h-2 rounded-full bg-maxify-border/40 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 w-full">
+              <motion.div
+                className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-3 flex flex-col items-center gap-2"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+              >
+                <Cpu size={18} className="text-blue-400" />
+                <span className="text-[11px] text-maxify-text-secondary">
+                  HWID
+                </span>
+              </motion.div>
+
+              <motion.div
+                className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-3 flex flex-col items-center gap-2"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
+              >
+                <Sparkles size={18} className="text-blue-400" />
+                <span className="text-[11px] text-maxify-text-secondary">
+                  Sessão
+                </span>
+              </motion.div>
+
+              <motion.div
+                className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-3 flex flex-col items-center gap-2"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
+              >
+                <Zap size={18} className="text-blue-400" />
+                <span className="text-[11px] text-maxify-text-secondary">
+                  Maxify
+                </span>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "system")
+  const [logado, setLogado] = useState(false)
+  const [verificandoLogin, setVerificandoLogin] = useState(false)
 
-  // 👉 CONTROLE DE LOGIN - sem precisar de digitar a key novamente
-  const [logado, setLogado] = useState(
-    !!localStorage.getItem("userKey")
-  )
-
-  // // // 👉 CONTROLE DE LOGIN
-  // const [logado, setLogado] = useState(false)
+  
 
   useEffect(() => {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const sendInitialLogs = async () => {
       try {
         if (window.electronAPI) {
-          await window.electronAPI.sendLogsOnLogin();
+          await window.electronAPI.sendLogsOnLogin()
         }
       } catch (error) {
-        console.error('Erro ao enviar logs iniciais:', error);
+        console.error("Erro ao enviar logs iniciais:", error)
       }
-    };
+    }
 
-    sendInitialLogs();
+    sendInitialLogs()
 
-
-
-
-
-
-    const applyTheme = (theme) => {
+    const applyTheme = (selectedTheme) => {
       document.body.classList.remove("light", "dark")
 
-      if (theme === "system" || !theme) {
+      if (selectedTheme === "system" || !selectedTheme) {
         const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
           ? "dark"
           : "light"
@@ -86,8 +272,8 @@ function App() {
         document.body.classList.add(systemTheme)
         document.body.setAttribute("data-theme", systemTheme)
       } else {
-        document.body.classList.add(theme)
-        document.body.setAttribute("data-theme", theme)
+        document.body.classList.add(selectedTheme)
+        document.body.setAttribute("data-theme", selectedTheme)
       }
     }
 
@@ -114,10 +300,12 @@ function App() {
     }
   }, [theme])
 
-  // 🔐 SE NÃO TIVER LOGADO → MOSTRA LOGIN COM TITLEBAR
+  if (verificandoLogin) {
+    return <CheckingAccessScreen />
+  }
+
   if (!logado) {
     return (
-
       <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text">
         <TitleBar />
 
@@ -138,7 +326,6 @@ function App() {
     )
   }
 
-  // ✅ APP NORMAL DEPOIS DO LOGIN
   return (
     <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text overflow-hidden">
       <FirstTime />
