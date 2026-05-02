@@ -150,12 +150,12 @@ function Apps() {
             onClick: () => router("/utilities"),
         },
         {
-            title: "Otimização",
-            description: "Área reservada para tweaks, ajustes de desempenho e melhorias do sistema.",
+            title: "Limpeza automática",
+            description: "Configure limpezas automáticas, escolha o intervalo e deixe o sistema cuidar sozinho.",
             icon: Zap,
-            badge: "Performance",
+            badge: "Automático",
             accent: "blue",
-            disabled: true,
+            onClick: () => router("/autoclean"),
         },
         {
             title: "Limpeza",

@@ -1643,15 +1643,6 @@ function Otimizacao() {
                                     <p className="text-2xl font-bold text-cyan-300 mt-1">{formatNumber(stats.total || 0)}</p>
                                 </div>
 
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <p className="text-sm text-maxify-text-secondary">FPS ganhos</p>
-                                    <p className="text-2xl font-bold text-sky-300 mt-1">{formatNumber(stats.fpsGain || 0, 1)}</p>
-                                </div>
-
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <p className="text-sm text-maxify-text-secondary">Latência reduzida</p>
-                                    <p className="text-2xl font-bold text-indigo-300 mt-1">{formatNumber(stats.latencyReduced || 0, 1)}</p>
-                                </div>
                             </div>
 
                             {selected.length > 0 && (

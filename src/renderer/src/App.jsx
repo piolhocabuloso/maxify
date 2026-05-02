@@ -22,6 +22,7 @@ import Otimizacao from "./pages/Otimizacao"
 import Memory from "./pages/Memory"
 import Prioridade from "./pages/Prioridade"
 import FirstTime from "./components/firsttime"
+import AutoClean from "./pages/AutoClean"
 import Login from "./pages/Login"
 
 import { getDeviceID } from "./lib/device"
@@ -347,6 +348,7 @@ function App() {
             <Route path="/prioridade" element={<Prioridade />} />
             <Route path="/memory" element={<Memory />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/autoclean" element={<AutoClean />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

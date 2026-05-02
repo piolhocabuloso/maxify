@@ -16,45 +16,72 @@ import { setupTweaksHandlers } from "./tweakHandler"
 import { setupDNSHandlers } from "./dnsHandler"
 import Store from "electron-store"
 import { startDiscordRPC, stopDiscordRPC, getCurrentUserInfo } from "./rpc"
-import { ensureWinget } from "./system"
 import LogsManager from "./logs"
-const si = require('systeminformation');
+const si = require("systeminformation")
 import crypto from "crypto"
-import { machineIdSync } from 'node-machine-id';
+import { machineIdSync } from "node-machine-id"
 import fs from "fs"
 import { autoUpdater } from "electron-updater"
 
 import os from "node:os"
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
+
 const execFileAsync = promisify(execFile)
 
-ipcMain.handle("check-for-updates", async () => {
-  console.log("🔥 CHECK UPDATE CHAMADO")
+const isDev = !app.isPackaged
 
-  try {
-    if (!app.isPackaged) {
-      return {
-        success: false,
-        message: "Só funciona no app instalado",
-      }
-    }
+// ==================== LOGGER ====================
+console.log = log.log
+console.error = log.error
+console.warn = log.warn
+export const logo = "[Maxify]:"
+log.initialize()
 
-    await autoUpdater.checkForUpdates()
-
-    return { success: true }
-  } catch (err) {
-    console.error(err)
-    return { success: false, message: err.message }
-  }
+// ==================== SENTRY ====================
+Sentry.init({
+  dsn: "https://d1e8991c715dd717e6b7b44dbc5c43dd@o4509167771648000.ingest.us.sentry.io/4509167772958720",
+  ipcMode: IPCMode.Both,
 })
 
-ipcMain.handle("install-update-now", () => {
-  autoUpdater.quitAndInstall()
-})
-
+// ==================== STORE ====================
+const store = new Store()
+let trayInstance = null
+let logsManager = null
 let updateInterval = null
 
+if (store.get("showTray") === undefined) store.set("showTray", true)
+if (store.get("autoLaunch") === undefined) store.set("autoLaunch", true)
+
+// ==================== MAIN WINDOW ====================
+export let mainWindow = null
+
+// ==================== SINGLE INSTANCE ====================
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+}
+
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow()
+    return
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore()
+  }
+
+  if (!mainWindow.isVisible()) {
+    mainWindow.show()
+  }
+
+  mainWindow.focus()
+  mainWindow.moveTop()
+}
+
+// ==================== AUTO UPDATER ====================
 autoUpdater.logger = log
 autoUpdater.autoDownload = true
 autoUpdater.autoInstallOnAppQuit = true
@@ -64,6 +91,7 @@ function sendUpdateStatus(data) {
     mainWindow.webContents.send("update-status", data)
   }
 }
+
 export function setupAutoUpdater() {
   if (!app.isPackaged) return
 
@@ -126,6 +154,31 @@ export function setupAutoUpdater() {
   }, 3000)
 }
 
+ipcMain.handle("check-for-updates", async () => {
+  console.log("🔥 CHECK UPDATE CHAMADO")
+
+  try {
+    if (!app.isPackaged) {
+      return {
+        success: false,
+        message: "Só funciona no app instalado",
+      }
+    }
+
+    await autoUpdater.checkForUpdates()
+
+    return { success: true }
+  } catch (err) {
+    console.error(err)
+    return { success: false, message: err.message }
+  }
+})
+
+ipcMain.handle("install-update-now", () => {
+  autoUpdater.quitAndInstall()
+})
+
+// ==================== POWERSHELL HELPER ====================
 async function runPowerShell(script) {
   const { stdout } = await execFileAsync(
     "powershell.exe",
@@ -145,6 +198,7 @@ async function runPowerShell(script) {
   return stdout.trim()
 }
 
+// ==================== AUTH KEY FILE ====================
 const authFilePath = path.join(app.getPath("userData"), "saved-key.json")
 
 function ensureAuthFolderFile() {
@@ -214,6 +268,42 @@ ipcMain.handle("auth:clear-saved-key", async () => {
   }
 })
 
+// ==================== FUNÇÕES AUXILIARES ====================
+function gerarHWID() {
+  const data = [
+    os.hostname(),
+    os.platform(),
+    os.arch(),
+    os.cpus()[0]?.model,
+    os.totalmem(),
+  ].join("|")
+
+  return crypto.createHash("sha256").update(data).digest("hex")
+}
+
+function calculateEstimatedFPS(gameCpuUsage, systemCpuUsage) {
+  const gameCpu = Math.max(0, gameCpuUsage || 0)
+  const systemCpu = Math.max(0, systemCpuUsage || 0)
+
+  if (gameCpu === 0) return 60
+
+  const cpuBottleneck = Math.max(0, 100 - systemCpu)
+  const gameEfficiency = Math.min(100, gameCpu * 1.5)
+
+  let baseFPS = 144
+
+  if (cpuBottleneck < 20) baseFPS = 60
+  else if (cpuBottleneck < 40) baseFPS = 90
+  else if (cpuBottleneck < 60) baseFPS = 120
+
+  const estimatedFPS = Math.round(baseFPS * (gameEfficiency / 100))
+
+  return Math.max(30, Math.min(360, estimatedFPS))
+}
+
+const activeMonitors = new Map()
+
+// ==================== MONITOR LITE ====================
 ipcMain.handle("get-monitor-lite", async () => {
   try {
     const totalMem = os.totalmem()
@@ -222,12 +312,15 @@ ipcMain.handle("get-monitor-lite", async () => {
 
     const psScript = `
       $cpu = (Get-Counter '\\Processor(_Total)\\% Processor Time').CounterSamples.CookedValue
+
       $down = (Get-Counter '\\Network Interface(*)\\Bytes Received/sec').CounterSamples |
         Where-Object { $_.InstanceName -notmatch 'isatap|loopback|teredo' } |
         Measure-Object -Property CookedValue -Sum
+
       $up = (Get-Counter '\\Network Interface(*)\\Bytes Sent/sec').CounterSamples |
         Where-Object { $_.InstanceName -notmatch 'isatap|loopback|teredo' } |
         Measure-Object -Property CookedValue -Sum
+
       $diskRead = (Get-Counter '\\PhysicalDisk(_Total)\\Disk Read Bytes/sec').CounterSamples.CookedValue
       $diskWrite = (Get-Counter '\\PhysicalDisk(_Total)\\Disk Write Bytes/sec').CounterSamples.CookedValue
 
@@ -265,6 +358,7 @@ ipcMain.handle("get-monitor-lite", async () => {
     }
   } catch (error) {
     console.error("Erro get-monitor-lite:", error)
+
     return {
       success: false,
       error: error.message,
@@ -272,65 +366,26 @@ ipcMain.handle("get-monitor-lite", async () => {
   }
 })
 
-const isDev = !app.isPackaged
-// Instância do gerenciador de logs
-let logsManager = null;
-
-// ==================== FUNÇÕES AUXILIARES ====================
-
-function gerarHWID() {
-  const data = [
-    os.hostname(),
-    os.platform(),
-    os.arch(),
-    os.cpus()[0]?.model,
-    os.totalmem(),
-  ].join("|")
-
-  return crypto.createHash("sha256").update(data).digest("hex")
-}
-
-ipcMain.handle("get-system-uptime", async () => {
-  return os.uptime()
-})
-
-function calculateEstimatedFPS(gameCpuUsage, systemCpuUsage) {
-  const gameCpu = Math.max(0, gameCpuUsage || 0);
-  const systemCpu = Math.max(0, systemCpuUsage || 0);
-
-  if (gameCpu === 0) return 60;
-
-  const cpuBottleneck = Math.max(0, 100 - systemCpu);
-  const gameEfficiency = Math.min(100, gameCpu * 1.5);
-
-  let baseFPS = 144;
-  if (cpuBottleneck < 20) baseFPS = 60;
-  else if (cpuBottleneck < 40) baseFPS = 90;
-  else if (cpuBottleneck < 60) baseFPS = 120;
-
-  const estimatedFPS = Math.round(baseFPS * (gameEfficiency / 100));
-  return Math.max(30, Math.min(360, estimatedFPS));
-}
-
-const activeMonitors = new Map();
-
 // ==================== HANDLERS DIRETOS IPC ====================
-
-ipcMain.handle('get-hwid', async () => {
+ipcMain.handle("get-hwid", async () => {
   try {
     const id = machineIdSync()
     return id
   } catch (error) {
-    console.error('Erro ao obter HWID:', error)
+    console.error("Erro ao obter HWID:", error)
     return `pc-${Math.random().toString(36).substring(2, 15)}`
   }
+})
+
+ipcMain.handle("get-system-uptime", async () => {
+  return os.uptime()
 })
 
 ipcMain.handle("get-real-time-metrics", async () => {
   try {
     const [cpu, mem] = await Promise.all([
       si.currentLoad(),
-      si.mem()
+      si.mem(),
     ])
 
     return {
@@ -340,10 +395,11 @@ ipcMain.handle("get-real-time-metrics", async () => {
       gpu: 0,
       networkUpload: 0,
       networkDownload: 0,
-      temp: 0
+      temp: 0,
     }
   } catch (err) {
     console.error("Erro métricas:", err)
+
     return {
       cpu: 0,
       ram: 0,
@@ -351,24 +407,24 @@ ipcMain.handle("get-real-time-metrics", async () => {
       gpu: 0,
       networkUpload: 0,
       networkDownload: 0,
-      temp: 0
+      temp: 0,
     }
   }
 })
 
-ipcMain.handle('get-system-metrics', async () => {
+ipcMain.handle("get-system-metrics", async () => {
   try {
     const [cpu, mem] = await Promise.all([
       si.currentLoad(),
-      si.mem()
-    ]);
+      si.mem(),
+    ])
 
     return {
       cpu: {
         total: cpu.currentLoad || 0,
         user: cpu.currentLoadUser || 0,
         system: cpu.currentLoadSystem || 0,
-        cores: cpu.cpus ? cpu.cpus.map(core => core.load) : []
+        cores: cpu.cpus ? cpu.cpus.map((core) => core.load) : [],
       },
       memory: {
         total: mem.total || 0,
@@ -376,99 +432,142 @@ ipcMain.handle('get-system-metrics', async () => {
         free: mem.free || 0,
         active: mem.active || 0,
         available: mem.available || 0,
-        percentUsed: mem.total > 0 ? (mem.used / mem.total) * 100 : 0
+        percentUsed: mem.total > 0 ? (mem.used / mem.total) * 100 : 0,
       },
-      timestamp: Date.now()
-    };
+      timestamp: Date.now(),
+    }
   } catch (error) {
-    console.error('Error getting system metrics:', error);
-    return {
-      cpu: { total: 0, user: 0, system: 0, cores: [] },
-      memory: { total: 0, used: 0, free: 0, active: 0, available: 0, percentUsed: 0 },
-      timestamp: Date.now()
-    };
-  }
-});
+    console.error("Error getting system metrics:", error)
 
-ipcMain.handle('get-gpu-metrics', async () => {
-  try {
-    const graphics = await si.graphics();
     return {
-      controllers: graphics.controllers.map(ctrl => ({
-        name: ctrl.model || 'Unknown',
-        vendor: ctrl.vendor || 'Unknown',
+      cpu: {
+        total: 0,
+        user: 0,
+        system: 0,
+        cores: [],
+      },
+      memory: {
+        total: 0,
+        used: 0,
+        free: 0,
+        active: 0,
+        available: 0,
+        percentUsed: 0,
+      },
+      timestamp: Date.now(),
+    }
+  }
+})
+
+ipcMain.handle("get-gpu-metrics", async () => {
+  try {
+    const graphics = await si.graphics()
+
+    return {
+      controllers: graphics.controllers.map((ctrl) => ({
+        name: ctrl.model || "Unknown",
+        vendor: ctrl.vendor || "Unknown",
         memoryTotal: ctrl.vram || 0,
         memoryUsed: ctrl.vramDynamic || ctrl.vramUsed || 0,
         temperature: ctrl.temperatureGpu || null,
-        utilization: ctrl.utilizationGpu || null
+        utilization: ctrl.utilizationGpu || null,
       })),
-      displays: graphics.displays.map(display => ({
+      displays: graphics.displays.map((display) => ({
         resolution: `${display.resolutionX || 0}x${display.resolutionY || 0}`,
-        refreshRate: display.currentRefreshRate || 0
-      }))
-    };
+        refreshRate: display.currentRefreshRate || 0,
+      })),
+    }
   } catch (error) {
-    console.error('Error getting GPU metrics:', error);
-    return { controllers: [], displays: [] };
+    console.error("Error getting GPU metrics:", error)
+    return { controllers: [], displays: [] }
   }
-});
+})
 
-ipcMain.handle('get-network-metrics', async () => {
+ipcMain.handle("get-network-metrics", async () => {
   try {
-    const network = await si.networkStats();
-    return network.map(iface => ({
-      name: iface.iface || 'unknown',
+    const network = await si.networkStats()
+
+    return network.map((iface) => ({
+      name: iface.iface || "unknown",
       rxSec: iface.rx_sec || 0,
       txSec: iface.tx_sec || 0,
-      speed: iface.speed || 0
-    }));
+      speed: iface.speed || 0,
+    }))
   } catch (error) {
-    console.error('Error getting network metrics:', error);
-    return [];
+    console.error("Error getting network metrics:", error)
+    return []
   }
-});
+})
 
-ipcMain.handle('start-realtime-monitoring', async (event, interval = 2000) => {
-  const windowId = event.sender.id;
+ipcMain.handle("start-realtime-monitoring", async (event, interval = 2000) => {
+  const windowId = event.sender.id
 
   if (activeMonitors.has(windowId)) {
-    clearInterval(activeMonitors.get(windowId));
+    clearInterval(activeMonitors.get(windowId))
   }
 
   const intervalId = setInterval(async () => {
     try {
       const [cpu, memory] = await Promise.all([
         si.currentLoad(),
-        si.mem()
-      ]);
+        si.mem(),
+      ])
 
-      let gameProcesses = [];
-      let totalGameCpu = 0;
+      let gameProcesses = []
+      let totalGameCpu = 0
 
       try {
-        const processes = await si.processes();
+        const processes = await si.processes()
+
         if (processes && processes.list) {
-          const gameKeywords = ['cs2', 'valorant', 'fortnite', 'overwatch', 'steam', 'game', 'minecraft', 'roblox', 'league', 'dota', 'apex', 'cod', 'battlefield'];
+          const gameKeywords = [
+            "cs2",
+            "valorant",
+            "fortnite",
+            "overwatch",
+            "steam",
+            "game",
+            "minecraft",
+            "roblox",
+            "league",
+            "dota",
+            "apex",
+            "cod",
+            "battlefield",
+          ]
 
           gameProcesses = processes.list
-            .filter(p => p && p.name && gameKeywords.some(keyword => p.name.toLowerCase().includes(keyword)))
+            .filter(
+              (p) =>
+                p &&
+                p.name &&
+                gameKeywords.some((keyword) =>
+                  p.name.toLowerCase().includes(keyword)
+                )
+            )
             .slice(0, 5)
-            .map(p => ({
-              name: p.name || 'Unknown',
+            .map((p) => ({
+              name: p.name || "Unknown",
               cpu: p.cpu || 0,
               memory: p.mem || 0,
-              pid: p.pid || 0
-            }));
+              pid: p.pid || 0,
+            }))
 
-          totalGameCpu = gameProcesses.reduce((sum, p) => sum + (p.cpu || 0), 0);
+          totalGameCpu = gameProcesses.reduce(
+            (sum, p) => sum + (p.cpu || 0),
+            0
+          )
         }
       } catch (processError) {
-        console.warn('Could not get processes:', processError.message);
+        console.warn("Could not get processes:", processError.message)
       }
 
-      const estimatedFPS = calculateEstimatedFPS(totalGameCpu, cpu.currentLoad || 0);
+      const estimatedFPS = calculateEstimatedFPS(
+        totalGameCpu,
+        cpu.currentLoad || 0
+      )
 
-      event.sender.send('realtime-metrics', {
+      event.sender.send("realtime-metrics", {
         timestamp: new Date().toLocaleTimeString(),
         fps: estimatedFPS,
         system: {
@@ -476,141 +575,115 @@ ipcMain.handle('start-realtime-monitoring', async (event, interval = 2000) => {
           memory: {
             used: memory.used || 0,
             total: memory.total || 0,
-            percent: memory.total > 0 ? (memory.used / memory.total) * 100 : 0
-          }
+            percent:
+              memory.total > 0 ? (memory.used / memory.total) * 100 : 0,
+          },
         },
         games: {
           processes: gameProcesses.length,
-          list: gameProcesses
-        }
-      });
+          list: gameProcesses,
+        },
+      })
     } catch (error) {
-      console.error('Monitoring error:', error);
-      event.sender.send('realtime-metrics', {
+      console.error("Monitoring error:", error)
+
+      event.sender.send("realtime-metrics", {
         timestamp: new Date().toLocaleTimeString(),
         fps: 0,
-        system: { cpu: 0, memory: { percent: 0 } },
-        games: { processes: 0, list: [] }
-      });
+        system: {
+          cpu: 0,
+          memory: {
+            percent: 0,
+          },
+        },
+        games: {
+          processes: 0,
+          list: [],
+        },
+      })
     }
-  }, interval);
+  }, interval)
 
-  activeMonitors.set(windowId, intervalId);
-  return { success: true };
-});
+  activeMonitors.set(windowId, intervalId)
 
-ipcMain.handle('stop-realtime-monitoring', (event) => {
-  const windowId = event.sender.id;
+  return { success: true }
+})
+
+ipcMain.handle("stop-realtime-monitoring", (event) => {
+  const windowId = event.sender.id
+
   if (activeMonitors.has(windowId)) {
-    clearInterval(activeMonitors.get(windowId));
-    activeMonitors.delete(windowId);
+    clearInterval(activeMonitors.get(windowId))
+    activeMonitors.delete(windowId)
   }
-  return { success: true };
-});
 
-ipcMain.handle('invoke', async (event, data) => {
-  const { channel, payload } = data || {};
+  return { success: true }
+})
 
-  console.log(`IPC invoke: ${channel}`, payload || '');
+ipcMain.handle("invoke", async (event, data) => {
+  const { channel, payload } = data || {}
+
+  console.log(`IPC invoke: ${channel}`, payload || "")
 
   try {
     switch (channel) {
-      case 'run-powershell':
-        return await executePowerShell(event, payload);
+      case "run-powershell":
+        return await executePowerShell(event, payload)
 
-      case 'get-system-metrics':
-        return await ipcMain._getSystemMetrics?.() || { success: false, error: 'Handler not available' };
-
-      case 'get-gpu-metrics':
-        return await ipcMain._getGpuMetrics?.() || { success: false, error: 'Handler not available' };
-
-      case 'get-network-metrics':
-        return await ipcMain._getNetworkMetrics?.() || { success: false, error: 'Handler not available' };
-
-      case 'start-realtime-monitoring':
-        return await ipcMain._startRealtimeMonitoring?.(event, payload?.interval || 2000) || { success: false, error: 'Handler not available' };
-
-      case 'stop-realtime-monitoring':
-        return await ipcMain._stopRealtimeMonitoring?.(event) || { success: false, error: 'Handler not available' };
-
-      case 'test-connection':
-        return { success: true, message: 'Connected to Electron' };
+      case "test-connection":
+        return {
+          success: true,
+          message: "Connected to Electron",
+        }
 
       default:
-        console.warn(`Unknown IPC channel: ${channel}`);
-        return { success: false, error: `Unknown channel: ${channel}` };
+        console.warn(`Unknown IPC channel: ${channel}`)
+
+        return {
+          success: false,
+          error: `Unknown channel: ${channel}`,
+        }
     }
   } catch (error) {
-    console.error(`Error in IPC handler ${channel}:`, error);
-    return { success: false, error: error.message };
-  }
-});
+    console.error(`Error in IPC handler ${channel}:`, error)
 
-// ==================== SENTRY ====================
-Sentry.init({
-  dsn: "https://d1e8991c715dd717e6b7b44dbc5c43dd@o4509167771648000.ingest.us.sentry.io/4509167772958720",
-  ipcMode: IPCMode.Both,
-})
-
-// ==================== LOGGER ====================
-console.log = log.log
-console.error = log.error
-console.warn = log.warn
-export const logo = "[Maxify]:"
-log.initialize()
-
-// ==================== DEFENDER EXCLUSION ====================
-async function Defender() {
-  const Apppath = path.dirname(process.execPath)
-  if (app.isPackaged) {
-    const result = await executePowerShell(null, {
-      script: `
-        if (Get-Command Add-MpPreference -ErrorAction SilentlyContinue) {
-          Add-MpPreference -ExclusionPath '${Apppath}'
-          Write-Output "Success"
-        } else {
-          Write-Output "Skipped"
-        }
-      `,
-      name: "Add-MpPreference",
-    })
-
-    if (result.output && result.output.includes("Skipped")) {
-      console.log(logo, "Exclusão do Windows Defender ignorada (Defender não encontrado)")
-    } else {
-      console.log(logo, "Adicionado Maxify às exclusões do Windows Defender")
+    return {
+      success: false,
+      error: error.message,
     }
-  } else {
-    console.log(logo, "Executando no modo de desenvolvimento, ignorando a exclusao do Windows Defender")
   }
-}
-
-// ==================== STORE ====================
-const store = new Store()
-let trayInstance = null
-if (store.get("showTray") === undefined) store.set("showTray", true)
+})
 
 // ==================== TRAY HANDLERS ====================
 ipcMain.handle("tray:get", () => store.get("showTray"))
+
 ipcMain.handle("tray:set", (event, value) => {
   store.set("showTray", value)
+
   if (mainWindow) {
-    if (value && !trayInstance) trayInstance = createTray(mainWindow)
-    else if (!value && trayInstance) {
+    if (value && !trayInstance) {
+      trayInstance = createTray(mainWindow)
+    } else if (!value && trayInstance) {
       trayInstance.destroy()
       trayInstance = null
     }
   }
+
   return store.get("showTray")
 })
 
 // ==================== DISCORD RPC ====================
 const initDiscordRPC = () => {
-  if (store.get("discord-rpc") === undefined) store.set("discord-rpc", true)
+  if (store.get("discord-rpc") === undefined) {
+    store.set("discord-rpc", true)
+  }
 
   if (store.get("discord-rpc") === true) {
     console.log(logo, "Iniciando o Discord RPC")
-    startDiscordRPC().catch(err => console.warn("(main.js)", "Falha ao iniciar o Discord RPC:", err.message))
+
+    startDiscordRPC().catch((err) =>
+      console.warn("(main.js)", "Falha ao iniciar o Discord RPC:", err.message)
+    )
   }
 }
 
@@ -618,21 +691,33 @@ ipcMain.handle("discord-rpc:toggle", async (event, value) => {
   try {
     if (value) {
       store.set("discord-rpc", true)
-      startDiscordRPC().catch(err => console.warn("(main.js)", "Falha ao iniciar o Discord RPC:", err.message))
+
+      startDiscordRPC().catch((err) =>
+        console.warn("(main.js)", "Falha ao iniciar o Discord RPC:", err.message)
+      )
     } else {
       store.set("discord-rpc", false)
       stopDiscordRPC()
     }
-    return { success: true, enabled: store.get("discord-rpc") }
+
+    return {
+      success: true,
+      enabled: store.get("discord-rpc"),
+    }
   } catch (error) {
     console.error(logo, "Error toggling Discord RPC:", error)
-    return { success: false, error: error.message, enabled: store.get("discord-rpc") }
+
+    return {
+      success: false,
+      error: error.message,
+      enabled: store.get("discord-rpc"),
+    }
   }
 })
+
 ipcMain.handle("discord-rpc:get", () => store.get("discord-rpc"))
 
-// ==================== MAIN WINDOW ====================
-export let mainWindow = null
+// ==================== MAIN WINDOW CREATE ====================
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1380,
@@ -649,10 +734,11 @@ function createWindow() {
       devTools: !app.isPackaged,
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
     },
   })
-  mainWindow.webContents.setWindowOpenHandler(details => {
+
+  mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: "deny" }
   })
@@ -660,46 +746,66 @@ function createWindow() {
   if (isDev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"])
   } else {
-    mainWindow.loadFile(
-      path.join(__dirname, "../renderer/index.html")
-    )
+    mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"))
   }
 
   mainWindow.once("ready-to-show", () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+
     mainWindow.show()
+    mainWindow.focus()
+
     if (logsManager) {
-      // Função para enviar logs APÓS pegar o usuário do Discord
       const sendLogsAfterDelay = async () => {
-        // Aguardar até 5 segundos para o Discord RPC conectar
-        let user = null;
+        let user = null
+
         for (let i = 0; i < 5; i++) {
-          user = await getCurrentUserInfo();
+          user = await getCurrentUserInfo()
+
           if (user) {
-            logsManager.discordUser = user;
-            break;
+            logsManager.discordUser = user
+            break
           }
-          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          await new Promise((resolve) => setTimeout(resolve, 1000))
         }
 
-        // Enviar logs
-        await logsManager.sendLogs().catch(err =>
-          console.error('Erro ao enviar logs automáticos:', err)
-        );
-      };
+        await logsManager.sendLogs().catch((err) =>
+          console.error("Erro ao enviar logs automáticos:", err)
+        )
+      }
 
-      // Executar
-      sendLogsAfterDelay();
+      sendLogsAfterDelay()
     }
+  })
+
+  mainWindow.on("closed", () => {
+    mainWindow = null
   })
 }
 
 // ==================== WINDOW CONTROLS ====================
-ipcMain.on("window-minimize", () => mainWindow?.minimize())
-ipcMain.on("window-toggle-maximize", () => mainWindow && (mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()))
+ipcMain.on("window-minimize", () => {
+  mainWindow?.minimize()
+})
+
+ipcMain.on("window-toggle-maximize", () => {
+  if (!mainWindow) return
+
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize()
+  } else {
+    mainWindow.maximize()
+  }
+})
+
 ipcMain.on("window-close", () => {
-  if (mainWindow) {
-    if (store.get("showTray")) mainWindow.hide()
-    else app.quit()
+  if (!mainWindow) return
+
+  if (store.get("showTray")) {
+    mainWindow.hide()
+  } else {
+    app.quit()
   }
 })
 
@@ -714,10 +820,8 @@ app.commandLine.appendSwitch("ignore-certificate-errors")
 app.commandLine.appendSwitch("allow-insecure-localhost")
 
 // ==================== AUTO LAUNCH ====================
-if (store.get("autoLaunch") === undefined) store.set("autoLaunch", true)
-
 app.setLoginItemSettings({
-  openAtLogin: store.get("autoLaunch")
+  openAtLogin: store.get("autoLaunch"),
 })
 
 ipcMain.handle("auto-launch:get", () => {
@@ -729,75 +833,110 @@ ipcMain.handle("auto-launch:set", (event, value) => {
 
   app.setLoginItemSettings({
     openAtLogin: value,
-    path: process.execPath
+    path: process.execPath,
   })
 
   return store.get("autoLaunch")
 })
 
 // ==================== APP READY ====================
-app.whenReady().then(async () => {
+if (gotTheLock) {
+  app.on("second-instance", () => {
+    showMainWindow()
+  })
 
-  setupAutoUpdater()
+  app.whenReady().then(async () => {
+    setupAutoUpdater()
 
-  // Inicializar LogsManager
-  logsManager = new LogsManager();
-
-  // Configurar listener para usuário do Discord
-  ipcMain.on('discord-user-updated', (event, userInfo) => {
-    if (logsManager) {
-      if (userInfo) {
-        logsManager.discordUser = userInfo;
-        console.log(logo, `Usuário Discord recebido no LogsManager: ${userInfo.tag}`);
-      } else {
-        logsManager.discordUser = null;
-        console.log(logo, "Usuário Discord desconectado");
-      }
-    }
-  });
-
-  // Sincronização periódica do usuário Discord como fallback
-  setInterval(async () => {
-    if (logsManager) {
+    logsManager = new LogsManager()
+    if (!app.isPackaged) {
       try {
-        const user = await getCurrentUserInfo();
-        if (user && (!logsManager.discordUser || logsManager.discordUser.id !== user.id)) {
-          logsManager.discordUser = user;
-          console.log(logo, `Usuário Discord sincronizado via polling: ${user.tag}`);
-        }
+        const ses = await import("electron").then((m) => m.session)
+
+        await ses.defaultSession.clearCache()
+        await ses.defaultSession.clearStorageData({
+          storages: ["appcache", "shadercache", "serviceworkers", "cachestorage"],
+        })
+
+        console.log("[Maxify]: Cache de desenvolvimento limpo")
       } catch (error) {
-        // Ignorar erros
+        console.warn("[Maxify]: Falha ao limpar cache dev:", error.message)
       }
     }
-  }, 10000);
-  createWindow()
-
-  if (store.get("showTray")) setTimeout(() => (trayInstance = createTray(mainWindow)), 50)
-  setTimeout(() => {
-    void Defender()
-    setupTweaksHandlers()
-    setupDNSHandlers()
-    initDiscordRPC()
-  }, 0)
-
-  electronApp.setAppUserModelId("com.parcoil.maxify")
-  app.on("browser-window-created", (_, window) => optimizer.watchWindowShortcuts(window))
-
-  const gotTheLock = app.requestSingleInstanceLock()
-  if (!gotTheLock) app.quit()
-  else
-    app.on("second-instance", () => {
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) mainWindow.restore()
-        mainWindow.focus()
+    ipcMain.on("discord-user-updated", (event, userInfo) => {
+      if (logsManager) {
+        if (userInfo) {
+          logsManager.discordUser = userInfo
+          console.log(
+            logo,
+            `Usuário Discord recebido no LogsManager: ${userInfo.tag}`
+          )
+        } else {
+          logsManager.discordUser = null
+          console.log(logo, "Usuário Discord desconectado")
+        }
       }
     })
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+    setInterval(async () => {
+      if (logsManager) {
+        try {
+          const user = await getCurrentUserInfo()
 
-  app.on("before-quit", () => {
-    if (updateInterval) clearInterval(updateInterval)
+          if (
+            user &&
+            (!logsManager.discordUser || logsManager.discordUser.id !== user.id)
+          ) {
+            logsManager.discordUser = user
+            console.log(
+              logo,
+              `Usuário Discord sincronizado via polling: ${user.tag}`
+            )
+          }
+        } catch (error) {
+          // Ignorar erros
+        }
+      }
+    }, 10000)
+
+    createWindow()
+
+    if (store.get("showTray")) {
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          trayInstance = createTray(mainWindow)
+        }
+      }, 50)
+    }
+
+    setTimeout(() => {
+      setupTweaksHandlers()
+      setupDNSHandlers()
+      initDiscordRPC()
+    }, 0)
+
+    electronApp.setAppUserModelId("com.parcoil.maxify")
+
+    app.on("browser-window-created", (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
+
+    app.on("activate", () => {
+      showMainWindow()
+    })
+
+    app.on("before-quit", () => {
+      if (updateInterval) {
+        clearInterval(updateInterval)
+      }
+    })
   })
+}
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    if (!store.get("showTray")) {
+      app.quit()
+    }
+  }
 })
