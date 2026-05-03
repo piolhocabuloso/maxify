@@ -24,7 +24,10 @@ import Prioridade from "./pages/Prioridade"
 import FirstTime from "./components/firsttime"
 import AutoClean from "./pages/AutoClean"
 import Login from "./pages/Login"
-
+import Login_pagina from "./pages/Login_pagina"
+import OfficeInstaller from "./pages/OfficeInstaller"
+import Startup from "./pages/Startup"
+import EssentialInstaller from "./pages/EssentialInstaller"
 import { getDeviceID } from "./lib/device"
 
 const API_URL = "https://apikey-kohl.vercel.app"
@@ -247,7 +250,9 @@ function App() {
   const [logado, setLogado] = useState(false)
   const [verificandoLogin, setVerificandoLogin] = useState(false)
 
-  
+  const [navExpanded, setNavExpanded] = useState(() => {
+    return localStorage.getItem("maxify:nav-expanded") === "true"
+  })
 
   useEffect(() => {
     const sendInitialLogs = async () => {
@@ -331,10 +336,32 @@ function App() {
     <div className="flex flex-col h-screen bg-maxify-bg text-maxify-text overflow-hidden">
       <FirstTime />
       <TitleBar />
-      <Nav />
 
-      <div className="flex flex-1 pt-[50px] relative">
-        <main className="flex-1 p-6 transition-all duration-300 ease-in-out ml-[70px]">
+      <Nav expanded={navExpanded} setExpanded={setNavExpanded} />
+
+      <div
+        className="
+    flex-1
+    pt-[50px]
+    min-h-0
+    overflow-hidden
+    transition-all
+    duration-300
+    ease-in-out
+  "
+        style={{
+          paddingLeft: navExpanded ? "216px" : "50px",
+        }}
+      >
+        <main
+          className="
+      w-full
+      h-full
+      min-w-0
+      p-5
+      overflow-hidden
+    "
+        >
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/clean" element={<Clean />} />
@@ -349,7 +376,9 @@ function App() {
             <Route path="/memory" element={<Memory />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/autoclean" element={<AutoClean />} />
-
+            <Route path="/login_pagina" element={<Login_pagina />} />
+            <Route path="/office_installer" element={<OfficeInstaller />} />
+            <Route path="/startup" element={<Startup />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

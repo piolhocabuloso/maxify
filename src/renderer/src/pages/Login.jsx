@@ -21,9 +21,9 @@ import Button from "../components/ui/button"
 import LoginIcon from "../../../../resources/maxifylogo.png"
 import jsonData from "../../../../package.json"
 import { getDeviceID, getDeviceSource } from "../lib/device"
+import { validateKey, saveAuth } from "../lib/auth"
 
 const DISCORD_INVITE_URL = "https://discord.gg/45zyQEe2s3"
-const API_URL = "https://apikey-kohl.vercel.app"
 
 export default function Login({ onLogin }) {
     const inputKeyRef = useRef(null)
@@ -33,6 +33,7 @@ export default function Login({ onLogin }) {
         x: 0,
         y: 0,
     })
+
     const [key, setKey] = useState("")
     const [loading, setLoading] = useState(false)
     const [pulse, setPulse] = useState(false)
@@ -44,6 +45,7 @@ export default function Login({ onLogin }) {
     const [rememberKey, setRememberKey] = useState(false)
     const [loadingSavedKey, setLoadingSavedKey] = useState(true)
     const [showDiscordModal, setShowDiscordModal] = useState(false)
+
     const closeContextMenu = () => {
         setContextMenu({
             open: false,
@@ -131,13 +133,6 @@ export default function Login({ onLogin }) {
         }, 0)
     }
 
-
-
-
-
-
-
-
     useEffect(() => {
         const handleClick = () => closeContextMenu()
 
@@ -155,12 +150,6 @@ export default function Login({ onLogin }) {
             window.removeEventListener("blur", closeContextMenu)
         }
     }, [])
-
-
-
-
-
-
 
     useEffect(() => {
         setFloatingIcons([
@@ -214,13 +203,16 @@ export default function Login({ onLogin }) {
         setPulse(false)
     }
 
-    function sucesso(sessionToken) {
+    function sucesso() {
         setAnimando(true)
         setLoading(false)
         setPulse(false)
-
-        localStorage.setItem("maxifySessionToken", sessionToken)
-
+        console.log("AUTH SALVO:", {
+            key: localStorage.getItem("userKey"),
+            key2: localStorage.getItem("maxify:key"),
+            plan: localStorage.getItem("maxify:plan"),
+            token: localStorage.getItem("maxifySessionToken"),
+        })
         setTimeout(() => {
             onLogin()
         }, 2000)
@@ -234,39 +226,31 @@ export default function Login({ onLogin }) {
         setErrorMessage("")
 
         try {
+            const cleanKey = key.trim()
+
+            if (!cleanKey) {
+                return falha("Por favor, digite uma key.")
+            }
+
             const deviceID = await getDeviceID()
             const deviceSource = getDeviceSource()
 
             console.log("Device ID:", deviceID)
             console.log("Fonte:", deviceSource)
 
-            const response = await fetch(`${API_URL}/verify-key`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: key.trim(),
-                    hwid: deviceID,
-                }),
-            })
+            const result = await validateKey(cleanKey, deviceID)
 
-            const result = await response.json()
+            console.log("RESPOSTA DA API:", result)
+            console.log("PLANO DETECTADO:", result.plan)
 
-            if (!response.ok || !result.success) {
-                return falha(result.message || "Key inválida.")
-            }
+            await salvarKeySeNecessario(cleanKey, rememberKey)
 
-            if (!result.sessionToken) {
-                return falha("Servidor não retornou sessão.")
-            }
+            saveAuth(result)
 
-            await salvarKeySeNecessario(key, rememberKey)
-            sucesso(result.sessionToken)
-
+            sucesso()
         } catch (err) {
             console.error("Erro ao verificar key:", err)
-            falha("Erro ao conectar com o servidor.")
+            falha(err.message || "Erro ao conectar com o servidor.")
         }
     }
 
@@ -339,7 +323,6 @@ export default function Login({ onLogin }) {
     }, [erroAnim])
 
     return (
-
         <MotionConfig transition={{ duration: 0.8, ease: "easeInOut" }}>
             <div className="w-full h-full relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden">
@@ -478,6 +461,7 @@ export default function Login({ onLogin }) {
                         </>
                     )}
                 </AnimatePresence>
+
                 <AnimatePresence>
                     {contextMenu.open && (
                         <motion.div
@@ -487,16 +471,16 @@ export default function Login({ onLogin }) {
                             transition={{ duration: 0.15 }}
                             onClick={(e) => e.stopPropagation()}
                             className="
-                fixed z-[10000]
-                w-[220px]
-                rounded-2xl
-                border border-maxify-border
-                bg-maxify-card/95
-                backdrop-blur-xl
-                shadow-2xl shadow-blue-500/20
-                p-2
-                overflow-hidden
-            "
+                                fixed z-[10000]
+                                w-[220px]
+                                rounded-2xl
+                                border border-maxify-border
+                                bg-maxify-card/95
+                                backdrop-blur-xl
+                                shadow-2xl shadow-blue-500/20
+                                p-2
+                                overflow-hidden
+                            "
                             style={{
                                 left: contextMenu.x,
                                 top: contextMenu.y,
@@ -513,12 +497,12 @@ export default function Login({ onLogin }) {
                                 type="button"
                                 onClick={colarKey}
                                 className="
-                    w-full flex items-center gap-3
-                    px-3 py-3 rounded-xl
-                    text-sm text-maxify-text
-                    hover:bg-blue-500/15
-                    transition-all
-                "
+                                    w-full flex items-center gap-3
+                                    px-3 py-3 rounded-xl
+                                    text-sm text-maxify-text
+                                    hover:bg-blue-500/15
+                                    transition-all
+                                "
                             >
                                 <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-300">
                                     <ClipboardPaste size={16} />
@@ -536,12 +520,12 @@ export default function Login({ onLogin }) {
                                 type="button"
                                 onClick={copiarKey}
                                 className="
-                    w-full flex items-center gap-3
-                    px-3 py-3 rounded-xl
-                    text-sm text-maxify-text
-                    hover:bg-blue-500/15
-                    transition-all
-                "
+                                    w-full flex items-center gap-3
+                                    px-3 py-3 rounded-xl
+                                    text-sm text-maxify-text
+                                    hover:bg-blue-500/15
+                                    transition-all
+                                "
                             >
                                 <div className="w-8 h-8 rounded-lg bg-maxify-border/30 flex items-center justify-center text-blue-300">
                                     <ClipboardCopy size={16} />
@@ -561,12 +545,12 @@ export default function Login({ onLogin }) {
                                 type="button"
                                 onClick={limparKey}
                                 className="
-                    w-full flex items-center gap-3
-                    px-3 py-3 rounded-xl
-                    text-sm text-red-300
-                    hover:bg-red-500/15
-                    transition-all
-                "
+                                    w-full flex items-center gap-3
+                                    px-3 py-3 rounded-xl
+                                    text-sm text-red-300
+                                    hover:bg-red-500/15
+                                    transition-all
+                                "
                             >
                                 <div className="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center text-red-300">
                                     <Eraser size={16} />
@@ -582,6 +566,7 @@ export default function Login({ onLogin }) {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
                 <AnimatePresence>
                     {erroAnim && (
                         <>
@@ -768,8 +753,8 @@ export default function Login({ onLogin }) {
 
                                         <div
                                             className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${rememberKey
-                                                ? "bg-blue-500 border-blue-500 text-white"
-                                                : "border-maxify-border bg-transparent text-transparent"
+                                                    ? "bg-blue-500 border-blue-500 text-white"
+                                                    : "border-maxify-border bg-transparent text-transparent"
                                                 }`}
                                         >
                                             <Check size={14} />

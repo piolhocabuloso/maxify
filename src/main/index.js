@@ -22,11 +22,12 @@ import crypto from "crypto"
 import { machineIdSync } from "node-machine-id"
 import fs from "fs"
 import { autoUpdater } from "electron-updater"
-
+import { registerOfficeInstallerHandlers } from "./officeInstaller"
+import { registerEssentialInstallerHandlers } from "./essentialInstaller"
+import { registerStartupManagerHandlers } from "./startupManager"
 import os from "node:os"
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
-
 const execFileAsync = promisify(execFile)
 
 const isDev = !app.isPackaged
@@ -714,7 +715,9 @@ ipcMain.handle("discord-rpc:toggle", async (event, value) => {
     }
   }
 })
-
+registerEssentialInstallerHandlers()
+registerOfficeInstallerHandlers()
+registerStartupManagerHandlers()
 ipcMain.handle("discord-rpc:get", () => store.get("discord-rpc"))
 
 // ==================== MAIN WINDOW CREATE ====================

@@ -5,23 +5,44 @@ function Greeting() {
   const [name, setName] = useState("")
 
   useEffect(() => {
-    const cached = localStorage.getItem("maxify:user")
+    let mounted = true
 
-    if (cached) {
-      setName(cached)
-      return
-    }
+    async function loadName() {
+      const cached = localStorage.getItem("maxify:user")
 
-    invoke({ channel: "get-user-name" })
-      .then((username) => {
-        if (username) {
+      const isGenericName =
+        !cached ||
+        cached === "Usuário Maxify" ||
+        cached === "Usuario Maxify" ||
+        cached === "friend"
+
+      if (cached && !isGenericName) {
+        setName(cached)
+        return
+      }
+
+      try {
+        const username = await invoke({ channel: "get-user-name" })
+
+        if (username && mounted) {
           setName(username)
           localStorage.setItem("maxify:user", username)
+          return
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching user name:", err)
-      })
+      }
+
+      if (mounted) {
+        setName(cached || "Usuário")
+      }
+    }
+
+    loadName()
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
   return (
@@ -29,7 +50,7 @@ function Greeting() {
       <h1 className="text-2xl md:text-3xl font-bold text-maxify-text leading-tight">
         Bem-vindo,{" "}
         <span className="bg-linear-to-r from-maxify-primary to-maxify-secondary bg-clip-text text-transparent">
-          {name || "friend"}
+          {name || "Usuário"}
         </span>
       </h1>
 

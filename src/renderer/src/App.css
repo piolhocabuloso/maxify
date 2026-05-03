@@ -269,3 +269,25 @@ button:focus {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.8);
 }
+
+
+
+.custom-nav-scroll::-webkit-scrollbar {
+  width: 0px;
+}
+
+.custom-nav-scroll {
+  scrollbar-width: none;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

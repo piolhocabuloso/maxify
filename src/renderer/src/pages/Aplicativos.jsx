@@ -1,6 +1,9 @@
 import React from "react"
 import RootDiv from "@/components/rootdiv"
 import {
+    Palette,
+    PackageCheck,
+    Crown,
     Shield,
     Globe,
     Zap,
@@ -48,6 +51,7 @@ const ResourceCard = ({
             badge: "bg-sky-500/10 text-sky-300 border-sky-500/20",
             glow: "shadow-sky-500/10",
         },
+
         indigo: {
             soft: "from-indigo-500/20 via-indigo-500/10 to-transparent",
             iconWrap: "bg-indigo-500/15 border-indigo-400/20",
@@ -126,28 +130,12 @@ function Apps() {
 
     const resourcePages = [
         {
-            title: "DNS",
-            description: "Troque, restaure e gerencie os DNS do sistema de forma rápida e simples.",
-            icon: Globe,
-            badge: "Rede",
-            accent: "sky",
-            onClick: () => router("/dns"),
-        },
-        {
             title: "Ponto de restauração",
             description: "Gerencie segurança, restauração e recuperação do sistema em uma área dedicada.",
             icon: Shield,
             badge: "Sistema",
             accent: "indigo",
             onClick: () => router("/backup"),
-        },
-        {
-            title: "Utilitários",
-            description: "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
-            icon: Wrench,
-            badge: "Ferramentas",
-            accent: "blue",
-            onClick: () => router("/utilities"),
         },
         {
             title: "Limpeza automática",
@@ -158,11 +146,44 @@ function Apps() {
             onClick: () => router("/autoclean"),
         },
         {
-            title: "Limpeza",
-            description: "Espaço dedicado para limpeza profunda, liberação de arquivos e organização do Windows.",
-            icon: HardDrive,
-            badge: "Disco",
-            accent: "cyan",
+            title: "Office Setup",
+            description: "Instale o Microsoft Office diretamente pelo Maxify, com logs em tempo real e acompanhamento visual.",
+            icon: Crown,
+            badge: "Office",
+            accent: "blue",
+            onClick: () => router("/office_installer"),
+        },
+        {
+            title: "DNS",
+            description: "Troque, restaure e gerencie os DNS do sistema de forma rápida e simples.",
+            icon: Globe,
+            badge: "Rede",
+            accent: "sky",
+            onClick: () => router("/dns"),
+        },
+        {
+            title: "Utilitários",
+            description: "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
+            icon: Wrench,
+            badge: "Ferramentas",
+            accent: "indigo",
+            onClick: () => router("/utilities"),
+        },
+        {
+            title: "Personalização",
+            description: "Mude tema, cores, wallpaper e aparência do Windows pelo Maxify.",
+            icon: Palette,
+            badge: "Visual",
+            accent: "blue",
+            onClick: () => router("/personalizacao"),
+        },
+        {
+            title: "Programas Essenciais",
+            description: "Instale navegadores, launchers, ferramentas e recursos básicos do Windows.",
+            icon: PackageCheck,
+            badge: "PackageCheck",
+            accent: "blue",
+            onClick: () => router("/essentials"),
             disabled: true,
         },
         {
@@ -171,6 +192,14 @@ function Apps() {
             icon: Network,
             badge: "Conexão",
             accent: "cyan",
+            disabled: true,
+        },
+        {
+            title: "Utilitários",
+            description: "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
+            icon: Wrench,
+            badge: "Ferramentas",
+            accent: "indigo",
             disabled: true,
         },
     ]
