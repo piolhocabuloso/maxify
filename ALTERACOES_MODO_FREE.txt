@@ -1,0 +1,31 @@
+ALTERAÇÕES FEITAS NO MAXIFY
+
+1. Login
+- Adicionado botão "Entrar no modo Free".
+- Login com key continua liberando o app completo.
+- Quando entra com key, os bloqueios Free não aparecem.
+
+2. Modo Free
+- Libera Dashboard, Limpeza completa, Configurações e Conta.
+- Bloqueia páginas premium com uma tela profissional avisando que precisa de key.
+- Navbar mostra cadeado/PRO nas páginas bloqueadas.
+
+3. Segurança
+- O processo main agora cria uma sessão Free local separada da sessão Premium.
+- No modo Free, o run-powershell só aceita scripts da limpeza completa cadastrados no cleanups.js.
+- Scripts fora da limpeza retornam: "Esse ajuste é Premium...".
+- Login Premium continua usando verify-key e sessão do servidor.
+- Auth do preload recebeu loginFree.
+
+4. Arquivos principais modificados/adicionados
+- src/renderer/src/pages/Login.jsx
+- src/renderer/src/App.jsx
+- src/renderer/src/components/nav.jsx
+- src/renderer/src/lib/auth.js
+- src/renderer/src/lib/access.js
+- src/renderer/src/components/PremiumLocked.jsx
+- src/renderer/src/pages/Login_pagina.jsx
+- src/main/index.js
+- src/preload/index.js
+
+OBS: Não consegui rodar o build final aqui porque o npm ci foi interrompido por falha ao baixar dependência do GitHub/codeload no ambiente. Os arquivos foram modificados no código-fonte.

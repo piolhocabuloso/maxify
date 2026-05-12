@@ -1,0 +1,293 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap")
+layer(base);
+
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-maxify-old-primary: #01e5ff;
+  --color-maxify-primary: var(--color-primary);
+  --color-maxify-text: var(--color-text);
+  --color-maxify-text-secondary: var(--color-text-secondary);
+  --color-maxify-text-muted: var(--color-text-muted);
+  --color-maxify-bg: var(--color-bg);
+  --color-maxify-card: var(--color-card);
+  --color-maxify-border: var(--color-border);
+  --color-maxify-secondary: var(--color-secondary);
+  --color-maxify-accent: var(--color-accent);
+  --color-maxify-border-secondary: var(--color-border-secondary);
+  --color-maxify-old-secondary: #005fff;
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-border);
+    border-radius: 5px;
+    transition: all 0.2s ease-in-out;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 5px;
+    transition: all 0.2s ease-in-out;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secondary);
+  }
+  .light {
+    --color-maxify-bg: #f0f0f0;
+    --color-maxify-text: #1e293b;
+    --color-maxify-text-dark: #334155;
+    --color-maxify-text-darker: #475569;
+    --color-maxify-text-secondary: #64748b;
+    --color-maxify-text-muted: #94a3b8;
+    --color-maxify-card: #ffffff;
+    --color-maxify-border: #d5dae2;
+    --color-maxify-border-secondary: #cbd5e1;
+    --color-maxify-primary: #3b82f6;
+    --color-maxify-secondary: #2dac7d;
+    --color-maxify-accent: #f1f5f9;
+  }
+
+  :root {
+    --color-maxify-bg: #0c121f;
+    --color-maxify-text: #f0f4f8;
+    --color-maxify-text-dark: #d3dbe4;
+    --color-maxify-text-darker: #aab4c3;
+    --color-maxify-text-secondary: #7e92a9;
+    --color-maxify-text-muted: #3b4658;
+    --color-maxify-card: #131c2c;
+    --color-maxify-border: #1f2a3d;
+    --color-maxify-border-secondary: #212f44;
+    --color-maxify-primary: #4f90e6;
+    --color-maxify-secondary: #3db58a;
+    --color-maxify-accent: #243144;
+  }
+
+  .Toastify__toast {
+    background-color: var(--color-maxify-card) !important;
+    border: 1px solid var(--color-maxify-border) !important;
+    color: var(--color-maxify-text) !important;
+    --toastify-icon-color-success: var(--color-maxify-secondary) !important;
+  }
+  .Toastify__close-button {
+    color: var(--color-maxify-text-secondary) !important;
+  }
+}
+
+@layer base {
+  html {
+    font-family: "Poppins", sans-serif;
+  }
+}
+@layer utilities {
+  * {
+    user-select: none;
+  }
+}
+
+.recharts-line path {
+  stroke: var(--color-maxify-primary);
+}
+
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes orbit {
+  0% { transform: rotate(0deg) translate(40px) rotate(0deg); }
+  100% { transform: rotate(360deg) translate(40px) rotate(-360deg); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes dots {
+  0%, 20% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-typing {
+  animation: typing 2s steps(20, end);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.animate-progress {
+  animation: progress 1.5s ease-in-out infinite;
+  width: 50%;
+}
+
+.animate-dots span {
+  animation: dots 1.4s infinite;
+}
+
+.animate-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.animate-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateX(60px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(60px) rotate(-360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 3s linear infinite;
+}
+
+.animate-orbit {
+  animation: orbit 4s linear infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 2s linear infinite;
+}
+
+
+
+
+
+
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+
+
+.custom-nav-scroll::-webkit-scrollbar {
+  width: 0px;
+}
+
+.custom-nav-scroll {
+  scrollbar-width: none;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

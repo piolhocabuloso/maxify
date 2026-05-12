@@ -1,0 +1,39 @@
+CORREÇÃO DO ACESSO FREE - MAXIFY
+
+Arquivos modificados:
+
+1) src/renderer/src/App.jsx
+- Adicionada sincronização automática do modo Free com o processo main do Electron.
+- Quando o usuário já está salvo como Free no localStorage, o app chama auth:login-free ao abrir.
+- Isso evita o erro: "Acesso negado. Faça login novamente." ao executar funções Free.
+- Adicionado carregamento de validação enquanto a sessão Free é reativada.
+
+2) src/renderer/src/lib/access.js
+- Organizada a lista de rotas liberadas no plano Free.
+- Rotas Free liberadas:
+  / 
+  /clean
+  /settings
+  /login_pagina
+  /login
+  /prioridade
+  /aplicativos
+  /memory
+  /office_installer
+  /startup
+- O restante continua como Premium.
+
+3) src/main/index.js
+- Mantido o sistema de sessão Free no processo main.
+- Mantido o handler auth:login-free.
+- Mantida a proteção de PowerShell para liberar no Free apenas funções permitidas.
+- Confirmado export let mainWindow = null para não quebrar o import do powershell.js.
+
+Observação:
+Depois de substituir o ZIP, rode:
+
+npm run build:vite
+
+Se passar, rode:
+
+npm run dev
