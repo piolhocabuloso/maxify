@@ -26,6 +26,20 @@ import log from "electron-log/renderer"
 import { LargeInput } from "@/components/ui/input"
 import Card from "@/components/ui/Card"
 
+const BackgroundGlow = () => (
+  <>
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+    <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+  </>
+)
+
+const SoftPanel = ({ children, className = "" }) => (
+  <div className={`rounded-[24px] border border-maxify-border bg-maxify-bg/30 p-4 ${className}`}>
+    {children}
+  </div>
+)
+
+
 export default function GerenciadorPontosRestaure() {
   const navigate = useNavigate()
 
@@ -198,13 +212,14 @@ export default function GerenciadorPontosRestaure() {
   if (carregando) {
     return (
       <RootDiv>
-        <div className="fixed inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-5">
+        <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-maxify-bg">
+          <BackgroundGlow />
+          <div className="relative z-10 flex flex-col items-center gap-5">
             <div className="relative">
-              <div className="w-20 h-20 rounded-3xl border border-blue-500/20 bg-blue-500/10 flex items-center justify-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-blue-500/20 bg-blue-500/10 shadow-xl shadow-blue-500/10">
                 <Shield className="text-blue-400" size={34} />
               </div>
-              <div className="absolute -right-2 -bottom-2 w-9 h-9 rounded-xl bg-maxify-card border border-maxify-border flex items-center justify-center">
+              <div className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-2xl border border-blue-500/20 bg-maxify-card shadow-lg shadow-black/10">
                 <RotateCcw className="text-cyan-300 animate-spin" size={18} />
               </div>
             </div>
@@ -218,8 +233,8 @@ export default function GerenciadorPontosRestaure() {
               </p>
             </div>
 
-            <div className="w-64 h-2 bg-maxify-border rounded-full overflow-hidden">
-              <div className="h-full w-1/3 bg-gradient-to-r from-blue-500 to-cyan-400 animate-[loading_1.4s_ease-in-out_infinite]" />
+            <div className="h-2 w-64 overflow-hidden rounded-full bg-maxify-border">
+              <div className="h-full w-1/3 animate-[loading_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" />
             </div>
           </div>
         </div>
@@ -237,26 +252,26 @@ export default function GerenciadorPontosRestaure() {
 
   return (
     <RootDiv>
-      <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
-        <Card className="relative overflow-hidden rounded-[30px] border border-maxify-border bg-maxify-card p-7">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.12),transparent_28%)]" />
+      <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 pb-16 md:p-6">
+        <Card className="relative mt-2 overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+          <BackgroundGlow />
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 text-sm font-medium mb-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/25 bg-blue-500/10 text-blue-300 text-xs font-black uppercase tracking-[0.22em] mb-5">
               <Sparkles size={15} />
               Proteção e recuperação
             </div>
 
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex items-start gap-4">
-                <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/20 shadow-lg shadow-blue-500/10">
+                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
                   <ArchiveRestore className="text-blue-400" size={30} />
                 </div>
 
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-maxify-text leading-tight">
+                  <h1 className="text-4xl font-black leading-[0.98] text-maxify-text md:text-5xl">
                     Pontos de restauração
                   </h1>
-                  <p className="text-maxify-text-secondary mt-3 max-w-2xl">
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
                     Crie backups do estado do sistema, pesquise pontos já existentes e restaure seu Windows com mais segurança.
                   </p>
                 </div>
@@ -266,14 +281,14 @@ export default function GerenciadorPontosRestaure() {
                 onClick={() => navigate("/aplicativos")}
                 className="
                   group flex items-center gap-2
-                  px-4 py-2.5 rounded-xl
+                  rounded-2xl px-4 py-2.5
                   border border-maxify-border
-                  bg-maxify-card/70 backdrop-blur
+                  bg-blue-500/10 backdrop-blur
                   text-maxify-text-secondary
                   transition-all duration-300
                   hover:text-maxify-text
                   hover:border-blue-500/30
-                  hover:bg-blue-500/10
+                  hover:bg-blue-500/15
                 "
               >
                 <ArrowLeft
@@ -329,7 +344,7 @@ export default function GerenciadorPontosRestaure() {
         </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-[0.8fr_1.2fr] gap-6">
-          <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6">
+          <Card className="rounded-[30px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
                 <Search className="text-blue-400" size={22} />
@@ -351,21 +366,21 @@ export default function GerenciadorPontosRestaure() {
                 icon={Search}
               />
 
-              <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+              <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
                 <p className="text-sm text-maxify-text-secondary">Status do sistema</p>
                 <p className="text-lg font-bold text-maxify-text mt-1">
                   {processando ? "Executando operação..." : "Aguardando ação"}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+              <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
                 <p className="text-sm text-maxify-text-secondary">Observação</p>
                 <p className="text-sm text-maxify-text mt-1 leading-relaxed">
                   Restaurar um ponto pode reiniciar o computador. Arquivos pessoais normalmente não são apagados, mas apps e ajustes recentes podem voltar ao estado anterior.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4 flex items-start gap-3">
+              <div className="flex items-start gap-3 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4">
                 <AlertTriangle className="text-yellow-400 mt-0.5 shrink-0" size={18} />
                 <p className="text-sm text-yellow-200/90 leading-relaxed">
                   A listagem de pontos de restauração está em beta e pode ser instável, mas a criação funciona normalmente.
@@ -375,7 +390,7 @@ export default function GerenciadorPontosRestaure() {
           </Card>
 
           {pontosFiltrados.length === 0 ? (
-            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-8">
+            <Card className="rounded-[30px] border border-maxify-border bg-maxify-card p-8 shadow-xl shadow-black/5">
               <div className="h-full flex flex-col items-center justify-center text-center py-8">
                 <div className="p-4 bg-blue-500/15 border border-blue-500/20 rounded-full mb-4">
                   <Shield size={32} className="text-blue-400" />
@@ -407,7 +422,7 @@ export default function GerenciadorPontosRestaure() {
               </div>
             </Card>
           ) : (
-            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6">
+            <Card className="rounded-[30px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
@@ -422,15 +437,15 @@ export default function GerenciadorPontosRestaure() {
                 </div>
               </div>
 
-              <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+              <div className="max-h-[620px] space-y-3 overflow-y-auto pr-1 custom-nav-scroll">
                 {pontosFiltrados.map((ponto, index) => (
                   <div
                     key={index}
-                    className="rounded-2xl border border-maxify-border bg-maxify-border/10 hover:border-blue-400/40 transition-all p-4"
+                    className="group rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4 transition-all hover:-translate-y-0.5 hover:border-blue-400/40 hover:bg-blue-500/5"
                   >
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                        <div className="shrink-0 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5 text-blue-300">
                           <Shield size={18} />
                         </div>
 
@@ -446,7 +461,7 @@ export default function GerenciadorPontosRestaure() {
                             </span>
 
                             {ponto.SequenceNumber && (
-                              <span className="px-2 py-1 rounded-full bg-maxify-card border border-maxify-border text-xs">
+                              <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-xs text-blue-300">
                                 ID {ponto.SequenceNumber}
                               </span>
                             )}
@@ -479,10 +494,10 @@ export default function GerenciadorPontosRestaure() {
         onClose={() => !processando && setModal({ aberto: false, tipo: null, ponto: null })}
       >
         {modal.tipo === "restaurar" && modal.ponto && (
-          <div className="bg-maxify-card border border-maxify-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
+          <div className="mx-4 w-full max-w-lg rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-2xl shadow-black/20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-500/20 rounded-xl">
-                <RotateCcw className="text-blue-500" size={24} />
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                <RotateCcw className="text-blue-300" size={24} />
               </div>
               <h3 className="text-xl font-bold text-maxify-text">Restaurar sistema</h3>
             </div>
@@ -522,10 +537,10 @@ export default function GerenciadorPontosRestaure() {
         open={modalPersonalizadoAberto}
         onClose={() => !processando && setModalPersonalizadoAberto(false)}
       >
-        <div className="bg-maxify-card border border-maxify-border rounded-2xl p-6 shadow-xl max-w-lg w-full mx-4">
+        <div className="mx-4 w-full max-w-lg rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-2xl shadow-black/20">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-500/20 rounded-xl">
-              <PlusCircle className="text-blue-500" size={24} />
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+              <PlusCircle className="text-blue-300" size={24} />
             </div>
             <h3 className="text-xl font-bold text-maxify-text">Criar ponto personalizado</h3>
           </div>
@@ -540,12 +555,12 @@ export default function GerenciadorPontosRestaure() {
                 value={nomePersonalizado}
                 onChange={(e) => setNomePersonalizado(e.target.value)}
                 placeholder="Digite o nome do ponto de restauração"
-                className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text placeholder-maxify-text-secondary focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full rounded-2xl border border-maxify-border bg-maxify-bg/30 px-4 py-3 text-maxify-text outline-none transition-all placeholder:text-maxify-text-secondary/60 focus:border-blue-500/50 focus:bg-blue-500/10 focus:ring-2 focus:ring-blue-500/20"
                 disabled={processando}
               />
             </div>
 
-            <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
+            <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
               <p className="text-sm text-maxify-text-secondary">
                 Use um nome fácil de lembrar, como antes da limpeza, antes de atualizar driver ou antes de testar algo novo.
               </p>

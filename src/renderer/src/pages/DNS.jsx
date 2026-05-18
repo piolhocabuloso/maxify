@@ -4,7 +4,27 @@ import RootDiv from "@/components/rootdiv"
 import Button from "@/components/ui/button"
 import Modal from "@/components/ui/modal"
 import { notify as toast } from "../lib/notify"
-import { Globe, Shield, Settings, RefreshCw, AlertCircle, Info, Check, Zap, Cloud, Wifi, Cpu, Database, Clock, BarChart3, TrendingUp, HardDrive, ArrowLeft, Sparkles } from "lucide-react"
+import {
+  Globe,
+  Shield,
+  Settings,
+  RefreshCw,
+  AlertCircle,
+  Info,
+  Check,
+  Zap,
+  Cloud,
+  Wifi,
+  Database,
+  Clock,
+  BarChart3,
+  HardDrive,
+  Sparkles,
+  ChevronRight,
+  Network,
+  Gauge,
+  Activity,
+} from "lucide-react"
 import log from "electron-log/renderer"
 import Card from "@/components/ui/Card"
 import Toggle from "@/components/ui/toggle"
@@ -19,9 +39,9 @@ const dnsProviders = [
     description: "Rápido, seguro e focado em privacidade",
     features: ["Fast", "Privacy", "Security"],
     recommended: true,
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/20",
-    icon: <Cloud className="w-5 h-5" />,
+    color: "text-blue-300",
+    bgColor: "bg-blue-500/10 border-blue-500/20",
+    icon: <Cloud className="h-5 w-5" />,
   },
   {
     id: "google",
@@ -30,9 +50,9 @@ const dnsProviders = [
     secondary: "8.8.4.4",
     description: "Serviço DNS confiável e amplamente utilizado",
     features: ["Reliable", "Fast", "Global"],
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/20",
-    icon: <Globe className="w-5 h-5" />,
+    color: "text-cyan-300",
+    bgColor: "bg-cyan-500/10 border-cyan-500/20",
+    icon: <Globe className="h-5 w-5" />,
   },
   {
     id: "opendns",
@@ -41,9 +61,9 @@ const dnsProviders = [
     secondary: "208.67.220.220",
     description: "DNS da Cisco com filtragem de conteúdo",
     features: ["Filtering", "Reliable", "Security"],
-    color: "text-green-500",
-    bgColor: "bg-green-500/20",
-    icon: <Shield className="w-5 h-5" />,
+    color: "text-sky-300",
+    bgColor: "bg-sky-500/10 border-sky-500/20",
+    icon: <Shield className="h-5 w-5" />,
   },
   {
     id: "quad9",
@@ -52,9 +72,9 @@ const dnsProviders = [
     secondary: "149.112.112.112",
     description: "DNS focado em segurança com bloqueio de ameaças",
     features: ["Security", "Threat Block", "Privacy"],
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/20",
-    icon: <Shield className="w-5 h-5" />,
+    color: "text-indigo-300",
+    bgColor: "bg-indigo-500/10 border-indigo-500/20",
+    icon: <Shield className="h-5 w-5" />,
   },
   {
     id: "adguard",
@@ -63,9 +83,9 @@ const dnsProviders = [
     secondary: "94.140.15.15",
     description: "Bloqueia anúncios, rastreadores e malware",
     features: ["Ad Block", "Tracker Block", "Security"],
-    color: "text-teal-500",
-    bgColor: "bg-teal-500/20",
-    icon: <Cloud className="w-5 h-5" />,
+    color: "text-cyan-300",
+    bgColor: "bg-cyan-500/10 border-cyan-500/20",
+    icon: <Cloud className="h-5 w-5" />,
   },
   {
     id: "automatic",
@@ -74,9 +94,9 @@ const dnsProviders = [
     secondary: "Auto",
     description: "Use os servidores DNS padrão do seu ISP",
     features: ["Default", "ISP", "Auto"],
-    color: "text-gray-500",
-    bgColor: "bg-gray-500/20",
-    icon: <Settings className="w-5 h-5" />,
+    color: "text-maxify-text-secondary",
+    bgColor: "bg-maxify-border/15 border-maxify-border",
+    icon: <Settings className="h-5 w-5" />,
   },
 ]
 
@@ -86,6 +106,67 @@ const categories = [
   { id: "speed", label: "Velocidade", icon: <Zap size={16} /> },
   { id: "security", label: "Segurança", icon: <Shield size={16} /> },
 ]
+
+const BackgroundGlow = () => (
+  <>
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+    <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+  </>
+)
+
+function SectionTitle({ icon: Icon, label, title, description }) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+        <Icon className="h-5 w-5 text-blue-300" />
+      </div>
+
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+          {label}
+        </p>
+        <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+        {description && (
+          <p className="mt-1 text-sm text-maxify-text-secondary">{description}</p>
+        )}
+      </div>
+
+      <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+    </div>
+  )
+}
+
+function StatCard({ label, value, icon, tone = "blue" }) {
+  const toneMap = {
+    blue: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+    cyan: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+    sky: "border-sky-500/25 bg-sky-500/10 text-sky-300",
+    green: "border-green-500/25 bg-green-500/10 text-green-300",
+    yellow: "border-yellow-500/25 bg-yellow-500/10 text-yellow-300",
+  }
+
+  return (
+    <div className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:-translate-y-1 hover:border-blue-500/25">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.16),transparent_50%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative z-10">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className={`rounded-2xl border p-3 ${toneMap[tone] || toneMap.blue}`}>
+            {icon}
+          </div>
+          <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+        </div>
+
+        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">
+          {label}
+        </p>
+        <p className="mt-2 break-words text-2xl font-black leading-tight text-maxify-text">
+          {value}
+        </p>
+      </div>
+    </div>
+  )
+}
 
 export default function DNSPage() {
   const navigate = useNavigate()
@@ -99,7 +180,6 @@ export default function DNSPage() {
   const [dnsHistory, setDnsHistory] = useState([])
   const [autoSwitch, setAutoSwitch] = useState(false)
 
-  // Statistics
   const [stats, setStats] = useState({
     totalChanges: 0,
     lastChanged: null,
@@ -113,7 +193,6 @@ export default function DNSPage() {
   }, [])
 
   useEffect(() => {
-    // Load auto-switch configuration
     const autoConfig = JSON.parse(localStorage.getItem("dns:auto-switch") || "{}")
     setAutoSwitch(autoConfig.enabled || false)
   }, [])
@@ -127,15 +206,14 @@ export default function DNSPage() {
       if (result.success) {
         setCurrentDNS(result.data)
 
-        // Try to identify current provider
         const servers = result.data[0]?.servers || ""
-        let provider = dnsProviders.find(p =>
-          servers.includes(p.primary.replace('.', '\\.'))
-        ) || dnsProviders.find(p => p.id === "automatic")
+        const provider =
+          dnsProviders.find((p) => servers.includes(p.primary.replace(".", "\\."))) ||
+          dnsProviders.find((p) => p.id === "automatic")
 
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
-          currentProvider: provider?.name || "Unknown"
+          currentProvider: provider?.name || "Unknown",
         }))
       }
     } catch (error) {
@@ -158,13 +236,16 @@ export default function DNSPage() {
     })
   }
 
-  const saveToHistory = (provider, servers) => {
-    const newHistory = [{
-      timestamp: new Date().toISOString(),
-      provider: provider.name,
-      servers: `${provider.primary} / ${provider.secondary}`,
-      type: provider.id
-    }, ...dnsHistory.slice(0, 9)]
+  const saveToHistory = (provider) => {
+    const newHistory = [
+      {
+        timestamp: new Date().toISOString(),
+        provider: provider.name,
+        servers: `${provider.primary} / ${provider.secondary}`,
+        type: provider.id,
+      },
+      ...dnsHistory.slice(0, 9),
+    ]
 
     setDnsHistory(newHistory)
     localStorage.setItem("dns:history", JSON.stringify(newHistory))
@@ -174,7 +255,7 @@ export default function DNSPage() {
     const newStats = {
       totalChanges: (stats.totalChanges || 0) + 1,
       lastChanged: new Date().toISOString(),
-      currentProvider: providerName
+      currentProvider: providerName,
     }
 
     setStats(newStats)
@@ -186,18 +267,16 @@ export default function DNSPage() {
     const toastId = toast.loading(`Aplicando ${provider.name} DNS...`)
 
     try {
-      let payload
-      if (provider.id === "custom") {
-        payload = {
-          dnsType: "custom",
-          primaryDNS: customDNS.primary,
-          secondaryDNS: customDNS.secondary,
-        }
-      } else {
-        payload = {
-          dnsType: provider.id,
-        }
-      }
+      const payload =
+        provider.id === "custom"
+          ? {
+              dnsType: "custom",
+              primaryDNS: customDNS.primary,
+              secondaryDNS: customDNS.secondary,
+            }
+          : {
+              dnsType: provider.id,
+            }
 
       const result = await invoke({
         channel: "dns:apply",
@@ -212,13 +291,9 @@ export default function DNSPage() {
           autoClose: 3000,
         })
 
-        // Save to history
-        saveToHistory(provider, `${provider.primary} / ${provider.secondary}`)
-
-        // Update stats
+        saveToHistory(provider)
         updateStats(provider.name)
 
-        // Reset custom DNS if applied
         if (provider.id === "custom") {
           setCustomDNS({ primary: "", secondary: "" })
         }
@@ -259,453 +334,484 @@ export default function DNSPage() {
     )
   }
 
-  const selectCategory = (categoryId) => {
-    setCategoryActive(categoryId)
-  }
-
   const toggleAutoSwitch = () => {
     const newState = !autoSwitch
     setAutoSwitch(newState)
 
     const config = {
       enabled: newState,
-      lastChanged: new Date().toISOString()
+      lastChanged: new Date().toISOString(),
     }
 
     localStorage.setItem("dns:auto-switch", JSON.stringify(config))
 
-    toast.info(`Auto DNS switch ${newState ? 'enabled' : 'disabled'}`, {
-      autoClose: 3000
+    toast.info(`Troca automática ${newState ? "ativada" : "desativada"}`, {
+      autoClose: 3000,
     })
   }
 
-  const filteredProviders = categoryActive === "all"
-    ? dnsProviders
-    : dnsProviders.filter(provider => {
-      if (categoryActive === "privacy") return ["cloudflare", "quad9"].includes(provider.id)
-      if (categoryActive === "speed") return ["cloudflare", "google"].includes(provider.id)
-      if (categoryActive === "security") return ["quad9", "adguard", "opendns"].includes(provider.id)
-      return true
-    })
+  const filteredProviders =
+    categoryActive === "all"
+      ? dnsProviders
+      : dnsProviders.filter((provider) => {
+          if (categoryActive === "privacy") return ["cloudflare", "quad9"].includes(provider.id)
+          if (categoryActive === "speed") return ["cloudflare", "google"].includes(provider.id)
+          if (categoryActive === "security") return ["quad9", "adguard", "opendns"].includes(provider.id)
+          return true
+        })
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Never"
+    if (!dateString) return "Nunca"
     const date = new Date(dateString)
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`
   }
 
   return (
     <>
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        <div className="bg-maxify-card p-6 rounded-2xl border border-maxify-border text-maxify-text w-[90vw] max-w-md">
-          <h2 className="text-lg font-semibold mb-4">Confirm DNS Change</h2>
-          {selectedProvider && (
-            <>
-              <p className="mb-4">
-                Você está prestes a alterar seus servidores DNS para{" "}
-                <span className="text-maxify-primary font-medium">{selectedProvider.name}</span>.
-              </p>
-              <div className="bg-maxify-border-secondary border border-maxify-border p-3 rounded-md mb-4">
-                <div className="text-sm">
-                  <div>
-                    <strong>Primário:</strong> {selectedProvider.primary}
-                  </div>
-                  <div>
-                    <strong>Secundário:</strong> {selectedProvider.secondary}
+        <div className="relative mx-4 w-[90vw] max-w-md overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-7 text-maxify-text shadow-2xl shadow-black/20">
+          <BackgroundGlow />
+
+          <div className="relative z-10">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                <Globe className="h-5 w-5 text-blue-300" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-blue-300">
+                  Confirmação
+                </p>
+                <h2 className="text-xl font-black text-maxify-text">Alterar DNS</h2>
+              </div>
+            </div>
+
+            {selectedProvider && (
+              <>
+                <p className="mb-4 text-sm leading-6 text-maxify-text-secondary">
+                  Você está prestes a alterar seus servidores DNS para{" "}
+                  <span className="font-bold text-blue-300">{selectedProvider.name}</span>.
+                </p>
+
+                <div className="mb-4 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                  <div className="space-y-2 text-sm text-maxify-text-secondary">
+                    <div className="flex justify-between gap-3">
+                      <strong className="text-maxify-text">Primário</strong>
+                      <span>{selectedProvider.primary}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <strong className="text-maxify-text">Secundário</strong>
+                      <span>{selectedProvider.secondary}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p className="text-sm text-maxify-text-secondary mb-4">
-                Isso irá alterar as configurações de DNS para todos os adaptadores de rede ativos e limpar o cache DNS.
-              </p>
-            </>
-          )}
-          <div className="flex justify-end gap-2">
-            <Button onClick={() => setModalOpen(false)} variant="secondary">
-              Cancelar
-            </Button>
-            <Button onClick={() => applyDNS(selectedProvider)} disabled={loading}>
-              {loading ? "Aplicando..." : "Aplicar"}
-            </Button>
+
+                <p className="mb-5 text-xs leading-5 text-maxify-text-secondary">
+                  Isso irá alterar as configurações de DNS para todos os adaptadores de rede ativos e limpar o cache DNS.
+                </p>
+              </>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button onClick={() => setModalOpen(false)} variant="secondary">
+                Cancelar
+              </Button>
+              <Button onClick={() => applyDNS(selectedProvider)} disabled={loading}>
+                {loading ? "Aplicando..." : "Aplicar"}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
 
       <RootDiv>
+        <div className="mx-auto flex w-full max-w-[1900px] flex-col gap-6 px-4 pb-16 md:px-6">
+          <section className="relative mt-8 overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5 md:p-8">
+            <BackgroundGlow />
 
-        <div className="max-w-[2000px] mx-auto px-6 pb-16">
-          {/* === HEADER WITH STATISTICS === */}
-<div className="max-w-[2000px] mx-auto px-6 pt-8">
-  <button
-    onClick={() => navigate("/aplicativos")}
-    className="
-      group relative overflow-hidden rounded-2xl
-      border border-maxify-border
-      bg-maxify-card/80 backdrop-blur-xl
-      px-5 py-3
-      shadow-lg shadow-black/10
-      transition-all duration-300
-      hover:-translate-y-0.5 hover:border-blue-500/30 hover:shadow-blue-500/10
-    "
-  >
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_right,rgba(14,165,233,0.12),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-    <div className="relative z-10 flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-300 transition-all duration-300 group-hover:scale-105 group-hover:bg-blue-500/15">
-        <ArrowLeft size={18} />
-      </div>
-
-      <div className="flex flex-col items-start">
-        <span className="text-sm font-medium tracking-wide text-maxify-text-secondary">
-          Central
-        </span>
-        <span className="flex items-center gap-2 text-base font-semibold text-maxify-text">
-          Voltar para Aplicativos
-          <Sparkles size={14} className="text-blue-300 opacity-80" />
-        </span>
-      </div>
-    </div>
-  </button>
-</div>
-          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-transparent"></div>
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Globe className="text-blue-500" size={28} />
+            <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_380px] xl:items-center">
+              <div>
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                  <Sparkles size={14} />
+                  Central de rede
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-maxify-text mb-1">Configuração de DNS</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    Altere os servidores DNS para uma navegação mais rápida e segura
-                  </p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  {
-                    label: "DNS atual",
-                    value: stats.currentProvider || "Carregando...",
-                    color: "text-blue-500",
-                    icon: <Wifi className="inline mr-1" size={16} />
-                  },
-                  {
-                    label: "Total de alterações",
-                    value: stats.totalChanges,
-                    color: "text-purple-500",
-                    icon: <RefreshCw className="inline mr-1" size={16} />
-                  },
-                  {
-                    label: "Última alteração",
-                    value: stats.lastChanged ? formatDate(stats.lastChanged) : "Nunca",
-                    color: "text-green-500",
-                    icon: <Clock className="inline mr-1" size={16} />
-                  },
-                  {
-                    label: "Status",
-                    value: currentDNS ? "Conectado" : "Verificando...",
-                    color: currentDNS ? "text-green-500" : "text-yellow-500",
-                    icon: currentDNS ? <Check className="inline mr-1" size={16} /> : <AlertCircle className="inline mr-1" size={16} />
-                  },
-                ].map((stat, index) => (
-                  <div key={index} className="bg-maxify-border/20 p-4 rounded-xl text-center">
-                    <p className={`text-2xl font-bold ${stat.color} flex items-center justify-center`}>
-                      {stat.icon}
-                      {stat.value}
+                <div className="flex items-start gap-5">
+                  <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                    <Globe className="h-9 w-9 text-blue-300" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <h1 className="max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                      Configuração de{" "}
+                      <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                        DNS inteligente
+                      </span>
+                    </h1>
+
+                    <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                      Altere servidores DNS, acompanhe o status atual da rede e use provedores focados em velocidade, privacidade e segurança.
                     </p>
-                    <p className="text-sm text-maxify-text-secondary mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
 
-          {/* === CURRENT DNS SETTINGS === */}
-          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-xl">
-                  <HardDrive className="text-green-500" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-maxify-text">Configurações Atuais de DNS</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    Configuração ativa de DNS em seus adaptadores de rede
-                  </p>
-                </div>
-              </div>
-              <Button onClick={getCurrentDNS} variant="outline" size="sm" disabled={loading}>
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-            </div>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                        DNS atual: {stats.currentProvider || "Carregando..."}
+                      </div>
 
-            {currentDNS && currentDNS.length > 0 ? (
-              <div className="space-y-4">
-                {currentDNS.map((dns, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-maxify-border/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div>
-                        <p className="text-sm font-medium text-maxify-text">
-                          {dns.adapter}
-                        </p>
-                        <p className="text-xs text-maxify-text-secondary">
-                          {dns.servers}
-                        </p>
+                      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                        {filteredProviders.length} provedor(es)
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-green-500">
-                        Ativo
-                      </p>
-                      <p className="text-xs text-maxify-text-secondary">
-                        IPv4
-                      </p>
-                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center py-12 flex-col gap-3 text-maxify-text-secondary">
-                <RefreshCw className="animate-spin" size={32} />
-                <p>Carregando informações da rede...</p>
-                <p className="text-sm">Isso pode levar alguns segundos</p>
-              </div>
-            )}
-          </Card>
-
-          {/* === DNS CATEGORIES FILTER === */}
-          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-xl">
-                  <Shield className="text-purple-500" size={24} />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-maxify-text">Categorias de DNS</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    Filtrar provedores de DNS por tipo
-                  </p>
+              </div>
+
+              <div className="rounded-[30px] border border-blue-500/20 bg-blue-500/10 p-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                    <Network size={30} className="text-blue-300" />
+                  </div>
+
+                  <div className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-blue-300">
+                    {currentDNS ? "Online" : "Verificando"}
+                  </div>
+                </div>
+
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                  Status da conexão
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black text-maxify-text">
+                  {currentDNS ? "DNS detectado" : "Buscando rede"}
+                </h2>
+
+                <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
+                  Use os cards abaixo para aplicar provedores, ver adaptadores ativos e consultar seu histórico de alterações.
+                </p>
+
+                <div className="mt-5 flex gap-3">
+                  <Button
+                    onClick={getCurrentDNS}
+                    variant="outline"
+                    disabled={loading}
+                    className="flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-2xl"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                    Atualizar
+                  </Button>
                 </div>
               </div>
             </div>
+          </section>
 
-            <div className="flex flex-wrap gap-2">
-              {categories.map(categoria => (
-                <button
-                  key={categoria.id}
-                  onClick={() => selectCategory(categoria.id)}
-                  disabled={loading}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${categoryActive === categoria.id
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                    : 'bg-maxify-border/40 text-maxify-text-secondary hover:bg-maxify-border/60'
-                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {categoria.icon}
-                  {categoria.label}
-                </button>
-              ))}
-            </div>
-          </Card>
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label="DNS atual"
+              value={stats.currentProvider || "Carregando..."}
+              tone="blue"
+              icon={<Wifi className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Total de alterações"
+              value={stats.totalChanges}
+              tone="cyan"
+              icon={<RefreshCw className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Última alteração"
+              value={stats.lastChanged ? formatDate(stats.lastChanged) : "Nunca"}
+              tone="sky"
+              icon={<Clock className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Status"
+              value={currentDNS ? "Conectado" : "Verificando..."}
+              tone={currentDNS ? "green" : "yellow"}
+              icon={currentDNS ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+            />
+          </section>
 
-          {/* === DNS PROVIDERS GRID === */}
-          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-xl">
-                  <BarChart3 className="text-blue-500" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-maxify-text">Provedores de DNS</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    {filteredProviders.length} provedor(es) disponível(eis)
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-maxify-text-secondary">Troca automática</span>
-                <Toggle
-                  checked={autoSwitch}
-                  onChange={toggleAutoSwitch}
-                  disabled={loading}
-                />
-              </div>
-            </div>
+          <section>
+            <SectionTitle
+              icon={HardDrive}
+              label="Adaptadores"
+              title="Configurações atuais de DNS"
+              description="Configuração ativa de DNS em seus adaptadores de rede."
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProviders.map((provider) => (
-                <div
-                  key={provider.id}
-                  className={`relative border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:border-maxify-primary'} ${provider.recommended ? 'ring-1 ring-orange-500 ring-opacity-50' : ''}`}
-                  onClick={() => !loading && openConfirmationModal(provider)}
-                >
-                  {provider.recommended && (
-                    <div className="absolute -top-2 -right-2">
-                      <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                        Recomendado
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-lg mt-1 ${provider.bgColor}`}>
-                        <div className={provider.color}>
-                          {provider.icon}
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+              {currentDNS && currentDNS.length > 0 ? (
+                <div className="space-y-3">
+                  {currentDNS.map((dns, index) => (
+                    <div
+                      key={index}
+                      className="group flex items-center justify-between gap-4 rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4 transition-all hover:border-blue-500/25 hover:bg-blue-500/10"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-400" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-maxify-text">
+                            {dns.adapter}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-maxify-text-secondary">
+                            {dns.servers}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-semibold text-maxify-text truncate">
-                            {provider.name}
-                          </span>
-                        </div>
-                        <span className="text-sm text-maxify-text-secondary mt-1">
-                          {provider.primary} / {provider.secondary}
-                        </span>
-                        <p className="text-xs text-maxify-text-secondary mt-2">
-                          {provider.description}
-                        </p>
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {provider.features.map((feature, index) => (
-                            <span key={index} className="px-2 py-1 bg-maxify-border text-xs rounded-md">
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-green-300">Ativo</p>
+                        <p className="text-xs text-maxify-text-secondary">IPv4</p>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-maxify-text-secondary">
+                  <RefreshCw className="h-8 w-8 animate-spin text-blue-300" />
+                  <p className="font-semibold text-maxify-text">Carregando informações da rede...</p>
+                  <p className="text-sm">Isso pode levar alguns segundos</p>
+                </div>
+              )}
+            </Card>
+          </section>
 
-          {/* === CUSTOM DNS === */}
-          <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-teal-500/20 rounded-xl">
-                  <Settings className="text-teal-500" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-maxify-text">DNS personalizado</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    Insira seus próprios servidores DNS
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={() => setShowCustom(!showCustom)}
-                size="sm"
-                variant={showCustom ? "secondary" : "outline"}
-              >
-                {showCustom ? "Hide" : "Show"}
-              </Button>
-            </div>
+          <section>
+            <SectionTitle
+              icon={Shield}
+              label="Filtro"
+              title="Categorias de DNS"
+              description="Filtre provedores por velocidade, privacidade ou segurança."
+            />
 
-            {showCustom && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-maxify-text">DNS primário</label>
-                    <input
-                      type="text"
-                      value={customDNS.primary}
-                      onChange={(e) =>
-                        setCustomDNS((prev) => ({ ...prev, primary: e.target.value }))
-                      }
-                      placeholder="e.g., 1.1.1.1"
-                      className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text focus:outline-hidden focus:border-maxify-primary focus:ring-2 focus:ring-maxify-primary/20 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-maxify-text">
-                      DNS secundário (opcional)
-                    </label>
-                    <input
-                      type="text"
-                      value={customDNS.secondary}
-                      onChange={(e) =>
-                        setCustomDNS((prev) => ({ ...prev, secondary: e.target.value }))
-                      }
-                      placeholder="e.g., 1.0.0.1"
-                      className="w-full px-4 py-3 bg-maxify-card border border-maxify-border rounded-xl text-maxify-text focus:outline-hidden focus:border-maxify-primary focus:ring-2 focus:ring-maxify-primary/20 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <Info className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-maxify-text-secondary">
-                    Insira endereços IPv4 válidos para servidores DNS personalizados (por exemplo, 8.8.8.8, 1.1.1.1)
-                  </span>
-                </div>
-
-                <Button
-                  onClick={() =>
-                    openConfirmationModal({
-                      id: "custom",
-                      name: "Custom DNS",
-                      primary: customDNS.primary,
-                      secondary: customDNS.secondary,
-                    })
-                  }
-                  disabled={!isCustomDNSValid() || loading}
-                  variant="primary"
-                  className="w-full py-3 text-base font-semibold"
-                >
-                  {loading ? "Applying..." : "Apply Custom DNS"}
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* === DNS HISTORY === */}
-          {dnsHistory.length > 0 && (
-            <Card className="mt-8 bg-maxify-card border border-maxify-border rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-purple-500/20 rounded-xl">
-                  <Clock className="text-purple-500" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-maxify-text">Histórico de DNS</h2>
-                  <p className="text-maxify-text-secondary text-sm">
-                    Mudanças recentes de DNS
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {dnsHistory.slice(0, 5).map((history, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-maxify-border/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div>
-                        <p className="text-sm font-medium text-maxify-text">
-                          {history.provider}
-                        </p>
-                        <p className="text-xs text-maxify-text-secondary">
-                          {new Date(history.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-maxify-text">
-                        {history.servers}
-                      </p>
-                      <p className="text-xs text-maxify-text-secondary">
-                        {history.type === 'custom' ? 'Custom' : 'Preset'}
-                      </p>
-                    </div>
-                  </div>
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+              <div className="flex flex-wrap gap-2">
+                {categories.map((categoria) => (
+                  <button
+                    key={categoria.id}
+                    onClick={() => setCategoryActive(categoria.id)}
+                    disabled={loading}
+                    className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
+                      categoryActive === categoria.id
+                        ? "border-blue-500/30 bg-blue-500/15 text-blue-300 shadow-lg shadow-blue-500/10"
+                        : "border-maxify-border bg-maxify-border/15 text-maxify-text-secondary hover:border-blue-500/25 hover:bg-blue-500/10"
+                    } ${loading ? "cursor-not-allowed opacity-50" : ""}`}
+                  >
+                    {categoria.icon}
+                    {categoria.label}
+                  </button>
                 ))}
               </div>
             </Card>
+          </section>
+
+          <section>
+            <SectionTitle
+              icon={BarChart3}
+              label="Provedores"
+              title="Provedores de DNS"
+              description={`${filteredProviders.length} provedor(es) disponível(eis).`}
+            />
+
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+              <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3 rounded-2xl border border-maxify-border bg-maxify-bg/30 px-4 py-3">
+                  <Gauge className="h-5 w-5 text-blue-300" />
+                  <span className="text-sm font-semibold text-maxify-text-secondary">
+                    Troca automática
+                  </span>
+                  <Toggle checked={autoSwitch} onChange={toggleAutoSwitch} disabled={loading} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {filteredProviders.map((provider) => (
+                  <button
+                    type="button"
+                    key={provider.id}
+                    onClick={() => !loading && openConfirmationModal(provider)}
+                    disabled={loading}
+                    className={`group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-bg/25 p-5 text-left transition-all ${
+                      loading
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:-translate-y-1 hover:border-blue-500/30 hover:bg-blue-500/10 hover:shadow-xl hover:shadow-blue-500/10"
+                    } ${provider.recommended ? "ring-1 ring-blue-500/30" : ""}`}
+                  >
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_52%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+                    {provider.recommended && (
+                      <div className="absolute right-4 top-4 rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-blue-300">
+                        Recomendado
+                      </div>
+                    )}
+
+                    <div className="relative z-10">
+                      <div className="mb-5 flex items-start justify-between gap-3">
+                        <div className={`rounded-2xl border p-3 ${provider.bgColor}`}>
+                          <div className={provider.color}>{provider.icon}</div>
+                        </div>
+                        <ChevronRight className="mt-1 h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+                      </div>
+
+                      <h3 className="text-xl font-black text-maxify-text">{provider.name}</h3>
+                      <p className="mt-2 text-sm font-semibold text-blue-300">
+                        {provider.primary} / {provider.secondary}
+                      </p>
+                      <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
+                        {provider.description}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {provider.features.map((feature, index) => (
+                          <span
+                            key={index}
+                            className="rounded-xl border border-maxify-border bg-maxify-border/15 px-3 py-1 text-xs font-semibold text-maxify-text-secondary"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </section>
+
+          <section>
+            <SectionTitle
+              icon={Settings}
+              label="Manual"
+              title="DNS personalizado"
+              description="Insira seus próprios servidores DNS."
+            />
+
+            <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                    <Settings className="h-5 w-5 text-blue-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-maxify-text">Configuração manual</h3>
+                    <p className="text-sm text-maxify-text-secondary">
+                      Use IPv4 válido, como 1.1.1.1 ou 8.8.8.8.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowCustom(!showCustom)}
+                  size="sm"
+                  variant={showCustom ? "secondary" : "outline"}
+                  className="rounded-2xl"
+                >
+                  {showCustom ? "Ocultar" : "Mostrar"}
+                </Button>
+              </div>
+
+              {showCustom && (
+                <div className="mt-6 space-y-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-bold text-maxify-text">
+                        DNS primário
+                      </label>
+                      <input
+                        type="text"
+                        value={customDNS.primary}
+                        onChange={(e) =>
+                          setCustomDNS((prev) => ({ ...prev, primary: e.target.value }))
+                        }
+                        placeholder="ex: 1.1.1.1"
+                        className="w-full rounded-2xl border border-maxify-border bg-maxify-bg/30 px-4 py-3 text-maxify-text outline-none transition-all placeholder:text-maxify-text-secondary/50 focus:border-blue-500/50 focus:bg-blue-500/10 focus:ring-2 focus:ring-blue-500/15"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-bold text-maxify-text">
+                        DNS secundário opcional
+                      </label>
+                      <input
+                        type="text"
+                        value={customDNS.secondary}
+                        onChange={(e) =>
+                          setCustomDNS((prev) => ({ ...prev, secondary: e.target.value }))
+                        }
+                        placeholder="ex: 1.0.0.1"
+                        className="w-full rounded-2xl border border-maxify-border bg-maxify-bg/30 px-4 py-3 text-maxify-text outline-none transition-all placeholder:text-maxify-text-secondary/50 focus:border-blue-500/50 focus:bg-blue-500/10 focus:ring-2 focus:ring-blue-500/15"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                    <Info className="mt-0.5 h-4 w-4 text-blue-300" />
+                    <span className="text-sm leading-6 text-maxify-text-secondary">
+                      Insira endereços IPv4 válidos para servidores DNS personalizados.
+                    </span>
+                  </div>
+
+                  <Button
+                    onClick={() =>
+                      openConfirmationModal({
+                        id: "custom",
+                        name: "DNS personalizado",
+                        primary: customDNS.primary,
+                        secondary: customDNS.secondary,
+                      })
+                    }
+                    disabled={!isCustomDNSValid() || loading}
+                    variant="primary"
+                    className="min-h-[48px] w-full rounded-2xl text-base font-bold"
+                  >
+                    {loading ? "Aplicando..." : "Aplicar DNS personalizado"}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </section>
+
+          {dnsHistory.length > 0 && (
+            <section>
+              <SectionTitle
+                icon={Clock}
+                label="Histórico"
+                title="Histórico de DNS"
+                description="Mudanças recentes de DNS."
+              />
+
+              <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                <div className="space-y-3">
+                  {dnsHistory.slice(0, 5).map((history, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-400" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-maxify-text">
+                            {history.provider}
+                          </p>
+                          <p className="mt-1 text-xs text-maxify-text-secondary">
+                            {new Date(history.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-sm font-black text-blue-300">{history.servers}</p>
+                        <p className="text-xs text-maxify-text-secondary">
+                          {history.type === "custom" ? "Custom" : "Preset"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </section>
           )}
         </div>
       </RootDiv>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import RootDiv from "@/components/rootdiv"
 import Card from "@/components/ui/Card"
@@ -11,7 +11,6 @@ import {
     AlertTriangle,
     CheckCircle2,
     Copy,
-    Database,
     Eye,
     EyeOff,
     FileCog,
@@ -29,6 +28,37 @@ import {
     XCircle,
     Zap,
 } from "lucide-react"
+
+const BackgroundGlow = () => {
+    return (
+        <>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+        </>
+    )
+}
+
+function SectionTitle({ icon: Icon, label, title, helper }) {
+    return (
+        <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+                <Icon className="h-5 w-5 text-blue-300" />
+            </div>
+
+            <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                    {label}
+                </p>
+                <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+                {helper && (
+                    <p className="mt-1 text-xs text-maxify-text-secondary/80">{helper}</p>
+                )}
+            </div>
+
+            <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+        </div>
+    )
+}
 
 function addLogLine(setLogs, text, type = "info") {
     setLogs((prev) => [
@@ -49,7 +79,7 @@ function StatusPill({ active }) {
     return (
         <span
             className={`
-                inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold
+                inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black
                 ${active
                     ? "border-green-500/25 bg-green-500/10 text-green-300"
                     : "border-red-500/25 bg-red-500/10 text-red-300"
@@ -64,9 +94,9 @@ function StatusPill({ active }) {
 
 function StatCard({ icon, label, value, helper }) {
     return (
-        <div className="rounded-2xl border border-maxify-border bg-maxify-card p-5">
+        <div className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:border-blue-500/25">
             <div className="mb-4 flex items-center justify-between">
-                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-400">
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-300">
                     {icon}
                 </div>
 
@@ -76,14 +106,14 @@ function StatCard({ icon, label, value, helper }) {
                 />
             </div>
 
-            <p className="text-sm text-maxify-text-secondary">{label}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">{label}</p>
 
-            <h3 className="mt-1 text-3xl font-bold text-blue-300">
+            <h3 className="mt-1 text-3xl font-black leading-none text-maxify-text">
                 {value}
             </h3>
 
             {helper && (
-                <p className="mt-2 text-xs text-maxify-text-secondary/70">
+                <p className="mt-2 text-xs leading-5 text-maxify-text-secondary/85">
                     {helper}
                 </p>
             )}
@@ -96,10 +126,10 @@ function FilterButton({ active, label, onClick }) {
         <button
             onClick={onClick}
             className={`
-                rounded-2xl border px-4 py-3 text-sm font-medium transition-all
+                rounded-2xl border px-4 py-3 text-sm font-black transition-all
                 ${active
-                    ? "border-blue-500/30 bg-blue-500/15 text-blue-300 shadow-lg shadow-blue-500/10"
-                    : "border-maxify-border bg-maxify-border/20 text-maxify-text-secondary hover:bg-maxify-border/35"
+                    ? "border-blue-500/25 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-500/10"
+                    : "border-maxify-border bg-maxify-card text-maxify-text-secondary hover:border-blue-500/25 hover:bg-blue-500/10"
                 }
             `}
         >
@@ -119,14 +149,15 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ delay: index * 0.025 }}
-            className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-5 transition-all hover:border-blue-400/40 hover:bg-maxify-border/15"        >
+            className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
+        >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex min-w-0 gap-4">
                     <div
                         className={`
-        flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border
+        flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border
         ${item.enabled
-                                ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
+                                ? "border-blue-500/25 bg-blue-500/10 text-blue-300"
                                 : "border-red-500/20 bg-red-500/10 text-red-400"
                             }
     `}
@@ -142,7 +173,7 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
 
                             <StatusPill active={item.enabled} />
 
-                            <span className="rounded-full border border-maxify-border bg-maxify-border/15 px-2.5 py-1 text-xs text-maxify-text-secondary">
+                            <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-xs font-bold text-blue-300">
                                 {isRegistry
                                     ? "Registro"
                                     : isFolder
@@ -156,11 +187,11 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
                         </p>
 
                         <div className="mt-3 flex flex-wrap gap-2">
-                            <span className="rounded-lg border border-maxify-border bg-maxify-border/10 px-3 py-1 text-xs text-maxify-text-secondary">
+                            <span className="rounded-xl border border-maxify-border bg-maxify-bg/30 px-3 py-1 text-xs text-maxify-text-secondary">
                                 {item.sourceLabel}
                             </span>
 
-                            <span className="rounded-lg border border-maxify-border bg-maxify-border/10 px-3 py-1 text-xs text-maxify-text-secondary">
+                            <span className="rounded-xl border border-maxify-border bg-maxify-bg/30 px-3 py-1 text-xs text-maxify-text-secondary">
                                 {item.needsAdmin ? "Administrador" : "Usuário"}
                             </span>
                         </div>
@@ -173,7 +204,7 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
                         disabled={loading}
                         variant="outline"
                         className={`
-                            flex items-center gap-2 rounded-xl
+                            flex items-center gap-2 rounded-2xl
                             ${item.enabled
                                 ? "border-red-500/25 text-red-300 hover:bg-red-500/10"
                                 : "border-green-500/25 text-green-300 hover:bg-green-500/10"
@@ -188,7 +219,7 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
                         onClick={() => onCopy(item)}
                         disabled={loading}
                         variant="outline"
-                        className="flex items-center gap-2 rounded-xl"
+                        className="flex items-center gap-2 rounded-2xl"
                     >
                         <Copy size={16} />
                         Copiar
@@ -202,7 +233,7 @@ function StartupItem({ item, index, loading, onToggle, onCopy }) {
 function LogsPanel({ logs }) {
     if (logs.length === 0) {
         return (
-            <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-6 text-center">
+            <div className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 text-center shadow-xl shadow-black/5">
                 <Activity className="mx-auto mb-3 text-blue-400/70" size={34} />
                 <h3 className="font-semibold text-maxify-text">Nenhum evento ainda</h3>
                 <p className="mt-1 text-sm text-maxify-text-secondary">
@@ -213,17 +244,17 @@ function LogsPanel({ logs }) {
     }
 
     return (
-        <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1 custom-nav-scroll">
+        <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1 custom-nav-scroll">
             {logs.map((log, index) => (
                 <div
                     key={index}
                     className={`
-                        rounded-xl border p-3
+                        rounded-2xl border p-3
                         ${log.type === "error"
                             ? "border-red-500/20 bg-red-500/10"
                             : log.type === "success"
                                 ? "border-green-500/20 bg-green-500/10"
-                                : "border-maxify-border bg-maxify-border/10"
+                                : "border-maxify-border bg-maxify-bg/30"
                         }
                     `}
                 >
@@ -236,7 +267,7 @@ function LogsPanel({ logs }) {
                                     : "Info"}
                         </span>
 
-                        <span className="text-xs text-maxify-text-secondary/70">
+                        <span className="text-xs leading-5 text-maxify-text-secondary/85">
                             {log.time}
                         </span>
                     </div>
@@ -251,10 +282,10 @@ function LogsPanel({ logs }) {
 }
 function EmptyState({ search }) {
     return (
-        <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-10 text-center">
+        <div className="rounded-[28px] border border-maxify-border bg-maxify-card p-10 text-center shadow-xl shadow-black/5">
             <Search className="mx-auto mb-4 text-blue-400/70" size={40} />
 
-            <h3 className="text-xl font-bold text-maxify-text">
+            <h3 className="text-xl font-black text-maxify-text">
                 Nenhum item encontrado
             </h3>
 
@@ -453,43 +484,43 @@ export default function StartupManager() {
     }
 
     return (
-        <RootDiv>
-            <div className="mx-auto max-w-[1900px] space-y-8 px-6 pb-16">
-                <div className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-8 mt-8">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_left,rgba(14,165,233,0.12),transparent_30%)]" />
+        <RootDiv className="min-h-full w-full overflow-y-auto">
+            <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 pb-16 md:p-6">
+                <section className="relative overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+                    <BackgroundGlow />
 
                     <div className="relative z-10 flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
                         <div className="max-w-4xl">
-                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-medium text-blue-300">
+                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
                                 <Sparkles size={15} />
                                 Gerenciador de inicialização
                             </div>
 
                             <div className="flex flex-col gap-5 md:flex-row md:items-start">
-                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/15 p-4 shadow-lg shadow-blue-500/10">
-                                    <MonitorCog className="text-blue-400" size={34} />
+                                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                                    <MonitorCog className="text-blue-300" size={34} />
                                 </div>
 
                                 <div>
-                                    <h1 className="text-3xl font-bold leading-tight text-maxify-text md:text-4xl">
+                                    <h1 className="text-4xl font-black leading-[0.98] text-maxify-text md:text-5xl">
                                         Inicialização do Windows
                                     </h1>
 
-                                    <p className="mt-3 max-w-3xl text-maxify-text-secondary">
+                                    <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
                                         Controle quais programas abrem junto com o Windows,
                                         reduza o tempo de boot e deixe o sistema mais limpo.
                                     </p>
 
                                     <div className="mt-5 flex flex-wrap gap-3">
-                                        <div className="rounded-xl border border-maxify-border bg-maxify-border/20 px-4 py-2 text-sm text-maxify-text-secondary">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             {stats.total} itens detectados
                                         </div>
 
-                                        <div className="rounded-xl border border-maxify-border bg-maxify-border/20 px-4 py-2 text-sm text-maxify-text-secondary">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             {stats.active} ativos
                                         </div>
 
-                                        <div className="rounded-xl border border-maxify-border bg-maxify-border/20 px-4 py-2 text-sm text-maxify-text-secondary">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Impacto {stats.impact}
                                         </div>
                                     </div>
@@ -497,19 +528,19 @@ export default function StartupManager() {
                             </div>
                         </div>
 
-                        <Card className="rounded-[24px] border border-maxify-border bg-gradient-to-br from-blue-500/20 to-cyan-500/10 p-6 xl:min-w-[420px]">
+                        <Card className="rounded-[30px] border border-blue-500/20 bg-blue-500/10 p-6 shadow-xl shadow-blue-500/10 xl:min-w-[420px]">
                             <div className="mb-5 flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-maxify-text-secondary">
                                         Impacto estimado
                                     </p>
 
-                                    <h2 className="mt-1 text-4xl font-bold text-cyan-300">
+                                    <h2 className="mt-1 text-4xl font-black text-maxify-text">
                                         {loading ? "..." : stats.impact}
                                     </h2>
                                 </div>
 
-                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-blue-400">
+                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-blue-300">
                                     {loading ? (
                                         <RefreshCw size={30} className="animate-spin" />
                                     ) : (
@@ -518,9 +549,9 @@ export default function StartupManager() {
                                 </div>
                             </div>
 
-                            <div className="h-3 overflow-hidden rounded-full bg-maxify-border/40">
+                            <div className="h-2 overflow-hidden rounded-full bg-maxify-border">
                                 <motion.div
-                                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
+                                    className="h-full rounded-full bg-blue-500"
                                     animate={{
                                         width: `${stats.total ? (stats.active / stats.total) * 100 : 0}%`,
                                     }}
@@ -532,7 +563,7 @@ export default function StartupManager() {
                                 <Button
                                     onClick={loadItems}
                                     disabled={loading || actionLoading}
-                                    className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl !bg-blue-500 text-white"
+                                    className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl !bg-blue-500 text-white shadow-lg shadow-blue-500/20"
                                 >
                                     <RefreshCw
                                         size={18}
@@ -552,9 +583,11 @@ export default function StartupManager() {
                             </div>
                         </Card>
                     </div>
-                </div>
+                </section>
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <section>
+                    <SectionTitle icon={Activity} label="Resumo" title="Visão rápida da inicialização" />
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <StatCard
                         icon={<Layers size={22} />}
                         label="Total"
@@ -583,18 +616,21 @@ export default function StartupManager() {
                         helper="Baseado em itens ativos"
                     />
                 </div>
+                </section>
 
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.45fr_0.55fr]">
-                    <Card className="rounded-[26px] border border-maxify-border bg-maxify-card p-6">
+                <section>
+                    <SectionTitle icon={MonitorCog} label="Controle" title="Programas e histórico" />
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.45fr_0.55fr]">
+                    <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
                         <div className="mb-6 space-y-5">
                             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
-                                        <MonitorCog className="text-blue-400" size={24} />
+                                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                                        <MonitorCog className="text-blue-300" size={24} />
                                     </div>
 
                                     <div>
-                                        <h2 className="text-xl font-bold text-maxify-text">
+                                        <h2 className="text-xl font-black text-maxify-text">
                                             Programas detectados
                                         </h2>
                                         <p className="text-sm text-maxify-text-secondary">
@@ -616,10 +652,10 @@ export default function StartupManager() {
                                         onChange={(e) => setSearch(e.target.value)}
                                         placeholder="Buscar por nome, caminho ou origem..."
                                         className="
-                                            w-full rounded-xl border border-maxify-border bg-maxify-border/10
+                                            w-full rounded-2xl border border-maxify-border bg-maxify-bg/30
                                             py-3 pl-12 pr-4 text-maxify-text outline-none transition
                                             placeholder:text-maxify-text-secondary/50
-                                            focus:border-blue-500/50 focus:bg-blue-500/10
+                                            focus:border-blue-500/40 focus:bg-blue-500/10
                                         "
                                     />
                                 </div>
@@ -664,7 +700,7 @@ export default function StartupManager() {
                                     {[1, 2, 3, 4].map((i) => (
                                         <div
                                             key={i}
-                                            className="animate-pulse rounded-2xl border border-maxify-border bg-maxify-border/10 p-5"
+                                            className="animate-pulse rounded-[28px] border border-maxify-border bg-maxify-card p-5"
                                         >
                                             <div className="mb-4 h-5 w-1/3 rounded-lg bg-blue-500/20" />
                                             <div className="mb-3 h-4 w-2/3 rounded-lg bg-blue-500/10" />
@@ -694,15 +730,15 @@ export default function StartupManager() {
                     </Card>
 
                     <div className="space-y-6">
-                        <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
+                        <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
                             <div className="mb-5 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
-                                        <Activity className="text-blue-400" size={24} />
+                                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                                        <Activity className="text-blue-300" size={24} />
                                     </div>
 
                                     <div>
-                                        <h2 className="text-xl font-bold text-maxify-text">
+                                        <h2 className="text-xl font-black text-maxify-text">
                                             Histórico
                                         </h2>
                                         <p className="text-sm text-maxify-text-secondary">
@@ -735,14 +771,14 @@ export default function StartupManager() {
                             </div>
                         </Card>
 
-                        <Card className="rounded-[26px] border border-maxify-border bg-maxify-card p-6">
+                        <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
                             <div className="mb-5 flex items-center gap-3">
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <ShieldCheck className="text-blue-400" size={24} />
+                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                                    <ShieldCheck className="text-blue-300" size={24} />
                                 </div>
 
                                 <div>
-                                    <h2 className="text-xl font-bold text-maxify-text">
+                                    <h2 className="text-xl font-black text-maxify-text">
                                         Recomendações
                                     </h2>
                                     <p className="text-sm text-maxify-text-secondary">
@@ -752,9 +788,9 @@ export default function StartupManager() {
                             </div>
 
                             <div className="space-y-3">
-                                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4">
+                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
                                     <div className="flex items-start gap-3">
-                                        <FileCog size={18} className="mt-0.5 text-blue-400" />
+                                        <FileCog size={18} className="mt-0.5 text-blue-300" />
                                         <p className="text-sm leading-relaxed text-maxify-text-secondary">
                                             Desative launchers, atualizadores e apps que você não usa no boot.
                                         </p>
@@ -781,7 +817,8 @@ export default function StartupManager() {
                             </div>
                         </Card>
                     </div>
-                </div>
+                    </div>
+                </section>
             </div>
         </RootDiv>
     )

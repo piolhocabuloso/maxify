@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { motion } from "framer-motion"
 import RootDiv from "@/components/rootdiv"
 import { invoke } from "@/lib/electron"
 import {
@@ -6,7 +7,6 @@ import {
     ShieldOff,
     BellOff,
     WifiOff,
-    Printer,
     SearchX,
     Cpu,
     Trash2,
@@ -15,6 +15,13 @@ import {
     RefreshCw,
     Settings2,
     ChevronRight,
+    Sparkles,
+    Database,
+    Layers3,
+    Activity,
+    Shield,
+    Gauge,
+    Zap,
 } from "lucide-react"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/button"
@@ -22,7 +29,7 @@ import Toggle from "@/components/ui/toggle"
 import { notify as toast } from "../lib/notify"
 
 const comandosDesativar = [
-     {
+    {
         id: "hipervisor",
         label: "Desativar Hypervisor",
         description: "Desliga o hypervisor na inicialização.",
@@ -354,6 +361,97 @@ const categorias = [
 ]
 
 
+
+const BackgroundGlow = () => {
+    return (
+        <>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+        </>
+    )
+}
+
+const SectionTitle = ({ icon: Icon, label, title }) => {
+    return (
+        <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+                <Icon className="h-5 w-5 text-blue-300" />
+            </div>
+
+            <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                    {label}
+                </p>
+                <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+            </div>
+
+            <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+        </div>
+    )
+}
+
+const categoryIconMap = {
+    all: Layers3,
+    sistema: Database,
+    servicos: Power,
+    cpu: Cpu,
+    rede: WifiOff,
+    visual: Settings2,
+    seguranca: Shield,
+}
+
+const StatCard = ({ title, value, subtitle, icon: Icon, accent = "blue" }) => {
+    const accentMap = {
+        blue: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+        cyan: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+        sky: "border-sky-500/25 bg-sky-500/10 text-sky-300",
+        red: "border-red-500/25 bg-red-500/10 text-red-300",
+    }
+
+    return (
+        <motion.div
+            whileHover={{ y: -5 }}
+            className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
+        >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+            <div className="relative z-10">
+                <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className={`rounded-2xl border p-3 ${accentMap[accent] || accentMap.blue}`}>
+                        <Icon className="h-5 w-5" />
+                    </div>
+
+                    <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+                </div>
+
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">
+                    {title}
+                </p>
+                <p className="mt-1 text-3xl font-black leading-none text-maxify-text">
+                    {value}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-maxify-text-secondary/85">
+                    {subtitle}
+                </p>
+            </div>
+        </motion.div>
+    )
+}
+
+const getStatusText = (status, carregando) => {
+    if (carregando) return "Executando..."
+    if (status === "success") return "Aplicado com sucesso"
+    if (status === "error") return "Falhou"
+    return "Pendente"
+}
+
+const getStatusClass = (status, carregando) => {
+    if (carregando) return "text-blue-300"
+    if (status === "success") return "text-cyan-300"
+    if (status === "error") return "text-red-400"
+    return "text-maxify-text-secondary"
+}
+
 export default function Desativar() {
     const [selecionados, setSelecionados] = useState([])
     const [executando, setExecutando] = useState(false)
@@ -442,41 +540,84 @@ export default function Desativar() {
 
     const totalSucesso = Object.values(resultados).filter((x) => x === "success").length
     const totalErro = Object.values(resultados).filter((x) => x === "error").length
+    const totalAvisos = comandosDesativar.filter((item) => item.warning).length
+
+    const stats = [
+        {
+            title: "Disponíveis",
+            value: comandosDesativar.length,
+            subtitle: "Recursos e serviços para controle",
+            icon: Layers3,
+            accent: "blue",
+        },
+        {
+            title: "Selecionadas",
+            value: selecionados.length,
+            subtitle: "Opções prontas para aplicar",
+            icon: CheckCircle2,
+            accent: "cyan",
+        },
+        {
+            title: "Aplicadas",
+            value: totalSucesso,
+            subtitle: "Ações concluídas nessa sessão",
+            icon: Zap,
+            accent: "sky",
+        },
+        {
+            title: "Cuidados",
+            value: totalAvisos,
+            subtitle: `${totalErro} falha(s) registrada(s)`,
+            icon: ShieldOff,
+            accent: totalErro > 0 ? "red" : "blue",
+        },
+    ]
 
     return (
-        <RootDiv>
-            <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
-                <div className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-8 mt-8">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_left,rgba(14,165,233,0.12),transparent_30%)]" />
-                    <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
-                        <div className="max-w-3xl">
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-300 text-sm font-medium mb-4">
-                                <Power size={15} />
-                                Central de desativação
+        <RootDiv className="min-h-full w-full overflow-y-auto">
+            <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 md:p-6">
+                <section className="relative overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+                    <BackgroundGlow />
+
+                    <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_420px] xl:items-center">
+                        <div>
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                                <Sparkles size={14} />
+                                Maxify Control Center
                             </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/20 shadow-lg shadow-blue-500/10">
-                                    <Power className="text-blue-400" size={30} />
+                            <div className="flex items-start gap-5">
+                                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                                    <Power className="h-9 w-9 text-blue-300" />
                                 </div>
 
-                                <div>
-                                    <h1 className="text-3xl md:text-4xl font-bold text-maxify-text leading-tight">
-                                        Desativar recursos do sistema
-                                    </h1>
-                                    <p className="text-maxify-text-secondary mt-3 max-w-2xl">
-                                        Gerencie opções para desligar serviços, funções e recursos que podem afetar desempenho.
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-300">
+                                        Central de desativação
                                     </p>
 
-                                    <div className="flex flex-wrap gap-3 mt-5">
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
+                                    <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                                        Controle avançado de{" "}
+                                        <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                                            recursos do Windows
+                                        </span>
+                                    </h1>
+
+                                    <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                                        Desative serviços, funções visuais, recursos de energia e ajustes do sistema em um painel mais limpo, modular e premium.
+                                    </p>
+
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             {comandosDesativar.length} opções disponíveis
                                         </div>
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
+
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             {selecionados.length} selecionadas
                                         </div>
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
-                                            {totalSucesso} aplicadas
+
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                                            Status: {executando ? "Executando" : "Pronto"}
                                         </div>
                                     </div>
                                 </div>
@@ -484,185 +625,290 @@ export default function Desativar() {
                         </div>
 
                     </div>
-                </div>
+                </section>
 
-                <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-maxify-text">Filtrar por categoria</h2>
-                            <p className="text-sm text-maxify-text-secondary">Escolha o grupo que deseja visualizar</p>
-                        </div>
+                <section>
+                    <SectionTitle icon={Activity} label="Resumo" title="Visão rápida da desativação" />
 
-                        <div className="flex flex-wrap gap-2">
-                            <Button onClick={selecionarTodos} disabled={executando} variant="outline" size="sm">
-                                Selecionar todos
-                            </Button>
-                            <Button onClick={limparSelecao} disabled={executando} variant="outline" size="sm">
-                                Limpar seleção
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3">
-                        {categorias.map((categoria) => (
-                            <button
-                                key={categoria.id}
-                                onClick={() => setCategoriaAtiva(categoria.id)}
-                                className={`px-4 py-3 rounded-2xl text-sm font-medium transition-all border ${categoriaAtiva === categoria.id
-                                    ? "bg-blue-500/15 text-blue-300 border-blue-500/30 shadow-lg shadow-blue-500/10"
-                                    : "bg-maxify-border/20 text-maxify-text-secondary border-maxify-border hover:bg-maxify-border/35"
-                                    }`}
-                            >
-                                {categoria.label}
-                            </button>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        {stats.map((item, index) => (
+                            <StatCard key={index} {...item} />
                         ))}
                     </div>
-                </Card>
+                </section>
 
-                <div className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
-                    <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                        <div className="flex items-center justify-between gap-4 mb-6">
-                            <div>
-                                <h2 className="text-xl font-bold text-maxify-text">Opções de desativação</h2>
-                                <p className="text-sm text-maxify-text-secondary">
-                                    {filtrados.length} disponíveis • {selecionados.length} selecionadas
-                                </p>
+                <section>
+                    <SectionTitle icon={Shield} label="Filtros" title="Categorias de ajustes" />
+
+                    <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_45%)]" />
+
+                        <div className="relative z-10 flex flex-col gap-5">
+                            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                                <div>
+                                    <h2 className="text-xl font-black text-maxify-text">
+                                        Filtrar por categoria
+                                    </h2>
+                                    <p className="mt-1 text-sm text-maxify-text-secondary">
+                                        Escolha um grupo para visualizar apenas o que interessa.
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    <Button onClick={selecionarTodos} disabled={executando} variant="outline" size="sm">
+                                        Selecionar todos
+                                    </Button>
+
+                                    <Button onClick={limparSelecao} disabled={executando} variant="outline" size="sm">
+                                        Limpar seleção
+                                    </Button>
+                                </div>
                             </div>
 
-                            {executando && (
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300">
-                                    <RefreshCw className="animate-spin" size={16} />
-                                    <span className="text-sm font-medium">Executando</span>
-                                </div>
-                            )}
-                        </div>
+                            <div className="flex flex-wrap gap-3">
+                                {categorias.map((categoria) => {
+                                    const Icon = categoryIconMap[categoria.id] || Layers3
+                                    const active = categoriaAtiva === categoria.id
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {filtrados.map((item) => {
-                                const ativo = selecionados.includes(item.id)
-                                const carregando = fila.includes(item.id)
-                                const status = resultados[item.id]
-
-                                return (
-                                    <div
-                                        key={item.id}
-                                        className={`relative rounded-2xl border p-4 transition-all ${ativo
-                                            ? "border-blue-500 bg-blue-500/10"
-                                            : "border-maxify-border bg-maxify-border/10 hover:border-blue-400/40"
-                                            } ${carregando ? "opacity-80" : ""}`}
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                                                <div
-                                                    className={`mt-0.5 p-2.5 rounded-xl shrink-0 ${item.warning ? "bg-red-500/10 text-red-400" : "bg-blue-500/10 text-blue-400"
-                                                        }`}
-                                                >
-                                                    {item.icon}
-                                                </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-[15px] font-semibold text-maxify-text">
-                                                            {item.label}
-                                                        </span>
-
-                                                        {item.warning && (
-                                                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-red-500/15 text-red-400">
-                                                                Cuidado
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    <p className="text-sm text-maxify-text-secondary mt-1 leading-relaxed">
-                                                        {item.description}
-                                                    </p>
-
-                                                    <div className="mt-2">
-                                                        {status === "success" && (
-                                                            <span className="text-sm font-medium text-cyan-400">Aplicado com sucesso</span>
-                                                        )}
-                                                        {status === "error" && (
-                                                            <span className="text-sm font-medium text-red-400">Falhou</span>
-                                                        )}
-                                                        {!status && (
-                                                            <span className="text-sm font-medium text-slate-400">Pendente</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <Toggle
-                                                checked={ativo}
-                                                onChange={() => alternar(item.id)}
-                                                disabled={executando || carregando}
-                                            />
-                                        </div>
-
-                                        {carregando && (
-                                            <div className="absolute inset-0 rounded-2xl bg-maxify-card/75 backdrop-blur-[2px] flex items-center justify-center">
-                                                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                                    <RefreshCw className="animate-spin text-blue-400" size={16} />
-                                                    <span className="text-sm font-medium text-blue-300">Executando...</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })}
+                                    return (
+                                        <button
+                                            key={categoria.id}
+                                            onClick={() => setCategoriaAtiva(categoria.id)}
+                                            disabled={executando}
+                                            className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${active
+                                                    ? "border-blue-500/30 bg-blue-500/15 text-blue-300 shadow-lg shadow-blue-500/10"
+                                                    : "border-maxify-border bg-maxify-border/20 text-maxify-text-secondary hover:border-blue-400/30 hover:bg-maxify-border/35"
+                                                } ${executando ? "cursor-not-allowed opacity-60" : ""}`}
+                                        >
+                                            <Icon size={16} />
+                                            {categoria.label}
+                                        </button>
+                                    )
+                                })}
+                            </div>
                         </div>
                     </Card>
+                </section>
 
-                    <div className="space-y-6">
-                        <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
-                                    <CheckCircle2 className="text-blue-400" size={22} />
+                <section>
+                    <SectionTitle icon={Power} label="Ajustes" title="Opções de desativação" />
+
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+                        <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_48%)]" />
+
+                            <div className="relative z-10">
+                                <div className="mb-6 flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                                            Lista de comandos
+                                        </p>
+                                        <h2 className="mt-1 text-xl font-black text-maxify-text">
+                                            {filtrados.length} disponíveis
+                                        </h2>
+                                        <p className="mt-1 text-sm text-maxify-text-secondary">
+                                            {selecionados.length} selecionadas para aplicar.
+                                        </p>
+                                    </div>
+
+                                    {executando && (
+                                        <div className="flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-blue-300">
+                                            <RefreshCw className="animate-spin" size={16} />
+                                            <span className="text-sm font-bold">Executando</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-maxify-text">Resumo rápido</h2>
-                                    <p className="text-sm text-maxify-text-secondary">Estado atual</p>
+
+                                <div className="max-h-[760px] overflow-y-auto pr-2">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                        {filtrados.map((item) => {
+                                            const ativo = selecionados.includes(item.id)
+                                            const carregando = fila.includes(item.id)
+                                            const status = resultados[item.id]
+
+                                            return (
+                                                <motion.div
+                                                    key={item.id}
+                                                    whileHover={{ y: -3 }}
+                                                    onClick={() => {
+                                                        if (!executando && !carregando) alternar(item.id)
+                                                    }}
+                                                    className={`group relative cursor-pointer rounded-2xl border p-4 shadow-black/5 transition-all ${ativo
+                                                            ? "border-blue-500/45 bg-blue-500/10 shadow-lg shadow-blue-500/5"
+                                                            : "border-maxify-border bg-maxify-bg/30 hover:border-blue-400/40 hover:bg-maxify-border/15"
+                                                        } ${carregando ? "opacity-80" : ""}`}
+                                                >
+                                                    <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_45%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+                                                    <div className="relative z-10 flex items-start justify-between gap-3">
+                                                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                                                            <div
+                                                                className={`mt-0.5 shrink-0 rounded-xl border p-2.5 ${item.warning
+                                                                        ? "border-red-500/20 bg-red-500/10 text-red-400"
+                                                                        : "border-blue-500/20 bg-blue-500/10 text-blue-300"
+                                                                    }`}
+                                                            >
+                                                                {item.icon}
+                                                            </div>
+
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <span className="text-[15px] font-bold text-maxify-text">
+                                                                        {item.label}
+                                                                    </span>
+
+                                                                    {item.warning && (
+                                                                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-bold text-red-400">
+                                                                            Cuidado
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-maxify-text-secondary">
+                                                                    {item.description}
+                                                                </p>
+
+                                                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                                    <span className={`text-sm font-bold ${getStatusClass(status, carregando)}`}>
+                                                                        {getStatusText(status, carregando)}
+                                                                    </span>
+
+                                                                    <span className="rounded-full border border-maxify-border bg-maxify-border/20 px-2 py-0.5 text-[11px] font-bold text-maxify-text-secondary">
+                                                                        {item.category}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div onClick={(e) => e.stopPropagation()}>
+                                                            <Toggle
+                                                                checked={ativo}
+                                                                onChange={() => alternar(item.id)}
+                                                                disabled={executando || carregando}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {carregando && (
+                                                        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-maxify-card/75 backdrop-blur-[2px]">
+                                                            <div className="flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2">
+                                                                <RefreshCw className="animate-spin text-blue-400" size={16} />
+                                                                <span className="text-sm font-bold text-blue-300">
+                                                                    Executando...
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            )
+                                        })}
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="space-y-3">
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <p className="text-sm text-maxify-text-secondary">Selecionados</p>
-                                    <p className="text-2xl font-bold text-blue-300 mt-1">{selecionados.length}</p>
-                                </div>
-
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <p className="text-sm text-maxify-text-secondary">Aplicados</p>
-                                    <p className="text-2xl font-bold text-cyan-300 mt-1">{totalSucesso}</p>
-                                </div>
-
-                                <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4">
-                                    <p className="text-sm text-maxify-text-secondary">Falhas</p>
-                                    <p className="text-2xl font-bold text-red-400 mt-1">{totalErro}</p>
-                                </div>
-                            </div>
-
-                            <Button
-                                onClick={executarSelecionados}
-                                disabled={executando || selecionados.length === 0}
-                                size="lg"
-                                variant="primary"
-                                className="w-full mt-5 min-h-[52px] flex items-center justify-center gap-3 text-base font-semibold"
-                            >
-                                {executando ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" size={20} />
-                                        <span>Executando...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play size={20} />
-                                        <span>Aplicar desativações</span>
-                                    </>
-                                )}
-                            </Button>
                         </Card>
+
+                        <div className="space-y-6">
+                            <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_48%)]" />
+
+                                <div className="relative z-10">
+                                    <div className="mb-5 flex items-center gap-3">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                                            <CheckCircle2 className="text-blue-300" size={22} />
+                                        </div>
+
+                                        <div>
+                                            <h2 className="text-xl font-black text-maxify-text">
+                                                Resumo rápido
+                                            </h2>
+                                            <p className="text-sm text-maxify-text-secondary">
+                                                Estado atual das ações
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
+                                            <p className="text-sm text-maxify-text-secondary">Selecionados</p>
+                                            <p className="mt-1 text-2xl font-black text-blue-300">
+                                                {selecionados.length}
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
+                                            <p className="text-sm text-maxify-text-secondary">Aplicados</p>
+                                            <p className="mt-1 text-2xl font-black text-cyan-300">
+                                                {totalSucesso}
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
+                                            <p className="text-sm text-maxify-text-secondary">Falhas</p>
+                                            <p className="mt-1 text-2xl font-black text-red-400">
+                                                {totalErro}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <Button
+                                        onClick={executarSelecionados}
+                                        disabled={executando || selecionados.length === 0}
+                                        size="lg"
+                                        variant="primary"
+                                        className="mt-5 flex min-h-[54px] w-full items-center justify-center gap-3 rounded-2xl text-base font-black uppercase tracking-[0.12em]"
+                                    >
+                                        {executando ? (
+                                            <>
+                                                <RefreshCw className="animate-spin" size={20} />
+                                                <span>Executando...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Play size={20} />
+                                                <span>Aplicar desativações</span>
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </Card>
+
+                            <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.12),transparent_48%)]" />
+
+                                <div className="relative z-10">
+                                    <div className="mb-4 flex items-center gap-3">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                                            <ShieldOff className="text-blue-300" size={22} />
+                                        </div>
+
+                                        <div>
+                                            <h2 className="text-lg font-black text-maxify-text">
+                                                Atenção
+                                            </h2>
+                                            <p className="text-sm text-maxify-text-secondary">
+                                                Algumas opções podem alterar comportamento do Windows.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-red-500/15 bg-red-500/10 p-4">
+                                            <p className="text-sm font-semibold text-red-300">
+                                                Itens com “Cuidado” devem ser usados apenas se você sabe o que está desativando.
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded-2xl border border-blue-500/15 bg-blue-500/10 p-4">
+                                            <p className="text-sm text-maxify-text-secondary">
+                                                Se algum recurso parar de funcionar, reative manualmente pelo Windows ou use um ponto de restauração.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
                     </div>
-                </div>
+                </section>
             </div>
         </RootDiv>
     )

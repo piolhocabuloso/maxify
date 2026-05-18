@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { motion } from "framer-motion"
 import RootDiv from "@/components/rootdiv"
 import { invoke } from "@/lib/electron"
 import {
@@ -15,12 +16,87 @@ import {
     Database,
     Activity,
     CheckCircle2,
+    ChevronRight,
+    ShieldCheck,
+    Gauge,
+    Layers3,
 } from "lucide-react"
 import { notify as toast } from "../lib/notify"
 import log from "electron-log/renderer"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/button"
 import { cleanupIconMap } from "@/utils/cleanupIcons"
+
+const BackgroundGlow = () => {
+    return (
+        <>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+        </>
+    )
+}
+
+const SectionTitle = ({ icon: Icon, label, title, description }) => {
+    return (
+        <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+                <Icon className="h-5 w-5 text-blue-300" />
+            </div>
+
+            <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                    {label}
+                </p>
+                <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+                {description && (
+                    <p className="mt-1 text-sm text-maxify-text-secondary">{description}</p>
+                )}
+            </div>
+
+            <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+        </div>
+    )
+}
+
+const StatCard = ({ icon: Icon, label, value, helper, accent = "blue" }) => {
+    const accentMap = {
+        blue: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+        cyan: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+        sky: "border-sky-500/25 bg-sky-500/10 text-sky-300",
+        indigo: "border-indigo-500/25 bg-indigo-500/10 text-indigo-300",
+    }
+
+    return (
+        <motion.div
+            whileHover={{ y: -5 }}
+            className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
+        >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.16),transparent_50%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+            <div className="relative z-10">
+                <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className={`rounded-2xl border p-3 ${accentMap[accent] || accentMap.blue}`}>
+                        <Icon className="h-5 w-5" />
+                    </div>
+
+                    <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+                </div>
+
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">
+                    {label}
+                </p>
+                <h3 className="mt-2 text-3xl font-black leading-none text-maxify-text">
+                    {value}
+                </h3>
+                {helper && (
+                    <p className="mt-3 text-xs leading-5 text-maxify-text-secondary/85">
+                        {helper}
+                    </p>
+                )}
+            </div>
+        </motion.div>
+    )
+}
 
 function AutoClean() {
     const [cleanups, setCleanups] = useState([])
@@ -321,42 +397,45 @@ function AutoClean() {
     }, [cleanups])
 
     return (
-        <RootDiv>
-            <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
-                <div className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-8 mt-8">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_left,rgba(14,165,233,0.12),transparent_30%)]" />
+        <RootDiv className="min-h-full w-full overflow-y-auto">
+            <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 md:p-6">
+                <section className="relative overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+                    <BackgroundGlow />
 
-                    <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+                    <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_420px] xl:items-center">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-300 text-sm font-medium mb-4">
-                                <Sparkles size={15} />
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                                <Sparkles size={14} />
                                 Sistema automático
                             </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/20 shadow-lg shadow-blue-500/10">
-                                    <Zap className="text-blue-400" size={30} />
+                            <div className="flex items-start gap-5">
+                                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                                    <Zap className="h-9 w-9 text-blue-300" />
                                 </div>
 
-                                <div>
-                                    <h1 className="text-3xl md:text-4xl font-bold text-maxify-text leading-tight">
-                                        Limpeza automática
+                                <div className="min-w-0">
+                                    <h1 className="max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                                        Limpeza automática em{" "}
+                                        <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                                            modo inteligente
+                                        </span>
                                     </h1>
 
-                                    <p className="text-maxify-text-secondary mt-3 max-w-2xl">
-                                        Configure um intervalo, escolha as limpezas permitidas e deixe o Maxify cuidar disso sozinho.
+                                    <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                                        Configure o intervalo, escolha as rotinas seguras e deixe o Maxify manter o sistema mais limpo de forma automática.
                                     </p>
 
-                                    <div className="flex flex-wrap gap-3 mt-5">
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Status: {autoCleanEnabled ? "ativo" : "inativo"}
                                         </div>
 
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             {autoCleanSelections.length} limpezas selecionadas
                                         </div>
 
-                                        <div className="px-4 py-2 rounded-xl bg-maxify-border/20 text-maxify-text-secondary text-sm border border-maxify-border">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Próxima: {formatTimeUntilNextClean()}
                                         </div>
                                     </div>
@@ -364,248 +443,298 @@ function AutoClean() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <button
-                                onClick={() => setNotificationsEnabled((prev) => !prev)}
-                                className={`p-3 rounded-2xl border transition-all ${notificationsEnabled
-                                        ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
-                                        : "bg-maxify-border/10 text-slate-400 border-maxify-border"
-                                    }`}
-                                title={notificationsEnabled ? "Notificações ativas" : "Notificações desativadas"}
-                            >
-                                {notificationsEnabled ? <Bell size={20} /> : <BellOff size={20} />}
-                            </button>
+                        <motion.div
+                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.35 }}
+                            className="rounded-[30px] border border-blue-500/20 bg-blue-500/10 p-6"
+                        >
+                            <div className="mb-5 flex items-center justify-between">
+                                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                                    {autoCleanRunning ? (
+                                        <RefreshCw size={30} className="animate-spin text-blue-300" />
+                                    ) : (
+                                        <Gauge size={30} className="text-blue-300" />
+                                    )}
+                                </div>
 
-                            <Button
-                                onClick={() => executeAutoClean()}
-                                variant="outline"
-                                className="min-w-[170px] flex items-center justify-center gap-3"
-                                disabled={autoCleanRunning || autoCleanSelections.length === 0}
-                            >
-                                <RefreshCw size={18} />
-                                <span>Executar agora</span>
-                            </Button>
-
-                            <Button
-                                onClick={() => {
-                                    if (autoCleanRunning) {
-                                        toast.warning("Aguarde a limpeza automática atual terminar.")
-                                        return
-                                    }
-
-                                    setAutoCleanEnabled((prev) => !prev)
-                                }}
-                                variant={autoCleanEnabled ? "danger" : "primary"}
-                                className="min-w-[190px] flex items-center justify-center gap-3"
-                                disabled={autoCleanRunning}
-                            >
-                                {autoCleanRunning ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" size={20} />
-                                        <span>Executando...</span>
-                                    </>
-                                ) : autoCleanEnabled ? (
-                                    <>
-                                        <Pause size={20} />
-                                        <span>Desativar auto</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play size={20} />
-                                        <span>Ativar auto</span>
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                        <div className="flex items-center gap-3">
-                            <Activity className={autoCleanEnabled ? "text-blue-400" : "text-slate-400"} size={24} />
-                            <div>
-                                <p className="text-sm text-maxify-text-secondary">Status</p>
-                                <p className={`text-xl font-bold ${autoCleanEnabled ? "text-blue-300" : "text-slate-400"}`}>
-                                    {autoCleanEnabled ? "Ativo" : "Inativo"}
-                                </p>
-                            </div>
-                        </div>
-
-                        {autoCleanEnabled && (
-                            <p className="text-sm text-maxify-text-secondary mt-4">
-                                Próxima limpeza em{" "}
-                                <span className="text-cyan-300 font-semibold">{formatTimeUntilNextClean()}</span>
-                            </p>
-                        )}
-                    </Card>
-
-                    <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                        <div className="flex items-center gap-3">
-                            <CheckCircle2 className="text-blue-400" size={24} />
-                            <div>
-                                <p className="text-sm text-maxify-text-secondary">Execuções automáticas</p>
-                                <p className="text-xl font-bold text-blue-300">
-                                    {estatisticas.autoCleansExecuted || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-                        <div className="flex items-center gap-3">
-                            <Database className="text-cyan-400" size={24} />
-                            <div>
-                                <p className="text-sm text-maxify-text-secondary">Liberado no automático</p>
-                                <p className="text-xl font-bold text-cyan-300">
-                                    {formatarBytes(estatisticas.totalAutoCleanSpace || 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-
-                <Card className="bg-maxify-card border border-maxify-border rounded-[28px] p-6">
-                    <h2 className="text-xl font-bold text-maxify-text mb-2">
-                        Intervalo da limpeza automática
-                    </h2>
-
-                    <p className="text-sm text-maxify-text-secondary mb-5">
-                        Escolha de quanto em quanto tempo o sistema deve executar.
-                    </p>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {INTERVAL_OPTIONS.map((option) => {
-                            const ativo = autoCleanInterval === option.value
-
-                            return (
                                 <button
-                                    key={option.value}
+                                    onClick={() => setNotificationsEnabled((prev) => !prev)}
+                                    className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] transition-all ${notificationsEnabled
+                                            ? "border-blue-500/20 bg-blue-500/10 text-blue-300"
+                                            : "border-maxify-border bg-maxify-card/60 text-maxify-text-secondary"
+                                        }`}
+                                    title={notificationsEnabled ? "Notificações ativas" : "Notificações desativadas"}
+                                >
+                                    <span className="inline-flex items-center gap-2">
+                                        {notificationsEnabled ? <Bell size={14} /> : <BellOff size={14} />}
+                                        {notificationsEnabled ? "Avisos" : "Sem avisos"}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                                Controle rápido
+                            </p>
+
+                            <h2 className="mt-2 text-3xl font-black text-maxify-text">
+                                {autoCleanEnabled ? "Automático ativo" : "Automático pausado"}
+                            </h2>
+
+                            <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
+                                Execute uma limpeza manual agora ou ligue o modo automático para seguir o intervalo escolhido.
+                            </p>
+
+                            <div className="mt-5 grid gap-3">
+                                <Button
+                                    onClick={() => executeAutoClean()}
+                                    variant="outline"
+                                    className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-2xl"
+                                    disabled={autoCleanRunning || autoCleanSelections.length === 0}
+                                >
+                                    <RefreshCw size={18} className={autoCleanRunning ? "animate-spin" : ""} />
+                                    <span>{autoCleanRunning ? "Executando..." : "Executar agora"}</span>
+                                </Button>
+
+                                <Button
                                     onClick={() => {
                                         if (autoCleanRunning) {
-                                            toast.warning("Aguarde a limpeza atual terminar para alterar o intervalo.")
+                                            toast.warning("Aguarde a limpeza automática atual terminar.")
                                             return
                                         }
 
-                                        setAutoCleanInterval(option.value)
+                                        setAutoCleanEnabled((prev) => !prev)
                                     }}
+                                    variant={autoCleanEnabled ? "danger" : "primary"}
+                                    className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-2xl"
                                     disabled={autoCleanRunning}
-                                    className={`p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2 ${ativo
-                                            ? "border-blue-500/30 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-500/10"
-                                            : "border-maxify-border bg-maxify-border/10 text-maxify-text-secondary hover:border-blue-500/20"
-                                        } ${autoCleanRunning ? "opacity-50 cursor-not-allowed" : ""}`}
                                 >
-                                    <Timer size={20} />
-                                    <span className="text-sm font-semibold">{option.label}</span>
-                                </button>
-                            )
-                        })}
+                                    {autoCleanEnabled ? <Pause size={20} /> : <Play size={20} />}
+                                    <span>{autoCleanEnabled ? "Desativar auto" : "Ativar auto"}</span>
+                                </Button>
+                            </div>
+                        </motion.div>
                     </div>
-                </Card>
+                </section>
 
-                <Card className="bg-maxify-card border border-maxify-border rounded-[28px] p-6">
-                    <h2 className="text-xl font-bold text-maxify-text mb-2">
-                        Limpezas permitidas no automático
-                    </h2>
+                <section>
+                    <SectionTitle
+                        icon={Activity}
+                        label="Resumo"
+                        title="Visão rápida da automação"
+                    />
 
-                    <p className="text-sm text-maxify-text-secondary mb-5">
-                        Rotinas perigosas ficam fora do automático para evitar problemas.
-                    </p>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <StatCard
+                            icon={Activity}
+                            label="Status"
+                            value={autoCleanEnabled ? "Ativo" : "Inativo"}
+                            helper={autoCleanEnabled ? `Próxima limpeza em ${formatTimeUntilNextClean()}` : "Automação desligada no momento"}
+                            accent="blue"
+                        />
 
-                    <div className="max-h-[520px] overflow-y-auto pr-2 custom-clean-scroll">
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                            {safeCleanups.map((limpeza) => {
-                                const selecionada = autoCleanSelections.includes(limpeza.id)
+                        <StatCard
+                            icon={CheckCircle2}
+                            label="Execuções automáticas"
+                            value={estatisticas.autoCleansExecuted || 0}
+                            helper="Quantidade de execuções feitas sozinhas"
+                            accent="cyan"
+                        />
+
+                        <StatCard
+                            icon={Database}
+                            label="Liberado no automático"
+                            value={formatarBytes(estatisticas.totalAutoCleanSpace || 0)}
+                            helper="Espaço total recuperado por automação"
+                            accent="sky"
+                        />
+                    </div>
+                </section>
+
+                <section>
+                    <SectionTitle
+                        icon={Timer}
+                        label="Intervalo"
+                        title="Intervalo da limpeza automática"
+                        description="Escolha de quanto em quanto tempo o sistema deve executar."
+                    />
+
+                    <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_45%)]" />
+
+                        <div className="relative z-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+                            {INTERVAL_OPTIONS.map((option) => {
+                                const ativo = autoCleanInterval === option.value
 
                                 return (
-                                    <div
-                                        key={limpeza.id}
+                                    <motion.button
+                                        key={option.value}
+                                        whileHover={!autoCleanRunning ? { y: -4 } : undefined}
+                                        whileTap={!autoCleanRunning ? { scale: 0.98 } : undefined}
                                         onClick={() => {
-                                            if (autoCleanRunning) return
+                                            if (autoCleanRunning) {
+                                                toast.warning("Aguarde a limpeza atual terminar para alterar o intervalo.")
+                                                return
+                                            }
 
-                                            const updated = selecionada
-                                                ? autoCleanSelections.filter((id) => id !== limpeza.id)
-                                                : [...autoCleanSelections, limpeza.id]
-
-                                            setAutoCleanSelections(updated)
+                                            setAutoCleanInterval(option.value)
                                         }}
-                                        className={`rounded-2xl border p-4 cursor-pointer transition-all ${selecionada
-                                                ? "border-blue-500/30 bg-blue-500/10"
-                                                : "border-maxify-border bg-maxify-border/10 hover:border-blue-500/20"
-                                            } ${autoCleanRunning ? "opacity-50 cursor-not-allowed" : ""}`}
+                                        disabled={autoCleanRunning}
+                                        className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${ativo
+                                                ? "border-blue-500/30 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-500/10"
+                                                : "border-maxify-border bg-maxify-bg/30 text-maxify-text-secondary hover:border-blue-500/20 hover:bg-blue-500/10"
+                                            } ${autoCleanRunning ? "cursor-not-allowed opacity-50" : ""}`}
                                     >
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                <span className="text-blue-400">{cleanupIconMap[limpeza.icon]}</span>
-                                                <span className="text-sm font-medium text-maxify-text truncate">
-                                                    {limpeza.label}
-                                                </span>
-                                            </div>
-
-                                            <div
-                                                className={`w-3 h-3 rounded-full ${selecionada ? "bg-blue-400" : "bg-slate-500"
-                                                    }`}
-                                            />
-                                        </div>
-
-                                        <p className="text-xs text-maxify-text-secondary mt-2 line-clamp-2">
-                                            {limpeza.description}
-                                        </p>
-                                    </div>
+                                        <Timer size={20} />
+                                        <span className="text-sm font-black">{option.label}</span>
+                                    </motion.button>
                                 )
                             })}
                         </div>
-                    </div>
+                    </Card>
+                </section>
 
-                    <p className="text-xs text-maxify-text-secondary mt-4 flex items-center gap-1.5">
-                        <AlertTriangle size={13} />
-                        Só coloque no automático o que for seguro para rodar sozinho.
-                    </p>
-                </Card>
+                <section>
+                    <SectionTitle
+                        icon={Layers3}
+                        label="Rotinas"
+                        title="Limpezas permitidas no automático"
+                        description="Rotinas perigosas ficam fora do automático para evitar problemas."
+                    />
+
+                    <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_45%)]" />
+
+                        <div className="relative z-10 max-h-[520px] overflow-y-auto pr-2 custom-clean-scroll">
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                                {safeCleanups.map((limpeza) => {
+                                    const selecionada = autoCleanSelections.includes(limpeza.id)
+
+                                    return (
+                                        <motion.button
+                                            key={limpeza.id}
+                                            type="button"
+                                            whileHover={!autoCleanRunning ? { y: -3 } : undefined}
+                                            whileTap={!autoCleanRunning ? { scale: 0.98 } : undefined}
+                                            onClick={() => {
+                                                if (autoCleanRunning) return
+
+                                                const updated = selecionada
+                                                    ? autoCleanSelections.filter((id) => id !== limpeza.id)
+                                                    : [...autoCleanSelections, limpeza.id]
+
+                                                setAutoCleanSelections(updated)
+                                            }}
+                                            className={`group rounded-2xl border p-4 text-left transition-all ${selecionada
+                                                    ? "border-blue-500/30 bg-blue-500/10 shadow-lg shadow-blue-500/5"
+                                                    : "border-maxify-border bg-maxify-bg/30 hover:border-blue-500/20 hover:bg-blue-500/10"
+                                                } ${autoCleanRunning ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                                        >
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
+                                                        {cleanupIconMap[limpeza.icon]}
+                                                    </span>
+                                                    <span className="truncate text-sm font-bold text-maxify-text">
+                                                        {limpeza.label}
+                                                    </span>
+                                                </div>
+
+                                                <div
+                                                    className={`h-3 w-3 shrink-0 rounded-full ${selecionada ? "bg-blue-400 shadow-lg shadow-blue-500/30" : "bg-maxify-border"
+                                                        }`}
+                                                />
+                                            </div>
+
+                                            <p className="mt-3 line-clamp-2 text-xs leading-5 text-maxify-text-secondary">
+                                                {limpeza.description}
+                                            </p>
+                                        </motion.button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 mt-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4">
+                            <p className="flex items-center gap-2 text-xs font-semibold text-yellow-300">
+                                <AlertTriangle size={14} />
+                                Só coloque no automático o que for seguro para rodar sozinho.
+                            </p>
+                        </div>
+                    </Card>
+                </section>
 
                 {autoCleanHistory.length > 0 && (
-                    <Card className="bg-maxify-card border border-maxify-border rounded-[28px] p-6">
-                        <div className="flex items-center gap-3 mb-5">
-                            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
-                                <Clock className="text-blue-400" size={22} />
+                    <section>
+                        <SectionTitle
+                            icon={Clock}
+                            label="Histórico"
+                            title="Histórico automático"
+                            description="Últimas execuções feitas sozinhas."
+                        />
+
+                        <Card className="relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_45%)]" />
+
+                            <div className="relative z-10 max-h-80 space-y-3 overflow-y-auto pr-2">
+                                {autoCleanHistory.slice(0, 8).map((record, index) => (
+                                    <motion.div
+                                        key={index}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.03 }}
+                                        className="rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4 transition-all hover:border-blue-500/20 hover:bg-blue-500/10"
+                                    >
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-maxify-text">
+                                                    {new Date(record.timestamp).toLocaleString()}
+                                                </p>
+                                                <p className="mt-1 text-xs text-maxify-text-secondary">
+                                                    {record.selections} operação(ões)
+                                                </p>
+                                            </div>
+
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-cyan-300">
+                                                    {formatarBytes(record.totalLiberado)}
+                                                </p>
+                                                <p className="text-xs text-maxify-text-secondary">
+                                                    {Math.round(record.duration / 1000)}s
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </Card>
+                    </section>
+                )}
+
+                <section className="relative overflow-hidden rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-5 shadow-xl shadow-black/5">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_45%)]" />
+
+                    <div className="relative z-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                                <ShieldCheck className="h-5 w-5 text-blue-300" />
                             </div>
 
                             <div>
-                                <h2 className="text-xl font-bold text-maxify-text">Histórico automático</h2>
-                                <p className="text-sm text-maxify-text-secondary">Últimas execuções feitas sozinhas</p>
+                                <h3 className="text-base font-black text-maxify-text">
+                                    Segurança da automação
+                                </h3>
+                                <p className="text-sm leading-6 text-maxify-text-secondary">
+                                    As limpezas marcadas como não seguras ficam fora da lista automática.
+                                </p>
                             </div>
                         </div>
 
-                        <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-                            {autoCleanHistory.slice(0, 8).map((record, index) => (
-                                <div
-                                    key={index}
-                                    className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4"
-                                >
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div>
-                                            <p className="text-sm font-medium text-maxify-text">
-                                                {new Date(record.timestamp).toLocaleString()}
-                                            </p>
-                                            <p className="text-xs text-maxify-text-secondary mt-1">
-                                                {record.selections} operação(ões)
-                                            </p>
-                                        </div>
-
-                                        <div className="text-right">
-                                            <p className="text-sm font-bold text-cyan-300">
-                                                {formatarBytes(record.totalLiberado)}
-                                            </p>
-                                            <p className="text-xs text-maxify-text-secondary">
-                                                {Math.round(record.duration / 1000)}s
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-300">
+                            Maxify Auto Clean
                         </div>
-                    </Card>
-                )}
+                    </div>
+                </section>
             </div>
         </RootDiv>
     )

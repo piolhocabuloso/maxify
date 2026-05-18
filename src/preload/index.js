@@ -3,9 +3,15 @@ import { electronAPI } from "@electron-toolkit/preload"
 
 const updaterAPI = {
   onStatus: (callback) => {
-    ipcRenderer.removeAllListeners("update-status")
-    ipcRenderer.on("update-status", (_, data) => callback(data))
+    const listener = (_, data) => callback(data)
+
+    ipcRenderer.on("update-status", listener)
+
+    return () => {
+      ipcRenderer.removeListener("update-status", listener)
+    }
   },
+
   installNow: () => ipcRenderer.invoke("install-update-now"),
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
 }
@@ -17,8 +23,26 @@ const customAPI = {
     ipcRenderer.on(channel, (_, ...args) => callback(...args)),
 }
 
+const powershellLogsAPI = {
+  onLog: (callback) => {
+    const listener = (_, data) => callback(data)
+
+    ipcRenderer.on("powershell-live-log", listener)
+
+    return () => {
+      ipcRenderer.removeListener("powershell-live-log", listener)
+    }
+  },
+
+  removeAll: () => {
+    ipcRenderer.removeAllListeners("powershell-live-log")
+  },
+}
+
 if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("updater", updaterAPI)
+
+  contextBridge.exposeInMainWorld("powershellLogs", powershellLogsAPI)
 
   contextBridge.exposeInMainWorld("electron", {
     auth: {
@@ -37,6 +61,8 @@ if (process.contextIsolated) {
     tweaks: {
       runPowerShell: (payload) => ipcRenderer.invoke("run-powershell", payload),
     },
+
+    powershellLogs: powershellLogsAPI,
 
     openExternal: (url) => shell.openExternal(url),
     getHWID: () => ipcRenderer.invoke("get-hwid"),
@@ -67,9 +93,11 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("api", {})
 } else {
   window.updater = updaterAPI
+  window.powershellLogs = powershellLogsAPI
   window.electron = {
     ...electronAPI,
     ...customAPI,
+    powershellLogs: powershellLogsAPI,
   }
   window.api = {}
 }

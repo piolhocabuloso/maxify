@@ -10,8 +10,10 @@ function isInvalidDisplayName(value) {
   const genericNames = ["Usuário Maxify", "Usuario Maxify", "friend"].map((item) =>
     item.toLowerCase()
   )
+
   const hexLike = /^[a-f0-9]{32,}$/i.test(text)
-  const uuidLike = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(text)
+  const uuidLike =
+    /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(text)
   const maskedHwidLike = /^[a-f0-9]{8,}\.{3,}[a-f0-9]{6,}$/i.test(text)
 
   return (
@@ -97,18 +99,12 @@ function Greeting() {
   }, [])
 
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl md:text-3xl font-bold text-maxify-text leading-tight">
-        Bem-vindo,{" "}
-        <span className="bg-linear-to-r from-maxify-primary to-maxify-secondary bg-clip-text text-transparent">
-          {name || "Usuário"}
-        </span>
-      </h1>
-
-      <h2 className="text-3xl md:text-4xl font-extrabold text-maxify-text leading-tight">
-        Tenha o controle total do seu PC
-      </h2>
-    </div>
+    <h1 className="text-[30px] md:text-[34px] font-black text-white tracking-[-0.04em] leading-none">
+      Bem-vindo,{" "}
+      <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">
+        {name || "Usuário"}
+      </span>
+    </h1>
   )
 }
 

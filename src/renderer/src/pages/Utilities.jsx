@@ -19,6 +19,11 @@ import {
   Settings,
   Shield,
   Wrench,
+  Activity,
+  Cpu,
+  Search,
+  LayoutGrid,
+  FolderOpen,
 } from "lucide-react"
 import React, { useState, useEffect, useMemo } from "react"
 import { invoke } from "@/lib/electron"
@@ -26,10 +31,39 @@ import { notify as toast } from "../lib/notify"
 import log from "electron-log/renderer"
 import { Dropdown } from "@/components/ui/dropdown"
 
-/**
- * Array of utility objects for the Utilities page.
- * Each utility represents a system maintenance or information tool.
- */
+const utilityCategories = [
+  {
+    id: "all",
+    label: "Todos",
+    icon: LayoutGrid,
+  },
+  {
+    id: "performance",
+    label: "Performance",
+    icon: Zap,
+  },
+  {
+    id: "system",
+    label: "Sistema",
+    icon: Computer,
+  },
+  {
+    id: "network",
+    label: "Rede",
+    icon: WifiIcon,
+  },
+  {
+    id: "maintenance",
+    label: "Manutenção",
+    icon: Wrench,
+  },
+  {
+    id: "settings",
+    label: "Atalhos",
+    icon: Settings,
+  },
+]
+
 const utilities = [
   {
     name: "Limpeza de Disco",
@@ -37,7 +71,9 @@ const utilities = [
     state: true,
     icon: <HardDrive />,
     type: "button",
-    buttonText: "Limpar Agora",
+    category: "maintenance",
+    badge: "Limpeza",
+    buttonText: "Limpar agora",
     runScript: "maxify-premium://mx_2f58a535580ad39241cb",
   },
   {
@@ -46,6 +82,8 @@ const utilities = [
     state: true,
     icon: <Computer />,
     type: "toggle",
+    category: "maintenance",
+    badge: "Automático",
     checkScript: "maxify-premium://mx_ee6f6026ddddde950d55",
     applyScript: "maxify-premium://mx_0da027ae0aa283de563b",
   },
@@ -55,6 +93,8 @@ const utilities = [
     state: false,
     icon: <Zap />,
     type: "toggle",
+    category: "performance",
+    badge: "Boot",
     checkScript: "maxify-premium://mx_36397ee6aa28ccd4537f",
     applyScript: "maxify-premium://mx_17b3c808bca0fcdc670a",
     unapplyScript: `
@@ -68,6 +108,8 @@ if (Test-Path $path) { Set-ItemProperty -Path $path -Name "HiberbootEnabled" -Ty
     state: false,
     icon: <RefreshCwIcon />,
     type: "dropdown",
+    category: "system",
+    badge: "Windows",
     options: ["Default", "Manual", "Disabled"],
     checkScript: "maxify-premium://mx_3a608cc298c69a51a1fd",
     applyScript: {
@@ -94,6 +136,8 @@ Write-Output "Windows Update service disabled."
     state: false,
     icon: <GpuIcon />,
     type: "button",
+    category: "system",
+    badge: "GPU",
     buttonText: "Reiniciar",
     runScript: "maxify-premium://mx_de50d50384a36f526f11",
   },
@@ -103,6 +147,8 @@ Write-Output "Windows Update service disabled."
     state: false,
     icon: <Monitor />,
     type: "dropdown",
+    category: "performance",
+    badge: "Energia",
     options: ["Balanced", "High Performance", "Power Saver", "Ultimate Performance"],
     checkScript: "maxify-premium://mx_f4151fa0100b5652c87e",
     applyScript: {
@@ -136,6 +182,8 @@ if ($ultimatePlanGUID) {
     state: false,
     icon: <GlobeIcon />,
     type: "button",
+    category: "network",
+    badge: "DNS",
     buttonText: "Liberar",
     runScript: "maxify-premium://mx_b3849dc39b42748e8b0e",
   },
@@ -145,7 +193,9 @@ if ($ultimatePlanGUID) {
     state: false,
     icon: <Volume2Icon />,
     type: "button",
-    buttonText: "Restart",
+    category: "system",
+    badge: "Áudio",
+    buttonText: "Reiniciar",
     runScript: "maxify-premium://mx_6c1ca9155c048046b8d1",
   },
   {
@@ -154,21 +204,336 @@ if ($ultimatePlanGUID) {
     state: false,
     icon: <WifiIcon />,
     type: "button",
-    buttonText: "Reset",
+    category: "network",
+    badge: "Rede",
+    buttonText: "Resetar",
     runScript: "maxify-premium://mx_9a81624381b9b4adf81d",
   },
+  {
+    name: "Reiniciar Explorer",
+    description: "Reinicie a interface do Windows sem precisar reiniciar o PC.",
+    state: false,
+    icon: <RefreshCwIcon />,
+    type: "button",
+    category: "system",
+    badge: "Explorer",
+    buttonText: "Reiniciar",
+    runScript: `
+Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+Start-Process explorer.exe
+Write-Output "Explorer reiniciado com sucesso."
+`,
+  },
+  {
+    name: "Configurações de Vídeo",
+    description: "Abra rapidamente as configurações de tela do Windows.",
+    state: false,
+    icon: <Monitor />,
+    type: "button",
+    category: "settings",
+    badge: "Tela",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "ms-settings:display"
+Write-Output "Configurações de vídeo abertas."
+`,
+  },
+  {
+    name: "Configurações do Mouse",
+    description: "Acesse as opções clássicas do mouse no Windows.",
+    state: false,
+    icon: <Settings />,
+    type: "button",
+    category: "settings",
+    badge: "Mouse",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "main.cpl"
+Write-Output "Configurações do mouse abertas."
+`,
+  },
+  {
+    name: "Configurações de Rede",
+    description: "Abra as configurações de internet e adaptadores de rede.",
+    state: false,
+    icon: <WifiIcon />,
+    type: "button",
+    category: "settings",
+    badge: "Rede",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "ms-settings:network"
+Write-Output "Configurações de rede abertas."
+`,
+  },
+  {
+    name: "Sons do Windows",
+    description: "Acesse rapidamente o painel clássico de áudio.",
+    state: false,
+    icon: <Volume2Icon />,
+    type: "button",
+    category: "settings",
+    badge: "Áudio",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "mmsys.cpl"
+Write-Output "Painel de som aberto."
+`,
+  },
+  {
+    name: "Gerenciador de Dispositivos",
+    description: "Abra o Gerenciador de Dispositivos para verificar drivers.",
+    state: false,
+    icon: <Computer />,
+    type: "button",
+    category: "settings",
+    badge: "Drivers",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "devmgmt.msc"
+Write-Output "Gerenciador de Dispositivos aberto."
+`,
+  },
+  {
+    name: "Informações do Sistema",
+    description: "Veja detalhes completos do hardware e do Windows.",
+    state: false,
+    icon: <Cpu />,
+    type: "button",
+    category: "settings",
+    badge: "Hardware",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "msinfo32.exe"
+Write-Output "Informações do sistema abertas."
+`,
+  },
+  {
+    name: "Abrir Pasta Temp",
+    description: "Abra a pasta temporária do usuário para análise manual.",
+    state: false,
+    icon: <FolderOpen />,
+    type: "button",
+    category: "maintenance",
+    badge: "Temp",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "$env:TEMP"
+Write-Output "Pasta Temp aberta."
+`,
+  },
+  {
+    name: "Limpeza de Disco Clássica",
+    description: "Abra a ferramenta clássica de limpeza de disco do Windows.",
+    state: false,
+    icon: <HardDrive />,
+    type: "button",
+    category: "maintenance",
+    badge: "Windows",
+    buttonText: "Abrir",
+    runScript: `
+Start-Process "cleanmgr.exe"
+Write-Output "Limpeza de Disco aberta."
+`,
+  },
 ]
+
+function StatCard({ title, value, icon, helper }) {
+  return (
+    <div className="group relative overflow-hidden rounded-[26px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:-translate-y-1 hover:border-blue-500/25">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.16),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative z-10">
+        <div className="mb-5 flex items-center justify-between">
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-300">
+            {icon}
+          </div>
+
+          <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+        </div>
+
+        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">
+          {title}
+        </p>
+
+        <h3 className="mt-1 text-3xl font-black text-maxify-text">
+          {value}
+        </h3>
+
+        {helper && (
+          <p className="mt-2 text-xs leading-5 text-maxify-text-secondary/80">
+            {helper}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CategoryButton({ item, active, count, onClick }) {
+  const Icon = item.icon
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold transition-all
+        ${
+          active
+            ? "border-blue-500/30 bg-blue-500/15 text-blue-300 shadow-lg shadow-blue-500/10"
+            : "border-maxify-border bg-maxify-card text-maxify-text-secondary hover:border-blue-500/25 hover:bg-blue-500/10 hover:text-blue-300"
+        }
+      `}
+    >
+      <Icon size={16} />
+      <span>{item.label}</span>
+      <span
+        className={`
+          rounded-full px-2 py-0.5 text-[11px]
+          ${active ? "bg-blue-500/20 text-blue-200" : "bg-maxify-border/40 text-maxify-text-secondary"}
+        `}
+      >
+        {count}
+      </span>
+    </button>
+  )
+}
+
+function UtilityCard({
+  util,
+  isBusy,
+  isToggle,
+  isButton,
+  isDropdown,
+  toggleValue,
+  dropdownValue,
+  onButtonClick,
+  onToggleChange,
+  onDropdownChange,
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:-translate-y-1 hover:border-blue-500/25">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
+              {util.icon}
+            </div>
+
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-base font-black text-maxify-text">
+                  {util.name}
+                </h3>
+
+                <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-300">
+                  {util.badge}
+                </span>
+              </div>
+
+              <p className="line-clamp-2 text-sm leading-6 text-maxify-text-secondary">
+                {util.description}
+              </p>
+            </div>
+          </div>
+
+          {isToggle && (
+            <div className="shrink-0">
+              {isBusy ? (
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-maxify-border border-t-blue-400" />
+              ) : (
+                <Toggle
+                  checked={toggleValue || false}
+                  onChange={(e) => onToggleChange(util, e.target.checked)}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-auto rounded-2xl border border-maxify-border bg-maxify-bg/30 p-4">
+          {isButton && (
+            <Button
+              onClick={() => onButtonClick(util)}
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl"
+              variant="primary"
+            >
+              <Zap size={16} />
+              {util.buttonText}
+            </Button>
+          )}
+
+          {isDropdown && (
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-300">
+                Configuração atual
+              </p>
+
+              <Dropdown
+                options={util.options}
+                value={dropdownValue || util.options[0]}
+                onChange={(value) => onDropdownChange(util, value)}
+              />
+            </div>
+          )}
+
+          {isToggle && (
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-300">
+                  Status atual
+                </p>
+
+                <p
+                  className={`mt-1 text-sm font-bold ${
+                    toggleValue ? "text-cyan-300" : "text-maxify-text-secondary"
+                  }`}
+                >
+                  {toggleValue ? "Ativado" : "Desativado"}
+                </p>
+              </div>
+
+              <span
+                className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                  toggleValue
+                    ? "border-cyan-500/25 bg-cyan-500/10 text-cyan-300"
+                    : "border-maxify-border bg-maxify-border/20 text-maxify-text-secondary"
+                }`}
+              >
+                {toggleValue ? "ON" : "OFF"}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isDropdown && isBusy && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-[28px] bg-maxify-card/75 backdrop-blur-[2px]">
+          <div className="flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2">
+            <RefreshCwIcon className="animate-spin text-blue-400" size={16} />
+            <span className="text-sm font-bold text-blue-300">Carregando...</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function Utilities() {
   const [dropdownValues, setDropdownValues] = useState({})
   const [toggleStates, setToggleStates] = useState({})
   const [loadingStates, setLoadingStates] = useState({})
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState("all")
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     const loadingTimeout = setTimeout(() => {
       setLoading(false)
-    }, 1200)
+    }, 900)
 
     return () => clearTimeout(loadingTimeout)
   }, [])
@@ -178,6 +543,7 @@ function Utilities() {
       const checkPromises = utilities.map(async (util) => {
         if (util.type === "toggle" && util.checkScript) {
           setLoadingStates((prev) => ({ ...prev, [util.name]: true }))
+
           try {
             const result = await invoke({
               channel: "run-powershell",
@@ -199,6 +565,7 @@ function Utilities() {
           }
         } else if (util.type === "dropdown" && util.checkScript) {
           setLoadingStates((prev) => ({ ...prev, [util.name]: true }))
+
           try {
             const result = await invoke({
               channel: "run-powershell",
@@ -232,6 +599,7 @@ function Utilities() {
     setToggleStates((prev) => ({ ...prev, [util.name]: newState }))
 
     const script = newState ? util.applyScript : util.unapplyScript
+
     if (script) {
       const loadingToastId = toast.loading(
         `${newState ? "Aplicando" : "Desativando"} ${util.name}...`
@@ -366,201 +734,276 @@ function Utilities() {
     []
   )
 
+  const dropdownCount = useMemo(
+    () => utilities.filter((util) => util.type === "dropdown").length,
+    []
+  )
+
   const activeToggles = useMemo(() => {
     return Object.values(toggleStates).filter(Boolean).length
   }, [toggleStates])
 
-  const topStats = [
-    {
-      title: "Utilitários",
-      value: totalUtilities,
-      icon: <Wrench size={18} />,
-      color: "from-blue-500/20 to-cyan-500/10",
-      text: "text-cyan-300",
-    },
-    {
-      title: "Ativos",
-      value: activeToggles,
-      icon: <CheckCircle2 size={18} />,
-      color: "from-blue-600/20 to-sky-500/10",
-      text: "text-blue-300",
-    },
-    {
-      title: "Ações rápidas",
-      value: buttonCount,
-      icon: <Zap size={18} />,
-      color: "from-sky-500/20 to-blue-500/10",
-      text: "text-sky-300",
-    },
-    {
-      title: "Alternâncias",
-      value: toggleCount,
-      icon: <Settings size={18} />,
-      color: "from-cyan-500/20 to-blue-500/10",
-      text: "text-cyan-300",
-    },
-  ]
+  const categoryCounts = useMemo(() => {
+    return utilityCategories.reduce((acc, item) => {
+      if (item.id === "all") {
+        acc[item.id] = utilities.length
+      } else {
+        acc[item.id] = utilities.filter((util) => util.category === item.id).length
+      }
+
+      return acc
+    }, {})
+  }, [])
+
+  const filteredUtilities = useMemo(() => {
+    let list = [...utilities]
+
+    if (activeCategory !== "all") {
+      list = list.filter((util) => util.category === activeCategory)
+    }
+
+    if (search.trim()) {
+      const term = search.trim().toLowerCase()
+
+      list = list.filter((util) => {
+        return (
+          util.name.toLowerCase().includes(term) ||
+          util.description.toLowerCase().includes(term) ||
+          util.badge.toLowerCase().includes(term)
+        )
+      })
+    }
+
+    return list
+  }, [activeCategory, search])
 
   return (
     <RootDiv>
-      <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
+      <div className="mx-auto max-w-[1900px] space-y-8 px-6 pb-16">
+        <section className="relative mt-8 overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5 md:p-8">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
 
+          <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_390px] xl:items-center">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                <Sparkles size={14} />
+                Central de utilitários
+              </div>
 
-        <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+              <div className="flex items-start gap-5">
+                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                  <Wrench className="h-9 w-9 text-blue-300" />
+                </div>
+
+                <div className="min-w-0">
+                  <h1 className="max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                    Ferramentas do{" "}
+                    <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                      Windows
+                    </span>
+                  </h1>
+
+                  <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                    Acesse comandos rápidos, atalhos do sistema, ajustes de rede, manutenção e recursos de desempenho em uma área mais organizada.
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                      {totalUtilities} utilitários
+                    </div>
+
+                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                      {activeToggles} recursos ativos
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[30px] border border-blue-500/20 bg-blue-500/10 p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                  <Activity size={30} className="text-blue-300" />
+                </div>
+
+                <div className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-blue-300">
+                  Organizado
+                </div>
+              </div>
+
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                Painel de ações
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black text-maxify-text">
+                Tudo separado por categoria
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
+                Use a busca ou os filtros para encontrar cada ferramenta sem bagunça.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Total"
+            value={totalUtilities}
+            icon={<Wrench size={20} />}
+            helper="Ferramentas disponíveis"
+          />
+
+          <StatCard
+            title="Ações"
+            value={buttonCount}
+            icon={<Zap size={20} />}
+            helper="Botões de execução rápida"
+          />
+
+          <StatCard
+            title="Alternâncias"
+            value={toggleCount}
+            icon={<Settings size={20} />}
+            helper="Recursos ativáveis"
+          />
+
+          <StatCard
+            title="Menus"
+            value={dropdownCount}
+            icon={<LayoutGrid size={20} />}
+            helper="Configurações por seleção"
+          />
+        </section>
+
+        <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
               <Shield className="text-blue-400" size={22} />
             </div>
+
             <div>
-              <h2 className="text-xl font-bold text-maxify-text">Aviso importante</h2>
-              <p className="text-sm text-maxify-text-secondary">
-                Algumas utilidades exigem privilégios de administrador. As alterações feitas aqui afetam diretamente configurações do Windows.
+              <h2 className="text-xl font-black text-maxify-text">Aviso importante</h2>
+              <p className="text-sm leading-6 text-maxify-text-secondary">
+                Algumas utilidades exigem privilégios de administrador e podem alterar configurações do Windows.
               </p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-maxify-border bg-maxify-border/10 p-4 flex items-start gap-3">
-            <AlertTriangle className="text-blue-400 mt-0.5 shrink-0" size={18} />
-            <p className="text-sm text-maxify-text-secondary leading-relaxed">
-              Execute o Maxify como administrador para funcionamento completo. Algumas ações podem pedir reinicialização do PC para aplicar tudo corretamente.
-            </p>
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 shrink-0 text-blue-300" size={18} />
+              <p className="text-sm leading-relaxed text-maxify-text-secondary">
+                Execute o Maxify como administrador para funcionamento completo. Algumas ações podem pedir reinicialização do PC para aplicar tudo corretamente.
+              </p>
+            </div>
           </div>
         </Card>
 
-        <Card className="bg-maxify-card border border-maxify-border rounded-[24px] p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+          <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
-                <Wrench className="text-blue-400" size={22} />
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                <Search className="text-blue-400" size={22} />
               </div>
+
               <div>
-                <h2 className="text-xl font-bold text-maxify-text">Ferramentas disponíveis</h2>
+                <h2 className="text-xl font-black text-maxify-text">Buscar e filtrar</h2>
                 <p className="text-sm text-maxify-text-secondary">
-                  {utilities.length} utilitários prontos para uso
+                  {filteredUtilities.length} resultado(s) encontrado(s)
                 </p>
               </div>
             </div>
+
+            <div className="relative w-full xl:max-w-[420px]">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-300" />
+
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar utilitário..."
+                className="w-full rounded-2xl border border-maxify-border bg-maxify-bg/40 py-3 pl-11 pr-4 text-sm text-maxify-text outline-none transition placeholder:text-maxify-text-secondary/50 focus:border-blue-500/40 focus:bg-blue-500/10"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {utilities.map((util) => {
-              const isToggle = util.type === "toggle"
-              const isButton = util.type === "button"
-              const isDropdown = util.type === "dropdown"
-              const isBusy = loadingStates[util.name]
-
-              return (
-                <div
-                  key={util.name}
-                  className="relative rounded-2xl border border-maxify-border bg-maxify-border/10 hover:border-blue-400/40 p-4 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="mt-0.5 p-2.5 rounded-xl shrink-0 bg-blue-500/10 text-blue-400">
-                        {util.icon}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[15px] font-semibold text-maxify-text">
-                            {util.name}
-                          </span>
-
-                          {isToggle && (
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[11px] ${
-                                toggleStates[util.name]
-                                  ? "bg-cyan-500/15 text-cyan-300"
-                                  : "bg-slate-500/15 text-slate-300"
-                              }`}
-                            >
-                              {toggleStates[util.name] ? "Ativo" : "Inativo"}
-                            </span>
-                          )}
-
-                          {isDropdown && (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-blue-500/15 text-blue-300">
-                              Seleção
-                            </span>
-                          )}
-
-                          {isButton && (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-blue-500/15 text-blue-300">
-                              Ação rápida
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-sm text-maxify-text-secondary mt-1 leading-relaxed">
-                          {util.description}
-                        </p>
-
-                        <div className="mt-4">
-                          {isButton && (
-                            <Button
-                              onClick={() => handleButtonClick(util)}
-                              className="min-w-[140px] flex items-center justify-center gap-2"
-                              variant="primary"
-                            >
-                              {util.buttonText}
-                            </Button>
-                          )}
-
-                          {isDropdown && (
-                            <div className="w-full">
-                              <p className="text-xs text-maxify-text-secondary mb-2">
-                                Configuração atual
-                              </p>
-                              <Dropdown
-                                options={util.options}
-                                value={dropdownValues[util.name] || util.options[0]}
-                                onChange={(value) => handleDropdownChange(util, value)}
-                              />
-                            </div>
-                          )}
-
-                          {isToggle && (
-                            <div className="text-xs text-maxify-text-secondary">
-                              Status atual:{" "}
-                              <span
-                                className={`font-medium ${
-                                  toggleStates[util.name] ? "text-cyan-300" : "text-slate-300"
-                                }`}
-                              >
-                                {toggleStates[util.name] ? "Ativado" : "Desativado"}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {isToggle && (
-                      <div className="shrink-0">
-                        {isBusy ? (
-                          <div className="w-6 h-6 border-2 border-maxify-border-secondary border-t-maxify-primary rounded-full animate-spin" />
-                        ) : (
-                          <Toggle
-                            checked={toggleStates[util.name] || false}
-                            onChange={(e) => handleToggleChange(util, e.target.checked)}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {isDropdown && isBusy && (
-                    <div className="absolute inset-0 rounded-2xl bg-maxify-card/75 backdrop-blur-[2px] flex items-center justify-center">
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                        <RefreshCwIcon className="animate-spin text-blue-400" size={16} />
-                        <span className="text-sm font-medium text-blue-300">Carregando...</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap gap-2">
+            {utilityCategories.map((category) => (
+              <CategoryButton
+                key={category.id}
+                item={category}
+                count={categoryCounts[category.id] || 0}
+                active={activeCategory === category.id}
+                onClick={() => setActiveCategory(category.id)}
+              />
+            ))}
           </div>
+        </Card>
+
+        <Card className="rounded-[28px] border border-maxify-border bg-maxify-card p-6 shadow-xl shadow-black/5">
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                <Wrench className="text-blue-400" size={22} />
+              </div>
+
+              <div>
+                <h2 className="text-xl font-black text-maxify-text">Ferramentas disponíveis</h2>
+                <p className="text-sm text-maxify-text-secondary">
+                  Selecione uma ação, alternância ou configuração abaixo.
+                </p>
+              </div>
+            </div>
+
+            {loading && (
+              <div className="flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                <RefreshCwIcon className="animate-spin" size={16} />
+                Carregando estados...
+              </div>
+            )}
+          </div>
+
+          {filteredUtilities.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {filteredUtilities.map((util) => {
+                const isToggle = util.type === "toggle"
+                const isButton = util.type === "button"
+                const isDropdown = util.type === "dropdown"
+                const isBusy = loadingStates[util.name]
+
+                return (
+                  <UtilityCard
+                    key={util.name}
+                    util={util}
+                    isBusy={isBusy}
+                    isToggle={isToggle}
+                    isButton={isButton}
+                    isDropdown={isDropdown}
+                    toggleValue={toggleStates[util.name]}
+                    dropdownValue={dropdownValues[util.name]}
+                    onButtonClick={handleButtonClick}
+                    onToggleChange={handleToggleChange}
+                    onDropdownChange={handleDropdownChange}
+                  />
+                )
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[28px] border border-maxify-border bg-maxify-bg/30 p-10 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10">
+                <Search className="text-blue-300" size={24} />
+              </div>
+
+              <h3 className="text-xl font-black text-maxify-text">
+                Nenhum utilitário encontrado
+              </h3>
+
+              <p className="mt-2 text-sm text-maxify-text-secondary">
+                Tente limpar a busca ou selecionar outra categoria.
+              </p>
+            </div>
+          )}
         </Card>
       </div>
     </RootDiv>

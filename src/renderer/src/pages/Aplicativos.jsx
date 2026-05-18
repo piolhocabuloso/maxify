@@ -7,7 +7,6 @@ import {
     Shield,
     Globe,
     Zap,
-    HardDrive,
     Network,
     Wrench,
     ChevronRight,
@@ -20,6 +19,62 @@ import {
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
+const BackgroundGlow = () => {
+    return (
+        <>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+        </>
+    )
+}
+
+const SectionTitle = ({ icon: Icon, label, title, description }) => {
+    return (
+        <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+                <Icon className="h-5 w-5 text-blue-300" />
+            </div>
+
+            <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                    {label}
+                </p>
+                <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+                {description && (
+                    <p className="mt-1 text-sm text-maxify-text-secondary">{description}</p>
+                )}
+            </div>
+
+            <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+        </div>
+    )
+}
+
+const InfoMiniCard = ({ icon: Icon, label, value, accent = "blue" }) => {
+    const accentMap = {
+        blue: "border-blue-500/20 bg-blue-500/10 text-blue-300",
+        cyan: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
+        indigo: "border-indigo-500/20 bg-indigo-500/10 text-indigo-300",
+    }
+
+    return (
+        <div className="rounded-[24px] border border-maxify-border bg-maxify-card/70 p-4 shadow-xl shadow-black/5">
+            <div className="flex items-center gap-3">
+                <div className={`rounded-2xl border p-3 ${accentMap[accent] || accentMap.blue}`}>
+                    <Icon className="h-5 w-5" />
+                </div>
+
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-maxify-text-secondary">
+                        {label}
+                    </p>
+                    <p className="mt-1 text-sm font-black text-maxify-text">{value}</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 const ResourceCard = ({
     title,
     description,
@@ -31,74 +86,69 @@ const ResourceCard = ({
 }) => {
     const accentMap = {
         blue: {
-            soft: "from-blue-500/20 via-blue-500/10 to-transparent",
-            iconWrap: "bg-blue-500/15 border-blue-400/20",
+            wrap: "border-blue-500/25 bg-blue-500/10",
             icon: "text-blue-300",
-            badge: "bg-blue-500/10 text-blue-300 border-blue-500/20",
-            glow: "shadow-blue-500/10",
+            badge: "border-blue-500/20 bg-blue-500/10 text-blue-300",
+            bar: "from-blue-500/20",
         },
         cyan: {
-            soft: "from-cyan-500/20 via-cyan-500/10 to-transparent",
-            iconWrap: "bg-cyan-500/15 border-cyan-400/20",
+            wrap: "border-cyan-500/25 bg-cyan-500/10",
             icon: "text-cyan-300",
-            badge: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
-            glow: "shadow-cyan-500/10",
+            badge: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
+            bar: "from-cyan-500/20",
         },
         sky: {
-            soft: "from-sky-500/20 via-sky-500/10 to-transparent",
-            iconWrap: "bg-sky-500/15 border-sky-400/20",
+            wrap: "border-sky-500/25 bg-sky-500/10",
             icon: "text-sky-300",
-            badge: "bg-sky-500/10 text-sky-300 border-sky-500/20",
-            glow: "shadow-sky-500/10",
+            badge: "border-sky-500/20 bg-sky-500/10 text-sky-300",
+            bar: "from-sky-500/20",
         },
-
         indigo: {
-            soft: "from-indigo-500/20 via-indigo-500/10 to-transparent",
-            iconWrap: "bg-indigo-500/15 border-indigo-400/20",
+            wrap: "border-indigo-500/25 bg-indigo-500/10",
             icon: "text-indigo-300",
-            badge: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
-            glow: "shadow-indigo-500/10",
+            badge: "border-indigo-500/20 bg-indigo-500/10 text-indigo-300",
+            bar: "from-indigo-500/20",
         },
     }
 
     const styles = accentMap[accent] || accentMap.blue
 
     return (
-        <div className="relative group">
+        <div className="group relative">
             <button
                 type="button"
                 onClick={!disabled ? onClick : undefined}
                 className={`
-                    relative w-full overflow-hidden rounded-[26px] border border-maxify-border
-                    bg-maxify-card text-left p-5 md:p-6 transition-all duration-300
-                    ${disabled
-                        ? "cursor-default"
-                        : "hover:-translate-y-1.5 hover:border-blue-500/25 hover:shadow-2xl"}
-                    ${styles.glow}
-                `}
+          relative w-full overflow-hidden rounded-[28px] border border-maxify-border
+          bg-maxify-card p-5 text-left shadow-xl shadow-black/5 transition-all duration-300
+          ${disabled ? "cursor-default" : "hover:-translate-y-1 hover:border-blue-500/25"}
+        `}
             >
-                <div className={`absolute inset-0 opacity-80 bg-gradient-to-br ${styles.soft}`} />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_28%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
+                <div className={`absolute inset-x-0 top-0 h-24 bg-gradient-to-b ${styles.bar} to-transparent opacity-70`} />
 
-                <div className={`relative z-10 ${disabled ? "blur-md select-none" : ""}`}>
-                    <div className="flex items-start justify-between gap-3 mb-6">
-                        <div className={`p-3.5 rounded-2xl border ${styles.iconWrap} backdrop-blur-sm`}>
-                            <Icon className={`w-5 h-5 ${styles.icon}`} />
+                <div className={`relative z-10 ${disabled ? "blur-[2px] select-none" : ""}`}>
+                    <div className="mb-6 flex items-start justify-between gap-3">
+                        <div className={`rounded-2xl border p-3 ${styles.wrap}`}>
+                            <Icon className={`h-5 w-5 ${styles.icon}`} />
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full border text-[10px] uppercase tracking-[0.22em] ${styles.badge}`}>
+                            <div
+                                className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] ${styles.badge}`}
+                            >
                                 {badge}
                             </div>
-                            <ChevronRight className="w-4 h-4 text-maxify-text-secondary opacity-60" />
+
+                            <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl md:text-[22px] font-bold text-maxify-text leading-tight">
+                    <div>
+                        <h3 className="text-xl font-black leading-tight text-maxify-text md:text-[22px]">
                             {title}
                         </h3>
-                        <p className="text-sm leading-6 text-maxify-text-secondary">
+                        <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
                             {description}
                         </p>
                     </div>
@@ -106,16 +156,17 @@ const ResourceCard = ({
             </button>
 
             {disabled && (
-                <div className="absolute inset-0 rounded-[26px] flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-[26px] bg-black/35 backdrop-blur-md border border-blue-500/20" />
-                    <div className="relative z-10 text-center px-6">
+                <div className="absolute inset-0 flex items-center justify-center rounded-[28px]">
+                    <div className="absolute inset-0 rounded-[28px] border border-blue-500/20 bg-black/35 backdrop-blur-md" />
+                    <div className="relative z-10 px-6 text-center">
                         <div className="mx-auto mb-3 w-fit rounded-2xl border border-blue-400/20 bg-blue-500/10 p-3">
-                            <Lock className="w-5 h-5 text-blue-300" />
+                            <Lock className="h-5 w-5 text-blue-300" />
                         </div>
-                        <p className="text-[11px] uppercase tracking-[0.35em] text-blue-200/80">
+
+                        <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-200/80">
                             Em breve
                         </p>
-                        <p className="mt-2 text-lg font-bold text-white">
+                        <p className="mt-2 text-lg font-black text-white">
                             Recurso em preparação
                         </p>
                     </div>
@@ -131,7 +182,8 @@ function Apps() {
     const resourcePages = [
         {
             title: "Office Setup",
-            description: "Instale o Microsoft Office diretamente pelo Maxify, com logs em tempo real e acompanhamento visual.",
+            description:
+                "Instale o Microsoft Office diretamente pelo Maxify, com logs em tempo real e acompanhamento visual.",
             icon: Crown,
             badge: "Office",
             accent: "blue",
@@ -139,7 +191,8 @@ function Apps() {
         },
         {
             title: "Ponto de restauração",
-            description: "Gerencie segurança, restauração e recuperação do sistema em uma área dedicada.",
+            description:
+                "Gerencie segurança, restauração e recuperação do sistema em uma área dedicada.",
             icon: Shield,
             badge: "Sistema",
             accent: "indigo",
@@ -147,7 +200,8 @@ function Apps() {
         },
         {
             title: "Limpeza automática",
-            description: "Configure limpezas automáticas, escolha o intervalo e deixe o sistema cuidar sozinho.",
+            description:
+                "Configure limpezas automáticas, escolha o intervalo e deixe o sistema cuidar sozinho.",
             icon: Zap,
             badge: "Automático",
             accent: "blue",
@@ -155,7 +209,8 @@ function Apps() {
         },
         {
             title: "DNS",
-            description: "Troque, restaure e gerencie os DNS do sistema de forma rápida e simples.",
+            description:
+                "Troque, restaure e gerencie os DNS do sistema de forma rápida e simples.",
             icon: Globe,
             badge: "Rede",
             accent: "sky",
@@ -163,7 +218,8 @@ function Apps() {
         },
         {
             title: "Utilitários",
-            description: "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
+            description:
+                "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
             icon: Wrench,
             badge: "Ferramentas",
             accent: "indigo",
@@ -171,7 +227,8 @@ function Apps() {
         },
         {
             title: "Personalização",
-            description: "Mude tema, cores, wallpaper e aparência do Windows pelo Maxify.",
+            description:
+                "Mude tema, cores, wallpaper e aparência do Windows pelo Maxify.",
             icon: Palette,
             badge: "Visual",
             accent: "blue",
@@ -180,26 +237,29 @@ function Apps() {
         },
         {
             title: "Programas Essenciais",
-            description: "Instale navegadores, launchers, ferramentas e recursos básicos do Windows.",
+            description:
+                "Instale navegadores, launchers, ferramentas e recursos básicos do Windows.",
             icon: PackageCheck,
-            badge: "PackageCheck",
-            accent: "blue",
+            badge: "Essenciais",
+            accent: "cyan",
             onClick: () => router("/essentials"),
             disabled: true,
         },
         {
             title: "Rede avançada",
-            description: "Recursos voltados para conexão, estabilidade, diagnóstico e ajustes avançados de rede.",
+            description:
+                "Recursos voltados para conexão, estabilidade, diagnóstico e ajustes avançados de rede.",
             icon: Network,
             badge: "Conexão",
             accent: "cyan",
             disabled: true,
         },
         {
-            title: "Utilitários",
-            description: "Abra ferramentas extras e recursos úteis do aplicativo para uso diário.",
-            icon: Wrench,
-            badge: "Ferramentas",
+            title: "Área experimental",
+            description:
+                "Novos recursos e ferramentas extras que ainda estão sendo preparados.",
+            icon: Star,
+            badge: "Beta",
             accent: "indigo",
             disabled: true,
         },
@@ -209,45 +269,45 @@ function Apps() {
     const blockedCount = resourcePages.filter((item) => item.disabled).length
 
     return (
-        <RootDiv>
-            <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
-                <div className="mt-8 relative overflow-hidden rounded-[30px] border border-maxify-border bg-maxify-card p-7 md:p-9">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.22),transparent_30%),radial-gradient(circle_at_left,rgba(14,165,233,0.14),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]" />
-                    <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:30px_30px]" />
+        <RootDiv className="min-h-full w-full overflow-y-auto">
+            <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 md:p-6">
+                <section className="relative overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+                    <BackgroundGlow />
 
-                    <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-8 items-center">
+                    <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_390px] xl:items-center">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/15 text-blue-200 text-sm font-medium mb-5 shadow-sm">
-                                <Sparkles size={15} />
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                                <Sparkles size={14} />
                                 Central de Recursos
                             </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="p-4 rounded-2xl bg-blue-500/20 border border-blue-400/30 shadow-xl shadow-blue-500/10 backdrop-blur">
-                                    <Boxes className="w-8 h-8 text-blue-300" />
+                            <div className="flex items-start gap-5">
+                                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
+                                    <Boxes className="h-9 w-9 text-blue-300" />
                                 </div>
 
-                                <div>
-                                    <h1 className="text-3xl md:text-5xl font-extrabold text-maxify-text leading-tight">
-                                        Tudo em um só lugar
+                                <div className="min-w-0">
+                                    <h1 className="max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                                        Tudo em{" "}
+                                        <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                                            um só lugar
+                                        </span>
                                     </h1>
 
-                                    <p className="text-maxify-text-secondary mt-3 max-w-3xl text-sm md:text-base leading-7">
-                                        Acesse os recursos do aplicativo em uma página mais limpa,
-                                        bonita e organizada. Aqui ficam os recursos essenciais do sistema,
-                                        ferramentas úteis e áreas em desenvolvimento.
+                                    <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                                        Acesse recursos essenciais, ferramentas úteis e áreas em desenvolvimento em uma página limpa, organizada e com o visual premium do Maxify.
                                     </p>
 
-                                    <div className="flex flex-wrap gap-3 mt-6">
-                                        <div className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 text-sm border border-blue-500/20">
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Recursos disponíveis: {availableCount}
                                         </div>
 
-                                        <div className="px-4 py-2 rounded-xl bg-white/5 text-maxify-text-secondary text-sm border border-maxify-border">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Em breve: {blockedCount}
                                         </div>
 
-                                        <div className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 text-sm border border-blue-500/20">
+                                        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                                             Visual renovado
                                         </div>
                                     </div>
@@ -255,79 +315,42 @@ function Apps() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-3">
-                            <div className="rounded-2xl border border-maxify-border bg-white/[0.03] px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                        <LayoutGrid className="w-4 h-4 text-blue-300" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.2em] text-maxify-text-secondary">
-                                            Organização
-                                        </p>
-                                        <p className="text-maxify-text font-semibold">
-                                            Acesso rápido
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="grid gap-3">
+                            <InfoMiniCard
+                                icon={LayoutGrid}
+                                label="Organização"
+                                value="Acesso rápido"
+                                accent="blue"
+                            />
 
-                            <div className="rounded-2xl border border-maxify-border bg-white/[0.03] px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                                        <Rocket className="w-4 h-4 text-cyan-300" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.2em] text-maxify-text-secondary">
-                                            Navegação
-                                        </p>
-                                        <p className="text-maxify-text font-semibold">
-                                            Mais prática
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <InfoMiniCard
+                                icon={Rocket}
+                                label="Navegação"
+                                value="Mais prática"
+                                accent="cyan"
+                            />
 
-                            <div className="rounded-2xl border border-maxify-border bg-white/[0.03] px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                                        <Star className="w-4 h-4 text-indigo-300" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.2em] text-maxify-text-secondary">
-                                            Estilo
-                                        </p>
-                                        <p className="text-maxify-text font-semibold">
-                                            Mais premium
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <InfoMiniCard
+                                icon={Star}
+                                label="Estilo"
+                                value="Mais premium"
+                                accent="indigo"
+                            />
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <section className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                            <Rocket className="w-4 h-4 text-blue-300" />
-                        </div>
+                <section>
+                    <SectionTitle
+                        icon={Rocket}
+                        label="Recursos"
+                        title="Recursos do aplicativo"
+                        description="Escolha uma área abaixo para abrir ou visualizar o que está em preparação."
+                    />
 
-                        <div>
-                            <h2 className="text-maxify-text text-lg md:text-xl font-semibold">
-                                Recursos do aplicativo
-                            </h2>
-                            <p className="text-sm text-maxify-text-secondary">
-                                Escolha uma área abaixo para abrir ou visualizar o que está em preparação.
-                            </p>
-                        </div>
-
-                        <div className="flex-1 h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {resourcePages.map((item, index) => (
-                            <ResourceCard key={index} {...item} />
+                            <ResourceCard key={`${item.title}-${index}`} {...item} />
                         ))}
                     </div>
                 </section>

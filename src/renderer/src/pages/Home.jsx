@@ -1,70 +1,95 @@
-import React, { useMemo, useCallback, useState, useEffect } from "react"
+import React, { useMemo, useCallback, useEffect } from "react"
+import { motion } from "framer-motion"
 import RootDiv from "@/components/rootdiv"
 import LoginIcon from "../../../../resources/maxifylogo.png"
 import {
-  EthernetPort,
   Cpu,
   HardDrive,
   MemoryStick,
-  MonitorCog,
   Activity,
   Zap,
-  Thermometer,
-  Clock,
-  BarChart3,
   Sparkles,
   Shield,
   Database,
   Cloud,
   RefreshCw,
   ChevronRight,
-  Gamepad2,
   Layers3,
   Rocket,
+  MonitorCog,
+  Gauge,
+  CheckCircle2,
 } from "lucide-react"
 import { invoke } from "@/lib/electron"
 import { useNavigate } from "react-router-dom"
 import useSystemStore from "@/store/systemInfo"
 import { useQuery } from "@tanstack/react-query"
-import Backup from "./Backup"
 import Greeting from "../components/Greeting"
 
 const QUERY_KEYS = {
-  systemInfo: "systemInfo"
+  systemInfo: "systemInfo",
 }
 
 const fetchSystemInfo = async () => {
   return await invoke({ channel: "get-system-info" })
 }
 
+const BackgroundGlow = () => {
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.15),transparent_28%),radial-gradient(circle_at_60%_95%,rgba(37,99,235,0.12),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.28)_1px,transparent_1px)] [background-size:42px_42px]" />
+    </>
+  )
+}
+
+const SectionTitle = ({ icon: Icon, label, title }) => {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-2.5">
+        <Icon className="h-5 w-5 text-blue-300" />
+      </div>
+
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+          {label}
+        </p>
+        <h2 className="text-lg font-black text-maxify-text">{title}</h2>
+      </div>
+
+      <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+    </div>
+  )
+}
 
 const LoadingScreen = React.memo(() => (
   <RootDiv>
-    <div className="fixed inset-0 flex items-center justify-center bg-maxify-bg">
-      <div className="flex flex-col items-center justify-center gap-6 text-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-2xl animate-pulse" />
-          <div className="relative animate-spin-slow">
-            <img
-              src={LoginIcon}
-              className="w-16 h-16 drop-shadow-2xl"
-              width={64}
-              height={64}
-              alt="Sparkle Logo"
-            />
-          </div>
-        </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-transparent">
+      <div className="relative z-10 flex flex-col items-center justify-center gap-5 text-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+          className="relative p-0"
+        >
+          <img
+            src={LoginIcon}
+            className="h-16 w-16 select-none drop-shadow-2xl"
+            width={64}
+            height={64}
+            alt="Maxify"
+          />
+        </motion.div>
 
-        <div className="space-y-2">
-          <h1 className="text-maxify-text font-bold text-2xl tracking-tight">
+        <div className="space-y-3">
+          <h1 className="text-2xl font-black tracking-tight text-maxify-text">
             Carregando sistema
           </h1>
 
-          <div className="flex gap-1 justify-center">
+          <div className="flex justify-center gap-1.5">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="w-2 h-2 bg-maxify-primary rounded-full animate-bounce"
+                className="h-2 w-2 animate-bounce rounded-full bg-blue-400"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
@@ -86,119 +111,160 @@ const QuickStatCard = ({
 }) => {
   const accentMap = {
     blue: {
-      wrap: "bg-blue-500/10 border-blue-500/20",
+      wrap: "border-blue-500/25 bg-blue-500/10",
       text: "text-blue-300",
       bar: "bg-blue-500",
+      glow: "from-blue-500/20",
     },
     cyan: {
-      wrap: "bg-cyan-500/10 border-cyan-500/20",
+      wrap: "border-cyan-500/25 bg-cyan-500/10",
       text: "text-cyan-300",
       bar: "bg-cyan-500",
+      glow: "from-cyan-500/20",
     },
     sky: {
-      wrap: "bg-sky-500/10 border-sky-500/20",
+      wrap: "border-sky-500/25 bg-sky-500/10",
       text: "text-sky-300",
       bar: "bg-sky-500",
+      glow: "from-sky-500/20",
     },
     indigo: {
-      wrap: "bg-indigo-500/10 border-indigo-500/20",
+      wrap: "border-indigo-500/25 bg-indigo-500/10",
       text: "text-indigo-300",
       bar: "bg-indigo-500",
+      glow: "from-indigo-500/20",
     },
   }
 
   const styles = accentMap[accent] || accentMap.blue
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-2xl border border-maxify-border bg-maxify-card p-5 transition-all duration-300 hover:border-blue-500/20 hover:-translate-y-0.5"
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative w-full overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 text-left shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
     >
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className={`p-3 rounded-2xl border ${styles.wrap}`}>
-          <Icon className={`w-5 h-5 ${styles.text}`} />
-        </div>
-        <ChevronRight className="w-4 h-4 text-maxify-text-secondary opacity-60" />
-      </div>
+      <div className={`absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100`} />
 
-      <div className="space-y-1">
-        <p className="text-sm text-maxify-text-secondary">{title}</p>
-        <p className="text-2xl font-bold text-maxify-text leading-none">{value}</p>
-        <p className="text-xs text-maxify-text-secondary/80">{subtitle}</p>
-      </div>
+      <div className="relative z-10">
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className={`rounded-2xl border p-3 ${styles.wrap}`}>
+            <Icon className={`h-5 w-5 ${styles.text}`} />
+          </div>
 
-      {percentage !== undefined && (
-        <div className="mt-4">
-          <div className="flex justify-between text-xs text-maxify-text-secondary mb-1">
-            <span>Uso</span>
-            <span>{percentage}%</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-maxify-border overflow-hidden">
-            <div
-              className={`h-full rounded-full ${styles.bar}`}
-              style={{ width: `${Math.max(0, Math.min(100, percentage))}%` }}
-            />
-          </div>
+          <ChevronRight className="h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
         </div>
-      )}
-    </button>
+
+        <div className="space-y-1">
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-300">
+            {title}
+          </p>
+          <p className="text-3xl font-black leading-none text-maxify-text">{value}</p>
+          <p className="text-xs leading-5 text-maxify-text-secondary/85">{subtitle}</p>
+        </div>
+
+        {percentage !== undefined && (
+          <div className="mt-5">
+            <div className="mb-2 flex justify-between text-xs font-bold text-maxify-text-secondary">
+              <span>Uso</span>
+              <span>{percentage}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-maxify-border">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.max(0, Math.min(100, percentage))}%` }}
+                transition={{ duration: 0.7 }}
+                className={`h-full rounded-full ${styles.bar}`}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.button>
   )
 }
+
 const SpecCard = ({ title, icon: Icon, items, accent = "blue" }) => {
   const accentMap = {
-    blue: "text-blue-300 bg-blue-500/10 border-blue-500/20",
-    cyan: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
-    sky: "text-sky-300 bg-sky-500/10 border-sky-500/20",
-    indigo: "text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
+    blue: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+    cyan: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+    sky: "border-sky-500/25 bg-sky-500/10 text-sky-300",
+    indigo: "border-indigo-500/25 bg-indigo-500/10 text-indigo-300",
   }
 
   const iconStyle = accentMap[accent] || accentMap.blue
 
   return (
-    <div className="rounded-2xl border border-maxify-border bg-maxify-card p-5 transition-all duration-300 hover:border-blue-500/20">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`p-2.5 rounded-xl border ${iconStyle}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <h3 className="text-maxify-text font-semibold">{title}</h3>
-      </div>
-      <div className="space-y-3">
-        {items.map((item, index) => (
-          <div key={index} className="flex items-center justify-between gap-3">
-            <span className="text-sm text-maxify-text-secondary">{item.label}</span>
-            <span className="text-sm font-medium text-maxify-text text-right">{item.value}</span>
+    <motion.div
+      whileHover={{ y: -5 }}
+      className="group relative overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.16),transparent_50%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative z-10">
+        <div className="mb-5 flex items-center gap-3">
+          <div className={`rounded-2xl border p-3 ${iconStyle}`}>
+            <Icon className="h-5 w-5" />
           </div>
-        ))}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-blue-300">
+              Hardware
+            </p>
+            <h3 className="text-lg font-black text-maxify-text">{title}</h3>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-maxify-border bg-maxify-bg/30 px-4 py-3"
+            >
+              <span className="text-sm text-maxify-text-secondary">{item.label}</span>
+              <span className="max-w-[58%] truncate text-right text-sm font-bold text-maxify-text">
+                {item.value}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
 const ActionCard = ({ title, description, icon: Icon, onClick, accent = "blue" }) => {
   const accentMap = {
-    blue: "text-blue-300 bg-blue-500/10 border-blue-500/20",
-    cyan: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
-    sky: "text-sky-300 bg-sky-500/10 border-sky-500/20",
-    indigo: "text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
+    blue: "border-blue-500/25 bg-blue-500/10 text-blue-300",
+    cyan: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+    sky: "border-sky-500/25 bg-sky-500/10 text-sky-300",
+    indigo: "border-indigo-500/25 bg-indigo-500/10 text-indigo-300",
   }
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
-      className="w-full text-left rounded-2xl border border-maxify-border bg-maxify-card p-5 transition-all duration-300 hover:border-blue-500/20 hover:-translate-y-0.5"
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative w-full overflow-hidden rounded-[28px] border border-maxify-border bg-maxify-card p-5 text-left shadow-xl shadow-black/5 transition-all hover:border-blue-500/25"
     >
-      <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-2xl border ${accentMap[accent] || accentMap.blue}`}>
-          <Icon className="w-5 h-5" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative z-10 flex items-start gap-4">
+        <div className={`rounded-[22px] border p-3.5 ${accentMap[accent] || accentMap.blue}`}>
+          <Icon className="h-5 w-5" />
         </div>
 
         <div className="flex-1">
-          <p className="text-base font-semibold text-maxify-text">{title}</p>
-          <p className="text-sm text-maxify-text-secondary mt-1">{description}</p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-base font-black text-maxify-text">{title}</p>
+            <ChevronRight className="mt-1 h-4 w-4 text-maxify-text-secondary opacity-60 transition-transform group-hover:translate-x-1 group-hover:text-blue-300" />
+          </div>
+          <p className="mt-2 text-sm leading-6 text-maxify-text-secondary">{description}</p>
         </div>
       </div>
-    </button>
+    </motion.button>
   )
 }
 
@@ -216,7 +282,6 @@ function Home() {
     staleTime: Infinity,
     gcTime: 1000 * 60 * 30,
   })
-
 
   useEffect(() => {
     if (systemData) {
@@ -247,7 +312,6 @@ function Home() {
       .trim()
   }, [])
 
-
   const detailedSpecs = useMemo(() => {
     const cpuModel =
       systemData?.cpu_model?.split(" ").slice(0, 4).join(" ") || "Desconhecido"
@@ -265,10 +329,7 @@ function Home() {
         accent: "blue",
         items: [
           { label: "Modelo", value: cpuModel },
-          {
-            label: "Núcleos",
-            value: `${systemData?.cpu_cores || 0}`,
-          },
+          { label: "Núcleos", value: `${systemData?.cpu_cores || 0}` },
         ],
       },
       {
@@ -301,91 +362,158 @@ function Home() {
     ]
   }, [systemData, formatBytes])
 
+  const quickStats = useMemo(() => {
+    return [
+      {
+        title: "Sistema",
+        value: formatWindowsName(systemData?.os),
+        subtitle: "Ambiente detectado automaticamente",
+        icon: MonitorCog,
+        accent: "blue",
+      },
+      {
+        title: "CPU",
+        value: `${systemData?.cpu_cores || 0} cores`,
+        subtitle: systemData?.cpu_model?.split(" ").slice(0, 4).join(" ") || "Processador não detectado",
+        icon: Cpu,
+        accent: "cyan",
+      },
+      {
+        title: "RAM",
+        value: formatBytes(systemData?.memory_total),
+        subtitle: `${systemData?.memory_type || "DDR4"} pronta para otimização`,
+        icon: MemoryStick,
+        accent: "sky",
+      },
+      {
+        title: "Painel",
+        value: "9 páginas",
+        subtitle: "Atalhos e ferramentas disponíveis",
+        icon: Gauge,
+        accent: "indigo",
+      },
+    ]
+  }, [systemData, formatBytes, formatWindowsName])
+
   const isLoading = systemLoading
 
   if (isLoading && !systemData) return <LoadingScreen />
 
   return (
-    <RootDiv>
-      <div className="max-w-[1900px] mx-auto px-6 pb-16 space-y-8">
-        <div className="mt-8 rounded-[28px] border border-maxify-border bg-maxify-card p-8 overflow-hidden relative">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.25),transparent_35%),radial-gradient(circle_at_left,rgba(14,165,233,0.18),transparent_40%)]" />
+    <RootDiv className="min-h-full w-full overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-6 p-4 md:p-6">
+        <section className="relative overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card p-7 shadow-xl shadow-black/5">
+          <BackgroundGlow />
 
-          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
-            <div className="max-w-3xl">
-
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/15 text-blue-200 text-sm font-medium mb-4 shadow-sm">
-                <Sparkles size={15} />
-                Central de controle
+          <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_380px] xl:items-center">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                <Sparkles size={14} />
+                Maxify Control Center
               </div>
 
-              <div className="flex items-start gap-4">
-
-                {/* Icon */}
-                <div className="p-4 rounded-2xl bg-blue-500/20 border border-blue-400/30 shadow-xl shadow-blue-500/20 backdrop-blur">
+              <div className="flex items-start gap-5">
+                <div className="rounded-[26px] border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl shadow-blue-500/10">
                   <img
                     src={LoginIcon}
-                    width={32}
-                    height={32}
-                    className="select-none"
-                    alt="Sparkle"
+                    width={38}
+                    height={38}
+                    className="select-none drop-shadow-xl"
+                    alt="Maxify"
                   />
                 </div>
 
-                <div>
-
-                  {/* Title */}
+                <div className="min-w-0">
                   <Greeting />
 
-                  {/* Description */}
-                  <p className="text-maxify-text-secondary mt-3 max-w-2xl">
-                    Monitore desempenho, aplique otimizações e acesse tudo que importa
-                    de forma rápida, simples e eficiente.
+                  <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[0.98] text-maxify-text md:text-6xl">
+                    Painel principal em{" "}
+                    <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                      modo inteligente
+                    </span>
+                  </h1>
+
+                  <p className="mt-5 max-w-3xl text-sm leading-7 text-maxify-text-secondary md:text-base">
+                    Monitore desempenho, veja as especificações do computador e acesse as principais ferramentas do Maxify com um visual mais limpo, modular e premium.
                   </p>
 
-                  {/* Info badges */}
-                  <div className="flex flex-wrap gap-3 mt-5">
-
-                    <div className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 text-sm border border-blue-500/20">
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                       {formatWindowsName(systemData?.os)}
                     </div>
 
-
-                    <div className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 text-sm border border-blue-500/20">
+                    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
                       Páginas disponíveis: 9
                     </div>
-
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-blue-300" />
-            <h2 className="text-maxify-text text-lg font-semibold">Especificações técnicas</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.35 }}
+              className="rounded-[30px] border border-blue-500/20 bg-blue-500/10 p-6"
+            >
+              <div className="mb-5 flex items-center justify-between">
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                  <Rocket size={30} className="text-blue-300" />
+                </div>
+
+                <div className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-blue-300">
+                  Online
+                </div>
+              </div>
+
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-300">
+                Status do painel
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black text-maxify-text">
+                Sistema pronto
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-maxify-text-secondary">
+                Suas informações foram carregadas e os atalhos principais estão disponíveis para uso.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <div className="flex items-center gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                  <CheckCircle2 className="h-5 w-5 text-blue-300" />
+                  <span className="text-sm font-semibold text-maxify-text">
+                    Dados sincronizados
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle icon={Activity} label="Resumo" title="Visão rápida do sistema" />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {quickStats.map((stat, index) => (
+              <QuickStatCard key={index} {...stat} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle icon={Database} label="Hardware" title="Especificações técnicas" />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {detailedSpecs.map((spec, index) => (
               <SpecCard key={index} {...spec} />
             ))}
           </div>
         </section>
 
-
-
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Rocket className="w-5 h-5 text-blue-300" />
-            <h2 className="text-maxify-text text-lg font-semibold">Ações rápidas</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
-          </div>
+          <SectionTitle icon={Rocket} label="Acesso rápido" title="Ferramentas principais" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <ActionCard
               title="Abrir otimização"
               description="Acesse a área de tweaks e melhorias de desempenho."
@@ -422,9 +550,11 @@ function Home() {
 
         {systemFetching && systemData && (
           <div className="fixed bottom-4 right-4 z-50">
-            <div className="flex items-center gap-2 px-4 py-2 bg-maxify-card border border-maxify-border rounded-full shadow-lg">
-              <RefreshCw className="w-4 h-4 text-blue-300 animate-spin" />
-              <span className="text-xs text-maxify-text-secondary">Sincronizando...</span>
+            <div className="flex items-center gap-2 rounded-full border border-maxify-border bg-maxify-card px-4 py-2 shadow-lg shadow-black/10">
+              <RefreshCw className="h-4 w-4 animate-spin text-blue-300" />
+              <span className="text-xs font-bold text-maxify-text-secondary">
+                Sincronizando...
+              </span>
             </div>
           </div>
         )}

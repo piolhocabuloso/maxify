@@ -205,48 +205,6 @@ export const cleanups = [
         safeForAuto: true,
     },
     {
-        id: "icon-cache",
-        label: "Cache de Ícones",
-        description: "Remove cache de ícones antigos do Windows Explorer.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\IconCache.db", "$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\iconcache_*.db")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        $items = Get-ChildItem -Path $path -Force -ErrorAction SilentlyContinue
-        foreach ($item in $items) { if (!$item.PSIsContainer) { $totalSize += $item.Length } }
-        $items | Remove-Item -Force -ErrorAction SilentlyContinue
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "sistema",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "font-cache",
-        label: "Cache de Fontes",
-        description: "Remove cache de fontes do Windows. Útil quando fontes ficam bugadas.",
-        script: `
-      $paths = @("$env:WINDIR\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache", "$env:WINDIR\\System32\\FNTCACHE.DAT")
-      $totalSize = 0
-      try { Stop-Service FontCache -Force -ErrorAction SilentlyContinue } catch {}
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $items = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($item in $items) { if (!$item.PSIsContainer) { $totalSize += $item.Length } }
-          Remove-Item -Path $path -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      try { Start-Service FontCache -ErrorAction SilentlyContinue } catch {}
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "sistema",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
         id: "logs",
         label: "Arquivos de Log",
         description: "Remove logs antigos do sistema e aplicações.",
@@ -260,44 +218,6 @@ export const cleanups = [
           foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
           $files | Remove-Item -Force -ErrorAction SilentlyContinue
         }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "history",
-        category: "sistema",
-        safeForAuto: true,
-    },
-    {
-        id: "cbs-logs",
-        label: "Logs CBS Antigos",
-        description: "Remove logs antigos do Windows Component Based Servicing.",
-        script: `
-      $path = "C:\\Windows\\Logs\\CBS"
-      $totalSize = 0
-      $cutoffDate = (Get-Date).AddDays(-14)
-      if (Test-Path $path) {
-        $files = Get-ChildItem -Path $path -Include "*.log", "*.cab" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoffDate }
-        foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-        $files | Remove-Item -Force -ErrorAction SilentlyContinue
-      }
-      Write-Output $totalSize
-    `,
-        icon: "history",
-        category: "sistema",
-        safeForAuto: true,
-    },
-    {
-        id: "event-logs-old",
-        label: "Logs de Eventos Antigos",
-        description: "Remove arquivos antigos de logs arquivados do Visualizador de Eventos.",
-        script: `
-      $path = "$env:WINDIR\\System32\\winevt\\Logs"
-      $totalSize = 0
-      $cutoffDate = (Get-Date).AddDays(-30)
-      if (Test-Path $path) {
-        $files = Get-ChildItem -Path $path -Include "Archive-*.evtx", "*.etl" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoffDate }
-        foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-        $files | Remove-Item -Force -ErrorAction SilentlyContinue
       }
       Write-Output $totalSize
     `,
@@ -326,28 +246,6 @@ export const cleanups = [
         safeForAuto: true,
     },
     {
-        id: "memory-dump",
-        label: "Arquivos de Memory Dump",
-        description: "Remove arquivos de despejo de memória antigos.",
-        script: `
-      $paths = @("C:\\Windows\\MEMORY.DMP", "C:\\Windows\\Minidump", "$env:LOCALAPPDATA\\CrashDumps")
-      $totalSize = 0
-      $cutoffDate = (Get-Date).AddDays(-7)
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $items = Get-ChildItem -Path $path -Include "*.dmp", "*.mdmp" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoffDate }
-          foreach ($item in $items) { if (!$item.PSIsContainer) { $totalSize += $item.Length } }
-          $items | Remove-Item -Force -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "databaseRed",
-        category: "sistema",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
         id: "recent-files",
         label: "Arquivos Recentes",
         description: "Limpa histórico de arquivos recentes do Windows.",
@@ -362,18 +260,6 @@ export const cleanups = [
         }
       }
       Write-Output $totalSize
-    `,
-        icon: "clock",
-        category: "privacidade",
-        safeForAuto: true,
-    },
-    {
-        id: "run-history",
-        label: "Histórico do Executar",
-        description: "Remove histórico da janela Executar do Windows.",
-        script: `
-      try { Remove-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU" -Name "*" -ErrorAction SilentlyContinue } catch {}
-      Write-Output 0
     `,
         icon: "clock",
         category: "privacidade",
@@ -395,45 +281,12 @@ export const cleanups = [
         safeForAuto: true,
     },
     {
-        id: "clipboard",
-        label: "Área de Transferência",
-        description: "Limpa o conteúdo copiado na área de transferência.",
-        script: `
-      try { Set-Clipboard -Value "" } catch {}
-      Write-Output 0
-    `,
-        icon: "file",
-        category: "privacidade",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
         id: "dns-cache",
         label: "Cache DNS",
         description: "Limpa cache DNS do sistema.",
         script: `
       ipconfig /flushdns | Out-Null
       Write-Output 0
-    `,
-        icon: "wifi",
-        category: "rede",
-        safeForAuto: true,
-    },
-    {
-        id: "network-temp",
-        label: "Cache de Rede",
-        description: "Remove cache temporário relacionado a rede e diagnóstico.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\Microsoft\\Windows\\INetCache", "$env:LOCALAPPDATA\\Microsoft\\Windows\\WebCache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
     `,
         icon: "wifi",
         category: "rede",
@@ -490,57 +343,6 @@ export const cleanups = [
           $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
           foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
           Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "globe",
-        category: "navegadores",
-        safeForAuto: true,
-    },
-    {
-        id: "browser-service-worker-cache",
-        label: "Cache Service Worker",
-        description: "Remove cache de sites salvos em segundo plano nos navegadores.",
-        script: `
-      $paths = @(
-        "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage",
-        "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Service Worker\\CacheStorage",
-        "$env:LOCALAPPDATA\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Service Worker\\CacheStorage",
-        "$env:LOCALAPPDATA\\Vivaldi\\User Data\\Default\\Service Worker\\CacheStorage"
-      )
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "globe",
-        category: "navegadores",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "browser-crash-reports",
-        label: "Relatórios de Crash dos Navegadores",
-        description: "Remove relatórios antigos de crash de navegadores.",
-        script: `
-      $paths = @(
-        "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Crashpad\\reports",
-        "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Crashpad\\reports",
-        "$env:LOCALAPPDATA\\BraveSoftware\\Brave-Browser\\User Data\\Crashpad\\reports"
-      )
-      $totalSize = 0
-      $cutoff = (Get-Date).AddDays(-7)
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          $files | Remove-Item -Force -ErrorAction SilentlyContinue
         }
       }
       Write-Output $totalSize
@@ -714,68 +516,6 @@ export const cleanups = [
         safeForAuto: true,
     },
     {
-        id: "teams-cache",
-        label: "Cache do Microsoft Teams",
-        description: "Remove cache do Microsoft Teams clássico e novo.",
-        script: `
-      $paths = @("$env:APPDATA\\Microsoft\\Teams\\Cache", "$env:APPDATA\\Microsoft\\Teams\\Code Cache", "$env:APPDATA\\Microsoft\\Teams\\GPUCache", "$env:LOCALAPPDATA\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        safeForAuto: true,
-    },
-    {
-        id: "telegram-cache",
-        label: "Cache do Telegram",
-        description: "Remove cache local do Telegram Desktop.",
-        script: `
-      $paths = @("$env:APPDATA\\Telegram Desktop\\tdata\\user_data", "$env:APPDATA\\Telegram Desktop\\tdata\\emoji")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "whatsapp-cache",
-        label: "Cache WhatsApp Desktop",
-        description: "Remove cache temporário do WhatsApp Desktop.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\Packages\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\\LocalCache", "$env:LOCALAPPDATA\\WhatsApp\\Cache", "$env:APPDATA\\WhatsApp\\Cache", "$env:APPDATA\\WhatsApp\\GPUCache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
         id: "vscode-cache",
         label: "Cache do VS Code",
         description: "Remove cache temporário do Visual Studio Code.",
@@ -793,228 +533,6 @@ export const cleanups = [
     `,
         icon: "file",
         category: "dev",
-        safeForAuto: true,
-    },
-    {
-        id: "npm-cache",
-        label: "Cache NPM",
-        description: "Limpa cache do NPM usado em projetos JavaScript.",
-        script: `
-      $path = "$env:APPDATA\\npm-cache"
-      $totalSize = 0
-      if (Test-Path $path) {
-        $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-        foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-      }
-      try { npm cache clean --force | Out-Null } catch { if (Test-Path $path) { Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue } }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "dev",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "yarn-cache",
-        label: "Cache Yarn",
-        description: "Remove cache do Yarn.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\Yarn\\Cache", "$env:APPDATA\\Yarn\\Cache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "dev",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "pnpm-cache",
-        label: "Cache PNPM",
-        description: "Remove cache/store do PNPM.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\pnpm\\store", "$env:USERPROFILE\\.pnpm-store")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "dev",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "pip-cache",
-        label: "Cache PIP Python",
-        description: "Remove cache do pip Python.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\pip\\Cache", "$env:USERPROFILE\\AppData\\Local\\pip\\Cache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "dev",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "python-cache",
-        label: "Cache Python",
-        description: "Remove pastas __pycache__ e arquivos .pyc em Desktop, Documentos e Downloads.",
-        script: `
-      $paths = @("$env:USERPROFILE\\Desktop", "$env:USERPROFILE\\Documents", "$env:USERPROFILE\\Downloads")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $items = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq "__pycache__" -or $_.Extension -eq ".pyc" }
-          foreach ($item in $items) {
-            if ($item.PSIsContainer) {
-              $files = Get-ChildItem -Path $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
-              foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-            } else { $totalSize += $item.Length }
-          }
-          $items | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "dev",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "electron-app-cache",
-        label: "Cache Apps Electron",
-        description: "Remove Cache, Code Cache e GPUCache comuns em apps Electron.",
-        script: `
-      $basePaths = @("$env:APPDATA", "$env:LOCALAPPDATA")
-      $cacheNames = @("Cache", "Code Cache", "GPUCache", "DawnCache")
-      $totalSize = 0
-      foreach ($base in $basePaths) {
-        if (Test-Path $base) {
-          $dirs = Get-ChildItem -Path $base -Directory -Force -ErrorAction SilentlyContinue
-          foreach ($dir in $dirs) {
-            foreach ($cache in $cacheNames) {
-              $target = Join-Path $dir.FullName $cache
-              if (Test-Path $target) {
-                $files = Get-ChildItem -Path $target -Recurse -Force -ErrorAction SilentlyContinue
-                foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-                Remove-Item -Path "$target\\*" -Force -Recurse -ErrorAction SilentlyContinue
-              }
-            }
-          }
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "zoom-cache",
-        label: "Cache Zoom",
-        description: "Remove cache e logs antigos do Zoom.",
-        script: `
-      $paths = @("$env:APPDATA\\Zoom\\logs", "$env:APPDATA\\Zoom\\data\\WebviewCache", "$env:APPDATA\\Zoom\\data\\Cache")
-      $totalSize = 0
-      $cutoff = (Get-Date).AddDays(-7)
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          $files | Remove-Item -Force -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        safeForAuto: true,
-    },
-    {
-        id: "obs-cache",
-        label: "Cache OBS Studio",
-        description: "Remove logs antigos e cache temporário do OBS Studio.",
-        script: `
-      $paths = @("$env:APPDATA\\obs-studio\\logs", "$env:APPDATA\\obs-studio\\crashes")
-      $totalSize = 0
-      $cutoff = (Get-Date).AddDays(-14)
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          $files | Remove-Item -Force -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        safeForAuto: true,
-    },
-    {
-        id: "adobe-cache",
-        label: "Cache Adobe",
-        description: "Remove caches temporários comuns de apps Adobe.",
-        script: `
-      $paths = @("$env:APPDATA\\Adobe\\Common\\Media Cache", "$env:APPDATA\\Adobe\\Common\\Media Cache Files", "$env:LOCALAPPDATA\\Adobe\\Common\\Media Cache", "$env:LOCALAPPDATA\\Adobe\\Common\\Media Cache Files")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
-        warning: true,
-        safeForAuto: false,
-    },
-    {
-        id: "onedrive-cache",
-        label: "Cache OneDrive",
-        description: "Remove logs e cache temporário do OneDrive.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\Microsoft\\OneDrive\\logs", "$env:LOCALAPPDATA\\Microsoft\\OneDrive\\setup\\logs")
-      $totalSize = 0
-      $cutoff = (Get-Date).AddDays(-14)
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          $files | Remove-Item -Force -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "file",
-        category: "apps",
         safeForAuto: true,
     },
     {
@@ -1147,67 +665,6 @@ export const cleanups = [
         safeForAuto: true,
     },
     {
-        id: "battle-net-cache",
-        label: "Cache Battle.net",
-        description: "Remove cache temporário do Battle.net.",
-        script: `
-      $paths = @("C:\\ProgramData\\Battle.net\\Cache", "$env:LOCALAPPDATA\\Battle.net\\Cache", "$env:APPDATA\\Battle.net\\Cache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "cpu",
-        category: "jogos",
-        safeForAuto: true,
-    },
-    {
-        id: "ea-app-cache",
-        label: "Cache EA App",
-        description: "Remove cache temporário do EA App.",
-        script: `
-      $paths = @("$env:LOCALAPPDATA\\Electronic Arts\\EA Desktop\\cache", "$env:LOCALAPPDATA\\Electronic Arts\\EA Desktop\\CEF\\Cache", "C:\\ProgramData\\EA Desktop\\Cache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "cpu",
-        category: "jogos",
-        safeForAuto: true,
-    },
-    {
-        id: "ubisoft-cache",
-        label: "Cache Ubisoft Connect",
-        description: "Remove cache temporário do Ubisoft Connect.",
-        script: `
-      $pf86 = [Environment]::GetFolderPath('ProgramFilesX86')
-      $paths = @("$env:LOCALAPPDATA\\Ubisoft Game Launcher\\cache", "$pf86\\Ubisoft\\Ubisoft Game Launcher\\cache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "cpu",
-        category: "jogos",
-        safeForAuto: true,
-    },
-    {
         id: "rockstar-cache",
         label: "Cache Rockstar Launcher",
         description: "Remove cache e logs antigos do Rockstar Games Launcher.",
@@ -1220,26 +677,6 @@ export const cleanups = [
           $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff -or $path -match "webcache" }
           foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
           $files | Remove-Item -Force -ErrorAction SilentlyContinue
-        }
-      }
-      Write-Output $totalSize
-    `,
-        icon: "cpu",
-        category: "jogos",
-        safeForAuto: true,
-    },
-    {
-        id: "gog-cache",
-        label: "Cache GOG Galaxy",
-        description: "Remove cache temporário do GOG Galaxy.",
-        script: `
-      $paths = @("$env:PROGRAMDATA\\GOG.com\\Galaxy\\webcache", "$env:LOCALAPPDATA\\GOG.com\\Galaxy\\Applications\\webcache")
-      $totalSize = 0
-      foreach ($path in $paths) {
-        if (Test-Path $path) {
-          $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-          foreach ($file in $files) { if (!$file.PSIsContainer) { $totalSize += $file.Length } }
-          Remove-Item -Path "$path\\*" -Force -Recurse -ErrorAction SilentlyContinue
         }
       }
       Write-Output $totalSize

@@ -19,7 +19,7 @@ export default function FirstTime() {
   useEffect(() => {
     if (!window.updater) return
 
-    window.updater.onStatus((data) => {
+    const unsubscribe = window.updater.onStatus((data) => {
       setStatus(data)
 
       if (
@@ -30,10 +30,14 @@ export default function FirstTime() {
       ) {
         setOpen(true)
       }
-      if (data.type === "none") {
-        toast.success("Seu Maxify já está atualizado.")
-      }
+
     })
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe()
+      }
+    }
   }, [])
 
   const closeModal = () => {

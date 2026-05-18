@@ -25,7 +25,7 @@ import { registerOfficeInstallerHandlers } from "./officeInstaller"
 import { registerEssentialInstallerHandlers } from "./essentialInstaller"
 import { registerStartupManagerHandlers } from "./startupManager"
 import os from "node:os"
-import { execFile } from "node:child_process"
+import { execFile, spawn } from "node:child_process"
 import { promisify } from "node:util"
 const execFileAsync = promisify(execFile)
 const logsManagerRef = { current: null }
@@ -583,11 +583,17 @@ function isLocalInputLagPayload(payload) {
   if (!allowedNames.includes(name)) return false
 
   const expectedSignals = [
-    "win32_pointingdevice",
-    "win32_keyboard",
+    "get-pnpdevice",
+    "class mouse",
+    "class keyboard",
+    "friendlyname",
+    "instanceid",
     "wmimonitorid",
     "win32_desktopmonitor",
     "win32_videocontroller",
+    "currenthorizontalresolution",
+    "currentverticalresolution",
+    "currentrefreshrate",
     "control panel\\mouse",
     "control panel\\keyboard",
     "gameconfigstore",
@@ -920,6 +926,139 @@ async function runPowerShell(script) {
 
   return stdout.trim()
 }
+
+
+function fixPowerShellEncoding(text) {
+  return String(text || "")
+    .replace(/opera��o/gi, "operação")
+    .replace(/opera��es/gi, "operações")
+    .replace(/conclu�da/gi, "concluída")
+    .replace(/conclu�do/gi, "concluído")
+    .replace(/�xito/gi, "êxito")
+    .replace(/pr�/gi, "pré")
+    .replace(/aplica��o/gi, "aplicação")
+    .replace(/otimiza��o/gi, "otimização")
+    .replace(/otimiza��es/gi, "otimizações")
+    .replace(/m�dulo/gi, "módulo")
+    .replace(/m�dulos/gi, "módulos")
+    .replace(/n�o/gi, "não")
+    .replace(/autom�tico/gi, "automático")
+    .replace(/poss�vel/gi, "possível")
+}
+
+function buildLivePowerShellScript(script) {
+  return `
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new()
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+chcp 65001 > $null
+$ProgressPreference = "SilentlyContinue"
+${String(script || "")}
+`
+}
+
+async function executePowerShellLive(event, payload) {
+  return new Promise((resolve) => {
+    const script = typeof payload === "object" && payload !== null
+      ? String(payload.script || payload.command || payload.code || "")
+      : String(payload || "")
+
+    const name = typeof payload === "object" && payload !== null
+      ? String(payload.name || payload.id || payload.title || "maxify-script")
+      : "maxify-script"
+
+    const ps = spawn(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-NoLogo",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        buildLivePowerShellScript(script),
+      ],
+      {
+        windowsHide: true,
+        env: {
+          ...process.env,
+          PYTHONIOENCODING: "utf-8",
+        },
+      }
+    )
+
+    let output = ""
+    let errorOutput = ""
+
+    const sendLine = (line, fallbackType = "info") => {
+      const cleanLine = fixPowerShellEncoding(String(line || "").trim())
+      if (!cleanLine) return
+
+      const lower = cleanLine.toLowerCase()
+      const type =
+        lower.includes("[erro]") ||
+        lower.includes("falhou") ||
+        lower.includes("error")
+          ? "error"
+          : lower.includes("[ok]") ||
+              lower.includes("sucesso") ||
+              lower.includes("concluído") ||
+              lower.includes("concluída") ||
+              lower.includes("êxito")
+            ? "success"
+            : fallbackType
+
+      try {
+        event.sender.send("powershell-live-log", {
+          name,
+          text: cleanLine,
+          type,
+        })
+      } catch { }
+    }
+
+    const handleChunk = (chunk, fallbackType = "info") => {
+      const text = fixPowerShellEncoding(Buffer.from(chunk).toString("utf8"))
+      if (fallbackType === "error") {
+        errorOutput += text
+      } else {
+        output += text
+      }
+
+      text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .forEach((line) => sendLine(line, fallbackType))
+    }
+
+    ps.stdout.on("data", (data) => handleChunk(data, "info"))
+    ps.stderr.on("data", (data) => handleChunk(data, "error"))
+
+    ps.on("error", (error) => {
+      const message = error?.message || "Falha ao iniciar PowerShell."
+      errorOutput += message
+      sendLine(message, "error")
+
+      resolve({
+        success: false,
+        code: -1,
+        output,
+        error: message,
+      })
+    })
+
+    ps.on("close", (code) => {
+      resolve({
+        success: code === 0,
+        code,
+        output: fixPowerShellEncoding(output),
+        error: fixPowerShellEncoding(errorOutput),
+      })
+    })
+  })
+}
+
 
 function unregisterStartupManagerHandlers() {
   ipcMain.removeHandler("startup:list")
@@ -1659,7 +1798,7 @@ ipcMain.handle("invoke", async (event, data) => {
       case "run-powershell": {
         const securedPayload = await resolvePremiumScriptPayload(payload)
         await authorizePowerShellExecution(securedPayload)
-        return await executePowerShell(event, securedPayload)
+        return await executePowerShellLive(event, securedPayload)
       }
 
       case "test-connection":
@@ -1692,7 +1831,7 @@ ipcMain.handle("run-powershell", async (event, payload) => {
   try {
     const securedPayload = await resolvePremiumScriptPayload(payload)
     await authorizePowerShellExecution(securedPayload)
-    return await executePowerShell(event, securedPayload)
+    return await executePowerShellLive(event, securedPayload)
   } catch (error) {
     console.error("Erro em run-powershell protegido:", error)
     return {
