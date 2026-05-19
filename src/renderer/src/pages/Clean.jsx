@@ -87,11 +87,10 @@ const SectionTitle = ({ icon: Icon, label, title, children }) => {
 const MiniStat = ({ icon: Icon, label, value, active }) => {
   return (
     <div
-      className={`relative overflow-hidden rounded-[24px] border p-4 transition-all ${
-        active
+      className={`relative overflow-hidden rounded-[24px] border p-4 transition-all ${active
           ? "border-blue-500/35 bg-blue-500/15 shadow-lg shadow-blue-500/10"
           : "border-maxify-border bg-maxify-bg/30"
-      }`}
+        }`}
     >
       {active && (
         <motion.div
@@ -151,13 +150,12 @@ function CleaningDisk({ estaLimpando, espacoLiberado, selecionados, totalRotinas
           </div>
 
           <div
-            className={`rounded-2xl border px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] ${
-              estaLimpando
+            className={`rounded-2xl border px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] ${estaLimpando
                 ? "border-blue-500/30 bg-blue-500/15 text-blue-300"
                 : isClean
                   ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-300"
                   : "border-yellow-500/25 bg-yellow-500/10 text-yellow-300"
-            }`}
+              }`}
           >
             {status}
           </div>
@@ -422,10 +420,10 @@ function CleaningDisk({ estaLimpando, espacoLiberado, selecionados, totalRotinas
                   animate={
                     estaLimpando
                       ? {
-                          opacity: [0, 1, 0],
-                          scale: [0.2, 1.15, 0.15],
-                          y: [0, -18, -36],
-                        }
+                        opacity: [0, 1, 0],
+                        scale: [0.2, 1.15, 0.15],
+                        y: [0, -18, -36],
+                      }
                       : { opacity: 0 }
                   }
                   transition={{
@@ -494,19 +492,18 @@ function ExecutionConsole({ logs, estaLimpando }) {
         </div>
       </div>
 
-      <div className="max-h-[265px] min-h-[220px] overflow-y-auto p-4 font-mono text-xs">
+      <div className="max-h-[520px] min-h-[220px] overflow-y-auto p-4 font-mono text-xs">
         {logs.length > 0 ? (
           <div className="space-y-2">
             {logs.slice(-30).map((item, index) => (
               <div key={index} className="flex gap-3 rounded-xl border border-white/5 bg-white/[0.025] px-3 py-2">
                 <span
-                  className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                    item.type === "success"
+                  className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${item.type === "success"
                       ? "bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.75)]"
                       : item.type === "error"
                         ? "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.65)]"
                         : "bg-blue-300 shadow-[0_0_10px_rgba(147,197,253,0.65)]"
-                  }`}
+                    }`}
                 />
                 <p className="leading-5 text-slate-300">{item.text}</p>
               </div>
@@ -559,7 +556,14 @@ function Limpeza() {
       const mod = await import("@/data/cleanups")
 
       setCleanups(mod.cleanups || [])
-      setCategories([{ id: "all", label: "Todas", icon: "sparkles" }, ...(mod.categories || [])])
+      const categoriasSemDuplicar = (mod.categories || []).filter(
+        (categoria) => categoria.id !== "all"
+      )
+
+      setCategories([
+        { id: "all", label: "Todas", icon: "sparkles" },
+        ...categoriasSemDuplicar,
+      ])
       setDataLoaded(true)
     }
 
@@ -776,6 +780,7 @@ function Limpeza() {
     addLog(`Iniciando ${selecionados.length} rotina(s) de limpeza...`)
 
     let algumaSucesso = false
+    let totalErros = 0
     let novosResultados = { ...resultados }
     let totalLiberadoNestaExecucao = 0
     const inicioLimpeza = new Date().toISOString()
@@ -783,7 +788,6 @@ function Limpeza() {
     for (const limpeza of cleanups) {
       if (!selecionados.includes(limpeza.id)) continue
 
-      const toastId = toast.loading(`Executando ${limpeza.label}...`)
       addLog(`Executando: ${limpeza.label}`)
 
       try {
@@ -794,24 +798,11 @@ function Limpeza() {
         novosResultados[limpeza.id] = espacoLiberado
         totalLiberadoNestaExecucao += espacoLiberado
 
-        toast.update(toastId, {
-          render: `${limpeza.label} concluído! ${formatarBytes(espacoLiberado)} liberados.`,
-          type: "success",
-          isLoading: false,
-          autoClose: 3000,
-        })
-
         addLog(`${limpeza.label} concluído • ${formatarBytes(espacoLiberado)} liberados`, "success")
         algumaSucesso = true
       } catch (err) {
         novosResultados[limpeza.id] = 0
-
-        toast.update(toastId, {
-          render: `Falha em ${limpeza.label}: ${err.message || "Erro desconhecido"}`,
-          type: "error",
-          isLoading: false,
-          autoClose: 4000,
-        })
+        totalErros += 1
 
         addLog(`Falha em ${limpeza.label}: ${err.message || "Erro desconhecido"}`, "error")
         log.error(`Falha ao executar ${limpeza.id}: ${err.message || err}`)
@@ -858,10 +849,19 @@ function Limpeza() {
       addLog(`Limpeza finalizada • Total liberado: ${formatarBytes(totalLiberadoNestaExecucao)}`, "success")
 
       toast.success(
-        `Limpeza concluída! ${formatarBytes(totalLiberadoNestaExecucao)} liberados no total.`,
+        totalErros > 0
+          ? `Todas as limpezas possíveis foram concluídas. ${formatarBytes(totalLiberadoNestaExecucao)} liberados. ${totalErros} item(ns) tiveram aviso.`
+          : `Todas as limpezas foram concluídas. ${formatarBytes(totalLiberadoNestaExecucao)} liberados no total.`,
         {
           autoClose: 5000,
         }
+      )
+    } else {
+      toast.error(
+        totalErros > 0
+          ? `A limpeza terminou, mas nenhum item foi concluído. ${totalErros} item(ns) tiveram erro.`
+          : "Nenhuma limpeza foi executada.",
+        { autoClose: 5000 }
       )
     }
 
@@ -1079,7 +1079,7 @@ function Limpeza() {
           />
 
           <div className="grid gap-6">
- 
+
 
             <ExecutionConsole logs={logsExecucao} estaLimpando={estaLimpando} />
           </div>
@@ -1126,11 +1126,10 @@ function Limpeza() {
                   key={categoria.id}
                   onClick={() => selecionarCategoria(categoria.id)}
                   disabled={estaLimpando}
-                  className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
-                    categoriaAtiva === categoria.id
+                  className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${categoriaAtiva === categoria.id
                       ? "border-blue-500/30 bg-blue-500/15 text-blue-300 shadow-xl shadow-blue-500/10"
                       : "border-maxify-border bg-maxify-bg/30 text-maxify-text-secondary hover:border-blue-500/25 hover:bg-blue-500/10 hover:text-blue-300"
-                  } ${estaLimpando ? "cursor-not-allowed opacity-50" : ""}`}
+                    } ${estaLimpando ? "cursor-not-allowed opacity-50" : ""}`}
                 >
                   {categoria.id === "all" ? <Sparkles size={16} /> : categoryIconMap[categoria.icon]}
                   {categoria.label}
@@ -1158,22 +1157,20 @@ function Limpeza() {
                             alternarLimpeza(limpeza.id)
                           }
                         }}
-                        className={`group relative cursor-pointer overflow-hidden rounded-[24px] border p-4 transition-all ${
-                          estaSelecionado
+                        className={`group relative cursor-pointer overflow-hidden rounded-[24px] border p-4 transition-all ${estaSelecionado
                             ? "border-blue-500/40 bg-blue-500/10 shadow-xl shadow-blue-500/10"
                             : "border-maxify-border bg-maxify-card hover:border-blue-500/25 hover:bg-blue-500/10"
-                        } ${estaCarregando ? "opacity-85" : ""}`}
+                          } ${estaCarregando ? "opacity-85" : ""}`}
                       >
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_48%)] opacity-0 transition-opacity group-hover:opacity-100" />
 
                         <div className="relative z-10 flex items-start justify-between gap-3">
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <div
-                              className={`mt-0.5 shrink-0 rounded-2xl border p-2.5 ${
-                                limpeza.warning
+                              className={`mt-0.5 shrink-0 rounded-2xl border p-2.5 ${limpeza.warning
                                   ? "border-red-500/20 bg-red-500/10 text-red-400"
                                   : "border-blue-500/20 bg-blue-500/10 text-blue-400"
-                              }`}
+                                }`}
                             >
                               {cleanupIconMap[limpeza.icon]}
                             </div>

@@ -495,12 +495,13 @@ export default function Desativar() {
 
         setExecutando(true)
         let novosResultados = {}
+        let totalAplicados = 0
+        let totalErros = 0
 
         for (const item of comandosDesativar) {
             if (!selecionados.includes(item.id)) continue
 
             setFila((prev) => [...prev, item.id])
-            const toastId = toast.loading(`Aplicando ${item.label}...`)
 
             try {
                 await invoke({
@@ -512,22 +513,10 @@ export default function Desativar() {
                 })
 
                 novosResultados[item.id] = "success"
-
-                toast.update(toastId, {
-                    render: `${item.label} aplicado com sucesso.`,
-                    type: "success",
-                    isLoading: false,
-                    autoClose: 2500,
-                })
+                totalAplicados += 1
             } catch (err) {
                 novosResultados[item.id] = "error"
-
-                toast.update(toastId, {
-                    render: `Erro em ${item.label}`,
-                    type: "error",
-                    isLoading: false,
-                    autoClose: 3000,
-                })
+                totalErros += 1
             } finally {
                 setFila((prev) => prev.filter((x) => x !== item.id))
                 setResultados((prev) => ({ ...prev, ...novosResultados }))
@@ -535,7 +524,12 @@ export default function Desativar() {
         }
 
         setExecutando(false)
-        toast.success("Processo concluído.")
+
+        if (totalErros > 0) {
+            toast.warning(`Todas as ações possíveis foram concluídas. ${totalAplicados} aplicada(s), ${totalErros} com erro.`)
+        } else {
+            toast.success("Todas as ações foram concluídas com sucesso.")
+        }
     }
 
     const totalSucesso = Object.values(resultados).filter((x) => x === "success").length

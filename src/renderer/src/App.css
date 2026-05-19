@@ -325,3 +325,134 @@ body,
   color: #bfdbfe;
   opacity: .8;
 }
+
+/* Tema claro Maxify 2.0 — corrige contraste e deixa o modo branco mais premium */
+body.light,
+.light {
+  color-scheme: light;
+  --color-maxify-bg: #eef4ff;
+  --color-maxify-text: #0f172a;
+  --color-maxify-text-primary: #0f172a;
+  --color-maxify-text-dark: #1e293b;
+  --color-maxify-text-darker: #334155;
+  --color-maxify-text-secondary: #475569;
+  --color-maxify-text-muted: #64748b;
+  --color-maxify-card: rgba(255, 255, 255, 0.92);
+  --color-maxify-border: rgba(37, 99, 235, 0.18);
+  --color-maxify-border-secondary: rgba(15, 23, 42, 0.12);
+  --color-maxify-primary: #2563eb;
+  --color-maxify-secondary: #0ea5e9;
+  --color-maxify-accent: rgba(37, 99, 235, 0.09);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(37, 99, 235, 0.16), transparent 32%),
+    radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.14), transparent 30%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4ff 48%, #eaf1ff 100%);
+  color: var(--color-maxify-text);
+}
+
+body.light .bg-maxify-bg {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 10%, rgba(14, 165, 233, 0.12), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%) !important;
+}
+
+body.light .bg-maxify-card,
+body.light .bg-maxify-card\/80,
+body.light .bg-maxify-card\/70,
+body.light .bg-maxify-card\/60,
+body.light .bg-maxify-card\/50 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(18px);
+}
+
+body.light .border-maxify-border,
+body.light .border-maxify-border-secondary {
+  border-color: rgba(37, 99, 235, 0.18) !important;
+}
+
+body.light .text-maxify-text,
+body.light .text-maxify-text-primary,
+body.light .text-white,
+body.light .text-slate-50,
+body.light .text-slate-100,
+body.light .text-slate-200,
+body.light .text-slate-300 {
+  color: #0f172a !important;
+}
+
+body.light .text-maxify-text-secondary,
+body.light .text-slate-400,
+body.light .text-slate-500,
+body.light .text-zinc-400,
+body.light .text-neutral-400 {
+  color: #475569 !important;
+}
+
+body.light .text-maxify-text-muted,
+body.light .text-slate-600,
+body.light .text-zinc-500,
+body.light .text-neutral-500 {
+  color: #64748b !important;
+}
+
+body.light .bg-slate-950,
+body.light .bg-slate-950\/90,
+body.light .bg-slate-950\/80,
+body.light .bg-slate-950\/70,
+body.light .bg-slate-950\/60,
+body.light .bg-zinc-950,
+body.light .bg-neutral-950,
+body.light .bg-black,
+body.light .bg-black\/80,
+body.light .bg-black\/70,
+body.light .bg-black\/60,
+body.light .bg-black\/50,
+body.light .bg-black\/40,
+body.light .bg-black\/30,
+body.light .bg-black\/20,
+body.light .bg-white\/5,
+body.light .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.86) !important;
+}
+
+body.light .border-white\/5,
+body.light .border-white\/10,
+body.light .border-white\/15,
+body.light .border-white\/20,
+body.light .border-slate-800,
+body.light .border-slate-700,
+body.light .border-black\/20,
+body.light .border-black\/30,
+body.light .border-black\/40,
+body.light .border-black\/50 {
+  border-color: rgba(37, 99, 235, 0.18) !important;
+}
+
+body.light .shadow-blue-500\/10,
+body.light .shadow-blue-500\/20,
+body.light .shadow-black\/20,
+body.light .shadow-black\/30,
+body.light .shadow-black\/40 {
+  box-shadow: 0 20px 55px rgba(37, 99, 235, 0.10) !important;
+}
+
+body.light input,
+body.light textarea,
+body.light select {
+  color: #0f172a !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(37, 99, 235, 0.2) !important;
+}
+
+body.light input::placeholder,
+body.light textarea::placeholder {
+  color: #64748b !important;
+}
+
+body.light .Toastify__toast {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a !important;
+  border-color: rgba(37, 99, 235, 0.18) !important;
+  box-shadow: 0 18px 45px rgba(37, 99, 235, 0.16) !important;
+}

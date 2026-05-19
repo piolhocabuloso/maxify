@@ -1948,58 +1948,85 @@ function TerminalModal({ open, onClose, logs, applying, progress, currentMode, s
     const successCount = logs.filter((line) => line.type === "success").length
     const errorCount = logs.filter((line) => line.type === "error").length
 
+    const statusClass =
+        status === "success"
+            ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+            : status === "error"
+                ? "border-red-400/20 bg-red-400/10 text-red-200"
+                : applying
+                    ? "border-blue-500/25 bg-blue-500/10 text-blue-300"
+                    : "border-maxify-border bg-maxify-card text-maxify-text-secondary"
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 18, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.985 }}
             transition={{ duration: 0.22 }}
-            className="relative flex h-full w-full overflow-hidden rounded-[34px] border border-blue-500/20 bg-[#061120] shadow-[0_24px_90px_rgba(0,0,0,0.55)]"
+            className="relative flex h-full w-full overflow-hidden rounded-[34px] border border-maxify-border bg-maxify-card shadow-xl shadow-black/5"
         >
             <BackgroundGlow />
 
-            <div className="relative z-10 grid min-h-0 w-full grid-cols-1 xl:grid-cols-[360px_1fr]">
-                <aside className="flex min-h-0 flex-col border-b border-blue-500/15 bg-blue-500/[0.035] p-5 xl:border-b-0 xl:border-r">
-                    <div className="flex items-center justify-between">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.18),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(14,165,233,0.12),transparent_30%),linear-gradient(180deg,rgba(15,23,42,0.16),rgba(2,6,23,0.22))]" />
+
+            <div className="relative z-10 grid min-h-0 w-full grid-cols-1 xl:grid-cols-[350px_1fr]">
+                <aside className="flex min-h-0 flex-col border-b border-maxify-border bg-maxify-card/70 p-5 backdrop-blur-xl xl:border-b-0 xl:border-r">
+                    <div className="flex items-center justify-between gap-3">
                         <button
                             onClick={onClose}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-blue-500/15 bg-blue-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-blue-300 transition-all hover:bg-blue-500/15"
+                            className="inline-flex items-center gap-2 rounded-2xl border border-maxify-border bg-maxify-card px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-maxify-text-secondary transition-all hover:border-blue-500/25 hover:bg-blue-500/10 hover:text-blue-300"
                         >
                             <X size={15} />
                             Voltar
                         </button>
 
-                        <div className="rounded-2xl border border-blue-500/15 bg-blue-500/10 px-3 py-2 text-xs font-black text-blue-300">
+                        <div className={`rounded-2xl border px-3 py-2 text-xs font-black uppercase tracking-[0.16em] ${statusClass}`}>
                             {statusText}
                         </div>
                     </div>
 
-                    <div className="mt-8">
-                        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300/70">
-                            Execution Hub
-                        </p>
-                        <h2 className="mt-3 text-4xl font-black leading-none text-white">
-                            {currentMode.short}
-                        </h2>
-                        <p className="mt-3 text-sm leading-6 text-blue-100/55">
+                    <div className="mt-8 rounded-[28px] border border-maxify-border bg-maxify-card p-5 shadow-xl shadow-black/5">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-300">
+                                <TerminalSquare size={22} />
+                            </div>
+
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                                    Console Maxify
+                                </p>
+                                <h2 className="mt-1 text-2xl font-black text-maxify-text">
+                                    {currentMode.short}
+                                </h2>
+                            </div>
+                        </div>
+
+                        <p className="mt-4 text-sm leading-6 text-maxify-text-secondary">
                             {currentMode.title}
                         </p>
                     </div>
 
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-6 flex justify-center">
                         <div className="relative flex h-48 w-48 items-center justify-center">
-                            <div className="absolute inset-0 rounded-full border border-blue-500/20" />
-                            <div className="absolute inset-3 rounded-full border border-cyan-300/10" />
                             <motion.div
-                                className="absolute inset-0 rounded-full"
+                                className="absolute inset-0 rounded-full border border-blue-500/20 bg-blue-500/5"
+                                animate={{ scale: applying ? [1, 1.04, 1] : 1 }}
+                                transition={{ duration: 2.2, repeat: applying ? Infinity : 0, ease: "easeInOut" }}
+                            />
+
+                            <div className="absolute inset-4 rounded-full border border-cyan-300/10 bg-maxify-card/80" />
+
+                            <motion.div
+                                className="absolute inset-0 rounded-full p-[2px]"
                                 style={{
-                                    background: `conic-gradient(from 180deg, rgba(59,130,246,0.95) ${progress}%, rgba(15,23,42,0.35) 0)`,
+                                    background: `conic-gradient(from 180deg, rgba(59,130,246,0.95) ${progress}%, rgba(30,41,59,0.45) 0)`,
                                 }}
                                 animate={{ rotate: applying ? 360 : 0 }}
-                                transition={{ duration: 18, repeat: applying ? Infinity : 0, ease: "linear" }}
+                                transition={{ duration: 16, repeat: applying ? Infinity : 0, ease: "linear" }}
                             />
-                            <div className="relative flex h-36 w-36 flex-col items-center justify-center rounded-full border border-blue-500/20 bg-[#08182b] shadow-inner shadow-black/50">
-                                <span className="text-4xl font-black text-white">{progress}%</span>
+
+                            <div className="relative flex h-36 w-36 flex-col items-center justify-center rounded-full border border-maxify-border bg-maxify-card shadow-inner shadow-black/20">
+                                <span className="text-4xl font-black text-maxify-text">{progress}%</span>
                                 <span className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-blue-300">
                                     progresso
                                 </span>
@@ -2007,39 +2034,39 @@ function TerminalModal({ open, onClose, logs, applying, progress, currentMode, s
                         </div>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-3 gap-3">
-                        <div className="rounded-2xl border border-blue-500/15 bg-blue-500/[0.055] p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300/50">Logs</p>
-                            <p className="mt-2 text-lg font-black text-white">{logs.length}</p>
+                    <div className="mt-6 grid grid-cols-3 gap-3">
+                        <div className="rounded-2xl border border-maxify-border bg-maxify-card p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-maxify-text-secondary">Logs</p>
+                            <p className="mt-2 text-lg font-black text-maxify-text">{logs.length}</p>
                         </div>
                         <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.055] p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/50">OK</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/60">OK</p>
                             <p className="mt-2 text-lg font-black text-emerald-200">{successCount}</p>
                         </div>
                         <div className="rounded-2xl border border-red-400/15 bg-red-400/[0.055] p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/50">Erro</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/60">Erro</p>
                             <p className="mt-2 text-lg font-black text-red-200">{errorCount}</p>
                         </div>
                     </div>
-
                 </aside>
 
-                <section className="flex min-h-0 flex-col">
-                    <div className="border-b border-blue-500/15 px-5 py-4">
+                <section className="flex min-h-0 flex-col bg-maxify-card/40">
+                    <div className="border-b border-maxify-border px-5 py-4 backdrop-blur-xl">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 rounded-full border border-maxify-border bg-maxify-card px-3 py-2">
                                     <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
                                     <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
-                                    <span className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
+                                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
                                 </div>
-                                <div className="flex items-center gap-2 text-sm font-semibold text-blue-100/75">
+
+                                <div className="flex items-center gap-2 text-sm font-black text-maxify-text">
                                     <TerminalSquare size={16} className="text-blue-300" />
-                                    Maxify Live Output
+                                    Saída em tempo real
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 rounded-full border border-blue-500/15 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-300">
+                            <div className="flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-300">
                                 <Clock size={14} />
                                 Tempo real
                             </div>
@@ -2048,47 +2075,52 @@ function TerminalModal({ open, onClose, logs, applying, progress, currentMode, s
 
                     <div
                         ref={terminalBodyRef}
-                        className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[#050b14]/70 p-5 font-mono"
+                        className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[linear-gradient(180deg,rgba(15,23,42,0.20),rgba(2,6,23,0.08))] p-5 font-mono"
                     >
                         {logs.length === 0 ? (
                             <div className="flex h-full items-center justify-center text-center">
-                                <div>
+                                <div className="rounded-[30px] border border-maxify-border bg-maxify-card p-8 shadow-xl shadow-black/5">
                                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] border border-blue-500/20 bg-blue-500/10 text-blue-300">
                                         <TerminalSquare size={28} />
                                     </div>
-                                    <h3 className="mt-5 text-2xl font-black text-white">Aguardando execução</h3>
-                                    <p className="mt-2 max-w-md text-sm leading-6 text-blue-100/45">
+                                    <h3 className="mt-5 text-2xl font-black text-maxify-text">Aguardando execução</h3>
+                                    <p className="mt-2 max-w-md text-sm leading-6 text-maxify-text-secondary">
                                         Clique em aplicar para iniciar a otimização e acompanhar os eventos em tempo real.
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            logs.map((line, index) => (
-                                <motion.div
-                                    key={line.id || index}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.18 }}
-                                    className={`group grid grid-cols-[82px_1fr] gap-3 rounded-[22px] border p-4 ${
-                                        line.type === "error"
-                                            ? "border-red-400/20 bg-red-400/[0.055] text-red-200"
-                                            : line.type === "success"
-                                                ? "border-emerald-400/20 bg-emerald-400/[0.055] text-emerald-200"
-                                                : "border-blue-500/15 bg-blue-500/[0.045] text-blue-100/78"
-                                    }`}
-                                >
-                                    <div className="rounded-2xl border border-white/5 bg-black/15 px-3 py-3 text-center">
-                                        <p className="text-[10px] text-blue-100/30">#{String(index + 1).padStart(2, "0")}</p>
-                                        <p className="mt-1 text-[11px] text-blue-100/45">{line.time}</p>
-                                    </div>
+                            logs.map((line, index) => {
+                                const isError = line.type === "error"
+                                const isSuccess = line.type === "success"
 
-                                    <div className="flex min-w-0 items-center">
-                                        <p className="break-words text-[13px] leading-6">
-                                            {cleanTerminalLine(line.text)}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            ))
+                                return (
+                                    <motion.div
+                                        key={line.id || index}
+                                        initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{ duration: 0.18 }}
+                                        className={`group grid grid-cols-[82px_1fr] gap-3 rounded-[22px] border p-4 shadow-sm transition-all hover:-translate-y-[1px] ${isError
+                                            ? "border-red-400/20 bg-red-400/[0.055] text-red-200 shadow-red-950/10"
+                                            : isSuccess
+                                                ? "border-emerald-400/20 bg-emerald-400/[0.055] text-emerald-200 shadow-emerald-950/10"
+                                                : "border-maxify-border bg-maxify-card text-maxify-text-secondary hover:border-blue-500/20 hover:bg-blue-500/[0.045]"
+                                            }`}
+                                    >
+                                        <div className="rounded-2xl border border-maxify-border bg-black/10 px-3 py-3 text-center">
+                                            <p className="text-[10px] text-maxify-text-secondary">#{String(index + 1).padStart(2, "0")}</p>
+                                            <p className="mt-1 text-[11px] text-blue-300/70">{line.time}</p>
+                                        </div>
+
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${isError ? "bg-red-400" : isSuccess ? "bg-emerald-400" : "bg-blue-400"}`} />
+                                            <p className="break-words text-[13px] leading-6">
+                                                {cleanTerminalLine(line.text)}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )
+                            })
                         )}
                     </div>
                 </section>
@@ -2229,22 +2261,57 @@ export default function Otimizacao() {
 
                 addLog(`Executando: ${item.name}...`)
 
-                const result = await invoke({
-                    channel: "run-powershell",
-                    payload: {
-                        script: item.script,
-                        name: safeRunName(`maxify-blue-${currentMode.id}-${item.name}-${Date.now()}`),
-                    },
-                })
+                try {
+                    console.log("[MAXIFY DEBUG] Executando ajuste:", item.name)
+                    console.log("[MAXIFY DEBUG] Script ID:", item.script)
 
-                if (result?.success === false) {
+                    const result = await invoke({
+                        channel: "run-powershell",
+                        payload: {
+                            script: item.script,
+                            name: safeRunName(`maxify-blue-${currentMode.id}-${item.name}-${Date.now()}`),
+                        },
+                    })
+
+                    console.log("[MAXIFY DEBUG] Resultado:", result)
+
+                    if (result?.success === false) {
+                        addPowerShellOutputToTerminal(result)
+
+                        const errorMessage =
+                            result?.error ||
+                            result?.stderr ||
+                            result?.output ||
+                            result?.stdout ||
+                            `Falha em ${item.name}`
+
+                        throw new Error(errorMessage)
+                    }
+
                     addPowerShellOutputToTerminal(result)
-                    throw new Error(result?.error || `Falha em ${item.name}`)
-                }
+                    addLog(`${item.name} concluído.`, "success")
+                    setProgress(percent)
+                } catch (error) {
+                    console.error("[MAXIFY ERRO] Ajuste que falhou:", item.name)
+                    console.error("[MAXIFY ERRO] Script ID:", item.script)
+                    console.error("[MAXIFY ERRO] Perfil:", currentMode.id)
+                    console.error("[MAXIFY ERRO] Posição:", `${index + 1}/${scripts.length}`)
+                    console.error("[MAXIFY ERRO] Erro:", error)
 
-                addPowerShellOutputToTerminal(result)
-                addLog(`${item.name} concluído.`, "success")
-                setProgress(percent)
+                    const finalMessage = [
+                        `Erro no ajuste: ${item.name}`,
+                        `Script ID: ${item.script}`,
+                        `Perfil: ${currentMode.title}`,
+                        `Posição: ${index + 1}/${scripts.length}`,
+                        "",
+                        error?.message || String(error),
+                    ].join("\n")
+
+                    addLog(`Falhou em: ${item.name}`, "error")
+                    addLog(`Script ID: ${item.script}`, "error")
+
+                    throw new Error(finalMessage)
+                }
             }
 
             addLog("Validando finalização...")
