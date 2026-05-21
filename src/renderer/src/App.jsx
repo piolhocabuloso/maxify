@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react"
+﻿import { useState, useEffect, lazy, Suspense } from "react"
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { ShieldCheck, LockKeyhole, Sparkles, Cpu, Zap } from "lucide-react"
@@ -13,14 +13,11 @@ import FirstTime from "./components/firsttime"
 import DiscordAuthGate from "./components/DiscordAuthGate"
 import Login from "./pages/Login"
 import PremiumLocked from "./components/PremiumLocked"
-<<<<<<< HEAD
 import FeedbackCloud from "./components/FeedbackCloud"
 import TutorialOverlay from "./components/TutorialOverlay"
-=======
->>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 import { canAccessRoute, getAccessMode } from "./lib/access"
 
-// Lazy loading das páginas
+// Lazy loading das pÃ¡ginas
 const Home = lazy(() => import("./pages/Home"))
 const Clean = lazy(() => import("./pages/Clean"))
 const Aplicativos = lazy(() => import("./pages/Aplicativos"))
@@ -193,7 +190,7 @@ function CheckingAccessScreen() {
             </motion.h1>
 
             <p className="text-sm text-maxify-text-secondary max-w-xs leading-relaxed mb-7">
-              Estamos confirmando sua sessão com segurança antes de liberar o Maxify.
+              Estamos confirmando sua sessÃ£o com seguranÃ§a antes de liberar o Maxify.
             </p>
 
             <div className="w-full mb-6">
@@ -230,7 +227,7 @@ function CheckingAccessScreen() {
               >
                 <Sparkles size={18} className="text-blue-400" />
                 <span className="text-[11px] text-maxify-text-secondary">
-                  Sessão
+                  SessÃ£o
                 </span>
               </motion.div>
 
@@ -258,7 +255,7 @@ function PageLoading() {
       <div className="flex flex-col items-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
         <p className="text-sm text-maxify-text-secondary">
-          Carregando página...
+          Carregando pÃ¡gina...
         </p>
       </div>
     </div>
@@ -465,11 +462,8 @@ function App() {
       <TitleBar />
 
       <Nav expanded={navExpanded} setExpanded={setNavExpanded} accessMode={accessMode} />
-<<<<<<< HEAD
       <FeedbackCloud />
       <TutorialOverlay />
-=======
->>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
       <div
         className="
@@ -499,20 +493,20 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/clean" element={<Clean />} />
               <Route path="/backup" element={<GuardedPage path="/backup" title="Backup"><Backup /></GuardedPage>} />
-              <Route path="/utilities" element={<GuardedPage path="/utilities" title="Utilitários"><Utilities /></GuardedPage>} />
+              <Route path="/utilities" element={<GuardedPage path="/utilities" title="UtilitÃ¡rios"><Utilities /></GuardedPage>} />
               <Route path="/aplicativos" element={<GuardedPage path="/aplicativos" title="Central de Recursos"><Aplicativos /></GuardedPage>} />
-              <Route path="/desativar" element={<GuardedPage path="/desativar" title="Desativar Serviços"><Desativar /></GuardedPage>} />
+              <Route path="/desativar" element={<GuardedPage path="/desativar" title="Desativar ServiÃ§os"><Desativar /></GuardedPage>} />
               <Route path="/dns" element={<GuardedPage path="/dns" title="DNS"><DNS /></GuardedPage>} />
               <Route path="/apps" element={<GuardedPage path="/apps" title="Input Lag"><Apps /></GuardedPage>} />
-              <Route path="/otimizacao" element={<GuardedPage path="/otimizacao" title="Otimização"><Otimizacao /></GuardedPage>} />
+              <Route path="/otimizacao" element={<GuardedPage path="/otimizacao" title="OtimizaÃ§Ã£o"><Otimizacao /></GuardedPage>} />
               <Route path="/prioridade" element={<GuardedPage path="/prioridade" title="Prioridade de Jogos"><Prioridade /></GuardedPage>} />
-              <Route path="/memory" element={<GuardedPage path="/memory" title="Memória RAM"><Memory /></GuardedPage>} />
+              <Route path="/memory" element={<GuardedPage path="/memory" title="MemÃ³ria RAM"><Memory /></GuardedPage>} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/autoclean" element={<GuardedPage path="/autoclean" title="Limpeza Automática"><AutoClean /></GuardedPage>} />
+              <Route path="/autoclean" element={<GuardedPage path="/autoclean" title="Limpeza AutomÃ¡tica"><AutoClean /></GuardedPage>} />
               <Route path="/login_pagina" element={<Login_pagina />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="/office_installer" element={<GuardedPage path="/office_installer" title="Instalador Office"><OfficeInstaller /></GuardedPage>} />
-              <Route path="/startup" element={<GuardedPage path="/startup" title="Inicialização"><Startup /></GuardedPage>} />
+              <Route path="/startup" element={<GuardedPage path="/startup" title="InicializaÃ§Ã£o"><Startup /></GuardedPage>} />
               <Route path="/essential_installer" element={<GuardedPage path="/essential_installer" title="Essenciais"><EssentialInstaller /></GuardedPage>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

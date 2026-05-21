@@ -1,4 +1,4 @@
-const { execSync } = require("child_process")
+﻿const { execSync } = require("child_process")
 const fs = require("fs")
 const path = require("path")
 const https = require("https")
@@ -64,7 +64,7 @@ function formatDuration(ms) {
 }
 
 function cortarTexto(texto, limite = 1000) {
-    if (!texto) return "Sem informações."
+    if (!texto) return "Sem informaÃ§Ãµes."
     if (texto.length <= limite) return texto
     return texto.slice(0, limite - 20) + "\n..."
 }
@@ -138,7 +138,7 @@ function getDistFilesInfo() {
 function discordRequest(payload) {
     return new Promise((resolve, reject) => {
         if (!DISCORD_WEBHOOK_URL) {
-            console.log("⚠️ DISCORD_RELEASE_WEBHOOK_URL não configurado. Webhook ignorado.")
+            console.log("âš ï¸ DISCORD_RELEASE_WEBHOOK_URL nÃ£o configurado. Webhook ignorado.")
             resolve(false)
             return
         }
@@ -189,8 +189,8 @@ async function enviarWebhookRelease(status, extra = {}) {
         : "<:icons8unavailable:1332973118192619570> Erro ao publicar release!"
 
     const description = isSuccess
-        ? `A nova versão do **${APP_NAME}** foi publicada no GitHub com sucesso.`
-        : `A publicação da release do **${APP_NAME}** falhou.`
+        ? `A nova versÃ£o do **${APP_NAME}** foi publicada no GitHub com sucesso.`
+        : `A publicaÃ§Ã£o da release do **${APP_NAME}** falhou.`
 
     const fields = [
         {
@@ -199,7 +199,7 @@ async function enviarWebhookRelease(status, extra = {}) {
             inline: true,
         },
         {
-            name: "<:icons8star100:1337861569819705465> Versão",
+            name: "<:icons8star100:1337861569819705465> VersÃ£o",
             value: `\`${state.version || "Desconhecida"}\``,
             inline: true,
         },
@@ -209,12 +209,12 @@ async function enviarWebhookRelease(status, extra = {}) {
             inline: true,
         },
         {
-            name: "<:icons8roubodeidentidade100:1343346399554568192> Repositório",
+            name: "<:icons8roubodeidentidade100:1343346399554568192> RepositÃ³rio",
             value: `\`${getRepoName()}\``,
             inline: false,
         },
         {
-            name: "<:icons8megaphone100:1337851173176086570> Último commit",
+            name: "<:icons8megaphone100:1337851173176086570> Ãšltimo commit",
             value: `\`${escapeDiscord(getLastCommit())}\``,
             inline: false,
         },
@@ -245,7 +245,7 @@ async function enviarWebhookRelease(status, extra = {}) {
 
     if (isError) {
         fields.push({
-            name: "⚠️ Erro",
+            name: "âš ï¸ Erro",
             value: `\`\`\`${cortarTexto(extra.error || "Erro desconhecido.", 900)}\`\`\``,
             inline: false,
         })
@@ -277,98 +277,98 @@ async function enviarWebhookRelease(status, extra = {}) {
 
     try {
         await discordRequest(payload)
-        console.log("📨 Log enviado no webhook do Discord.")
+        console.log("ðŸ“¨ Log enviado no webhook do Discord.")
     } catch (err) {
-        console.log(`⚠️ Não consegui enviar webhook: ${err.message}`)
+        console.log(`âš ï¸ NÃ£o consegui enviar webhook: ${err.message}`)
     }
 }
 
 function verificarGitRepo() {
-    console.log("\n📁 Verificando repositório Git...")
+    console.log("\nðŸ“ Verificando repositÃ³rio Git...")
 
     try {
         runOutput("git rev-parse --is-inside-work-tree")
-        console.log("✅ Repositório Git encontrado.")
+        console.log("âœ… RepositÃ³rio Git encontrado.")
     } catch {
-        throw new Error("Essa pasta não parece ser um repositório Git.")
+        throw new Error("Essa pasta nÃ£o parece ser um repositÃ³rio Git.")
     }
 }
 
 function verificarGitHubAuth() {
-    console.log("\n🔐 Verificando login no GitHub...")
+    console.log("\nðŸ” Verificando login no GitHub...")
     run("gh auth status")
 }
 
 function verificarBranch() {
-    console.log("\n🌿 Verificando branch atual...")
+    console.log("\nðŸŒ¿ Verificando branch atual...")
 
     const branch = runOutput("git branch --show-current")
 
     if (branch !== BRANCH_PRINCIPAL) {
-        throw new Error(`Você está na branch "${branch}". Mude para "${BRANCH_PRINCIPAL}" antes de publicar.`)
+        throw new Error(`VocÃª estÃ¡ na branch "${branch}". Mude para "${BRANCH_PRINCIPAL}" antes de publicar.`)
     }
 
-    console.log(`✅ Branch correta: ${branch}`)
+    console.log(`âœ… Branch correta: ${branch}`)
 }
 
 function verificarPackageJson() {
-    console.log("\n📦 Verificando package.json...")
+    console.log("\nðŸ“¦ Verificando package.json...")
 
     if (!exists("package.json")) {
-        throw new Error("package.json não encontrado.")
+        throw new Error("package.json nÃ£o encontrado.")
     }
 
     const pkg = getPackageJson()
 
     if (!pkg.name) {
-        throw new Error("O package.json não tem o campo name.")
+        throw new Error("O package.json nÃ£o tem o campo name.")
     }
 
     if (!pkg.version) {
-        throw new Error("O package.json não tem o campo version.")
+        throw new Error("O package.json nÃ£o tem o campo version.")
     }
 
-    console.log(`✅ App: ${pkg.name}`)
-    console.log(`✅ Versão atual: ${pkg.version}`)
+    console.log(`âœ… App: ${pkg.name}`)
+    console.log(`âœ… VersÃ£o atual: ${pkg.version}`)
 }
 
 function verificarNodeModules() {
-    console.log("\n📚 Verificando node_modules...")
+    console.log("\nðŸ“š Verificando node_modules...")
 
     if (!exists("node_modules")) {
-        throw new Error("A pasta node_modules não existe. Rode npm install antes.")
+        throw new Error("A pasta node_modules nÃ£o existe. Rode npm install antes.")
     }
 
-    console.log("✅ node_modules encontrado.")
+    console.log("âœ… node_modules encontrado.")
 }
 
 function limparDist() {
     const distPath = path.join(__dirname, "dist")
 
-    console.log("\n🧹 Limpando pasta dist...")
+    console.log("\nðŸ§¹ Limpando pasta dist...")
 
     if (fs.existsSync(distPath)) {
         fs.rmSync(distPath, { recursive: true, force: true })
-        console.log("✅ Pasta dist apagada.")
+        console.log("âœ… Pasta dist apagada.")
     } else {
-        console.log("ℹ️ Pasta dist ainda não existe.")
+        console.log("â„¹ï¸ Pasta dist ainda nÃ£o existe.")
     }
 }
 
 function limparBuildsAntigosLocais() {
     const releasesPath = path.join(__dirname, "releases")
 
-    console.log("\n🧹 Limpando backups locais antigos...")
+    console.log("\nðŸ§¹ Limpando backups locais antigos...")
 
     if (!fs.existsSync(releasesPath)) {
-        console.log("ℹ️ Pasta releases ainda não existe.")
+        console.log("â„¹ï¸ Pasta releases ainda nÃ£o existe.")
         return
     }
 
     const arquivos = fs.readdirSync(releasesPath)
 
     if (arquivos.length === 0) {
-        console.log("ℹ️ Nenhum backup local antigo encontrado.")
+        console.log("â„¹ï¸ Nenhum backup local antigo encontrado.")
         return
     }
 
@@ -377,24 +377,24 @@ function limparBuildsAntigosLocais() {
 
         try {
             fs.rmSync(filePath, { recursive: true, force: true })
-            console.log(`🗑️ Removido: ${arquivo}`)
+            console.log(`ðŸ—‘ï¸ Removido: ${arquivo}`)
         } catch {
-            console.log(`⚠️ Não consegui remover: ${arquivo}`)
+            console.log(`âš ï¸ NÃ£o consegui remover: ${arquivo}`)
         }
     }
 
-    console.log("✅ Backups locais antigos limpos.")
+    console.log("âœ… Backups locais antigos limpos.")
 }
 
 function criarCommit() {
-    console.log("\n📝 Criando commit...")
+    console.log("\nðŸ“ Criando commit...")
 
     run("git add .")
     run('git commit -m "update release" || echo Nada para commitar')
 }
 
 function atualizarVersao() {
-    console.log("\n🚀 Atualizando versão patch...")
+    console.log("\nðŸš€ Atualizando versÃ£o patch...")
 
     run("npm version patch")
 
@@ -404,7 +404,7 @@ function atualizarVersao() {
     state.pkg = pkg
     state.version = version
 
-    console.log(`✅ Nova versão criada: ${version}`)
+    console.log(`âœ… Nova versÃ£o criada: ${version}`)
 
     return { pkg, version }
 }
@@ -424,7 +424,7 @@ function getUltimaTagAntesDaAtual(versionAtual) {
 }
 
 function gerarChangelog(versionAtual) {
-    console.log("\n📄 Gerando changelog automático...")
+    console.log("\nðŸ“„ Gerando changelog automÃ¡tico...")
 
     const ultimaTag = getUltimaTagAntesDaAtual(versionAtual)
 
@@ -438,33 +438,33 @@ function gerarChangelog(versionAtual) {
         }
 
         if (!commits) {
-            commits = "- Correções e melhorias gerais."
+            commits = "- CorreÃ§Ãµes e melhorias gerais."
         }
 
         const changelog = [
-            `# Nova atualização do ${APP_NAME}`,
+            `# Nova atualizaÃ§Ã£o do ${APP_NAME}`,
             "",
-            `## Versão ${versionAtual}`,
+            `## VersÃ£o ${versionAtual}`,
             "",
-            "### Alterações:",
+            "### AlteraÃ§Ãµes:",
             commits,
             "",
-            "### Informações:",
+            "### InformaÃ§Ãµes:",
             `- App: ${APP_NAME}`,
-            `- Versão: ${versionAtual}`,
+            `- VersÃ£o: ${versionAtual}`,
             `- Branch: ${getCurrentBranch()}`,
             `- Data: ${new Date().toLocaleString("pt-BR")}`,
         ].join("\n")
 
         state.changelog = changelog
 
-        console.log("✅ Changelog gerado.")
+        console.log("âœ… Changelog gerado.")
 
         return changelog
     } catch {
-        console.log("⚠️ Não foi possível gerar changelog completo.")
+        console.log("âš ï¸ NÃ£o foi possÃ­vel gerar changelog completo.")
 
-        const fallback = "Nova atualização do Maxify com correções e melhorias gerais."
+        const fallback = "Nova atualizaÃ§Ã£o do Maxify com correÃ§Ãµes e melhorias gerais."
         state.changelog = fallback
 
         return fallback
@@ -484,11 +484,11 @@ function salvarChangelogNaDist(changelog) {
         "utf8"
     )
 
-    console.log("📄 CHANGELOG.md salvo na dist.")
+    console.log("ðŸ“„ CHANGELOG.md salvo na dist.")
 }
 
 function gerarReleaseInfo(pkg, version) {
-    console.log("\n📄 Gerando release-info.json...")
+    console.log("\nðŸ“„ Gerando release-info.json...")
 
     const info = {
         app: APP_NAME,
@@ -510,17 +510,17 @@ function gerarReleaseInfo(pkg, version) {
         "utf8"
     )
 
-    console.log("✅ release-info.json criado.")
+    console.log("âœ… release-info.json criado.")
 }
 
 function rodarBuild() {
-    console.log("\n🏗️ Gerando build do app...")
+    console.log("\nðŸ—ï¸ Gerando build do app...")
     run("npm run build")
-    console.log("✅ Build finalizado.")
+    console.log("âœ… Build finalizado.")
 }
 
 function validarArquivosDaDist(pkg) {
-    console.log("\n🔍 Validando arquivos da dist...")
+    console.log("\nðŸ” Validando arquivos da dist...")
 
     const arquivosObrigatorios = [
         `dist/${APP_NAME}-${pkg.version}-setup.exe`,
@@ -530,18 +530,18 @@ function validarArquivosDaDist(pkg) {
     const faltando = arquivosObrigatorios.filter((file) => !exists(file))
 
     if (faltando.length > 0) {
-        console.log("\n❌ Arquivos faltando:")
+        console.log("\nâŒ Arquivos faltando:")
 
         for (const file of faltando) {
             console.log(`- ${file}`)
         }
 
         throw new Error(
-            "Arquivos obrigatórios da release não foram gerados. Precisa ter .exe, .blockmap e latest.yml."
+            "Arquivos obrigatÃ³rios da release nÃ£o foram gerados. Precisa ter .exe, .blockmap e latest.yml."
         )
     }
 
-    console.log("✅ Arquivos obrigatórios encontrados:")
+    console.log("âœ… Arquivos obrigatÃ³rios encontrados:")
     for (const file of arquivosObrigatorios) {
         console.log(`- ${file}`)
     }
@@ -550,7 +550,7 @@ function validarArquivosDaDist(pkg) {
 }
 
 function listarArquivosDist() {
-    console.log("\n📦 Arquivos encontrados na dist:")
+    console.log("\nðŸ“¦ Arquivos encontrados na dist:")
 
     const distPath = path.join(__dirname, "dist")
 
@@ -571,16 +571,16 @@ function listarArquivosDist() {
 }
 
 function pushGit(version) {
-    console.log("\n⬆️ Enviando alterações para o GitHub...")
+    console.log("\nâ¬†ï¸ Enviando alteraÃ§Ãµes para o GitHub...")
 
     run(`git push origin ${BRANCH_PRINCIPAL}`)
     run(`git push origin ${version}`)
 
-    console.log("✅ Código e tag enviados.")
+    console.log("âœ… CÃ³digo e tag enviados.")
 }
 
 function criarReleaseGitHub(version, arquivos, changelog) {
-    console.log("\n🚀 Criando release no GitHub...")
+    console.log("\nðŸš€ Criando release no GitHub...")
 
     const changelogFile = path.join(__dirname, "dist", "CHANGELOG.md")
     fs.writeFileSync(changelogFile, changelog, "utf8")
@@ -612,23 +612,23 @@ function criarReleaseGitHub(version, arquivos, changelog) {
         state.releaseUrl = ""
     }
 
-    console.log("✅ Release criada no GitHub.")
+    console.log("âœ… Release criada no GitHub.")
 }
 
 function limparReleasesAntigas(versaoAtual) {
-    console.log("\n🧹 Limpando releases antigas do GitHub...")
+    console.log("\nðŸ§¹ Limpando releases antigas do GitHub...")
 
     let output = ""
 
     try {
         output = runOutput(`gh release list --limit 100 --json tagName --jq ".[].tagName"`)
     } catch {
-        console.log("⚠️ Não foi possível listar releases antigas.")
+        console.log("âš ï¸ NÃ£o foi possÃ­vel listar releases antigas.")
         return
     }
 
     if (!output) {
-        console.log("ℹ️ Nenhuma release antiga encontrada.")
+        console.log("â„¹ï¸ Nenhuma release antiga encontrada.")
         return
     }
 
@@ -640,7 +640,7 @@ function limparReleasesAntigas(versaoAtual) {
     const releasesAntigas = releases.filter((tag) => tag !== versaoAtual)
 
     if (releasesAntigas.length === 0) {
-        console.log("✅ Nenhuma release antiga para apagar.")
+        console.log("âœ… Nenhuma release antiga para apagar.")
         return
     }
 
@@ -650,59 +650,59 @@ function limparReleasesAntigas(versaoAtual) {
 
     for (const tag of releasesParaApagar) {
         try {
-            console.log(`\n🗑️ Apagando release antiga: ${tag}`)
+            console.log(`\nðŸ—‘ï¸ Apagando release antiga: ${tag}`)
             run(`gh release delete ${tag} --yes --cleanup-tag`)
         } catch (err) {
-            console.log(`⚠️ Não consegui apagar ${tag}: ${err.message}`)
+            console.log(`âš ï¸ NÃ£o consegui apagar ${tag}: ${err.message}`)
         }
     }
 
-    console.log("\n✅ Limpeza de releases antigas finalizada.")
+    console.log("\nâœ… Limpeza de releases antigas finalizada.")
 }
 
 function verificarReleasePublicada(version) {
-    console.log("\n🔎 Verificando se a release foi publicada...")
+    console.log("\nðŸ”Ž Verificando se a release foi publicada...")
 
     try {
         run(`gh release view ${version}`)
-        console.log("✅ Release publicada e encontrada.")
+        console.log("âœ… Release publicada e encontrada.")
     } catch {
-        throw new Error("A release foi criada, mas não consegui confirmar ela no GitHub.")
+        throw new Error("A release foi criada, mas nÃ£o consegui confirmar ela no GitHub.")
     }
 }
 
 function abrirReleaseNoNavegador(version) {
     if (!ABRIR_RELEASE_NO_NAVEGADOR) return
 
-    console.log("\n🌐 Abrindo release no navegador...")
+    console.log("\nðŸŒ Abrindo release no navegador...")
 
     try {
         run(`gh release view ${version} --web`)
     } catch {
-        console.log("⚠️ Não consegui abrir a release no navegador.")
+        console.log("âš ï¸ NÃ£o consegui abrir a release no navegador.")
     }
 }
 
 function mostrarResumoFinal(pkg, version) {
     console.log("\n====================================")
-    console.log("✅ RELEASE PUBLICADA COM SUCESSO!")
+    console.log("âœ… RELEASE PUBLICADA COM SUCESSO!")
     console.log("====================================")
-    console.log(`🚀 App: ${APP_NAME}`)
-    console.log(`📦 Versão: ${version}`)
-    console.log(`🧩 Package: ${pkg.name}`)
-    console.log(`📁 Instalador: ${APP_NAME}-${pkg.version}-setup.exe`)
-    console.log(`📄 Arquivo update: latest.yml`)
-    console.log(`🔗 Release: ${state.releaseUrl || "Não encontrada"}`)
-    console.log("🧹 Releases antigas: limpas")
-    console.log("💾 Backup local: desativado")
-    console.log("📨 Webhook: enviado")
+    console.log(`ðŸš€ App: ${APP_NAME}`)
+    console.log(`ðŸ“¦ VersÃ£o: ${version}`)
+    console.log(`ðŸ§© Package: ${pkg.name}`)
+    console.log(`ðŸ“ Instalador: ${APP_NAME}-${pkg.version}-setup.exe`)
+    console.log(`ðŸ“„ Arquivo update: latest.yml`)
+    console.log(`ðŸ”— Release: ${state.releaseUrl || "NÃ£o encontrada"}`)
+    console.log("ðŸ§¹ Releases antigas: limpas")
+    console.log("ðŸ’¾ Backup local: desativado")
+    console.log("ðŸ“¨ Webhook: enviado")
     console.log("====================================\n")
 }
 
 async function main() {
     try {
         console.log("\n====================================")
-        console.log(`🚀 INICIANDO RELEASE DO ${APP_NAME}`)
+        console.log(`ðŸš€ INICIANDO RELEASE DO ${APP_NAME}`)
         console.log("====================================")
 
         state.startTime = Date.now()
@@ -748,7 +748,7 @@ async function main() {
         mostrarResumoFinal(pkg, version)
     } catch (err) {
         console.error("\n====================================")
-        console.error("❌ ERRO AO PUBLICAR RELEASE")
+        console.error("âŒ ERRO AO PUBLICAR RELEASE")
         console.error("====================================")
         console.error(err.message)
         console.error("====================================\n")

@@ -1,10 +1,6 @@
-{
+﻿{
   "name": "maxify",
-<<<<<<< HEAD
   "version": "1.6.23",
-=======
-  "version": "1.6.21",
->>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
   "description": "Maxify",
   "main": "./out/main/index.js",
   "author": "Piolho OptimizeX",

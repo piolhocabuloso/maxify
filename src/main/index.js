@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, safeStorage } from "electron"
+﻿import { app, shell, BrowserWindow, ipcMain, safeStorage } from "electron"
 import path, { join } from "path"
 import { electronApp, optimizer, is } from "@electron-toolkit/utils"
 import * as Sentry from "@sentry/electron/main"
@@ -34,9 +34,9 @@ const isDev = !app.isPackaged
 
 const isProduction = app.isPackaged
 
-// ==================== ANTI DEBUG BÁSICO ====================
-// Não é uma proteção perfeita, mas bloqueia debug simples em build instalado.
-// Em desenvolvimento fica desligado para não atrapalhar npm run dev.
+// ==================== ANTI DEBUG BÃSICO ====================
+// NÃ£o Ã© uma proteÃ§Ã£o perfeita, mas bloqueia debug simples em build instalado.
+// Em desenvolvimento fica desligado para nÃ£o atrapalhar npm run dev.
 const BLOCKED_DEBUG_KEYS = new Set(["f12"])
 const BLOCKED_DEBUG_COMBOS = [
   { ctrl: true, shift: true, key: "i" },
@@ -124,7 +124,7 @@ function installAntiDebugRuntime() {
   if (!isProduction) return
 
   if (hasSuspiciousDebugFlags()) {
-    handleDebugDetected("Inicialização com flags de debug")
+    handleDebugDetected("InicializaÃ§Ã£o com flags de debug")
     return
   }
 
@@ -142,14 +142,14 @@ function installAntiDebugRuntime() {
 
 // ==================== AUTH SECURITY ====================
 // IMPORTANTE:
-// O React/Login.jsx é apenas visual. A proteção real precisa ficar no processo main.
-// Mesmo se alguém remover a tela de login do renderer, as funções protegidas abaixo não rodam sem sessão válida.
+// O React/Login.jsx Ã© apenas visual. A proteÃ§Ã£o real precisa ficar no processo main.
+// Mesmo se alguÃ©m remover a tela de login do renderer, as funÃ§Ãµes protegidas abaixo nÃ£o rodam sem sessÃ£o vÃ¡lida.
 // COLE ESSE BLOCO NO src/main/index.js
 // Substitua desde: // ==================== AUTH SECURITY ====================
-// até antes de: // ==================== LOGGER ====================
+// atÃ© antes de: // ==================== LOGGER ====================
 
 // ==================== AUTH SECURITY ====================
-// O React/Login.jsx é apenas visual. A proteção real fica no processo main.
+// O React/Login.jsx Ã© apenas visual. A proteÃ§Ã£o real fica no processo main.
 const API_URL = process.env.MAXIFY_API_URL || "https://apikey-kohl.vercel.app"
 
 const FREE_CLEAN_SCRIPT_HASHES = new Set([
@@ -238,7 +238,7 @@ function clearAuthSession() {
     mode: "guest",
   }
 
-  // Inicialização é PRO: remove handlers quando sair da sessão Premium.
+  // InicializaÃ§Ã£o Ã© PRO: remove handlers quando sair da sessÃ£o Premium.
   try {
     unregisterStartupManagerHandlers()
   } catch { }
@@ -247,8 +247,8 @@ function clearAuthSession() {
 function maskSensitive(value, start = 6, end = 4) {
   const text = String(value || "")
   if (!text) return ""
-  if (text.length <= start + end) return "••••"
-  return `${text.slice(0, start)}••••••${text.slice(-end)}`
+  if (text.length <= start + end) return "â€¢â€¢â€¢â€¢"
+  return `${text.slice(0, start)}â€¢â€¢â€¢â€¢â€¢â€¢${text.slice(-end)}`
 }
 
 function isAuthValid() {
@@ -270,7 +270,7 @@ function publicAuthData(extra = {}) {
     logged: isAuthValid(),
     mode: authSession.mode || (authSession.plan === "Free" ? "free" : "premium"),
     plan: authSession.plan || "Lifetime",
-    user: authSession.user || "Usuário Maxify",
+    user: authSession.user || "UsuÃ¡rio Maxify",
     expiresAt: authSession.licenseExpiresAt || "",
     sessionExpiresAt: authSession.expiresAt || 0,
     keyMasked: maskSensitive(authSession.key),
@@ -281,7 +281,7 @@ function publicAuthData(extra = {}) {
 
 function requireAuth() {
   if (!isAuthValid()) {
-    throw new Error("Acesso negado. Faça login novamente.")
+    throw new Error("Acesso negado. FaÃ§a login novamente.")
   }
 
   return true
@@ -429,7 +429,7 @@ function isFreeMemoryPayload(payload) {
   const allowedNames = [
     "memory",
     "memoria",
-    "memória",
+    "memÃ³ria",
     "ram",
     "memory-optimizer",
   ]
@@ -618,7 +618,7 @@ async function checkAppIntegrity() {
     const asarPath = path.join(process.resourcesPath, "app.asar")
 
     if (!fs.existsSync(asarPath)) {
-      console.warn("[Maxify Security]: app.asar não encontrado para checagem.")
+      console.warn("[Maxify Security]: app.asar nÃ£o encontrado para checagem.")
       return true
     }
 
@@ -643,7 +643,7 @@ async function checkAppIntegrity() {
 
     return true
   } catch (error) {
-    console.warn("[Maxify Security]: não foi possível validar integridade:", error.message)
+    console.warn("[Maxify Security]: nÃ£o foi possÃ­vel validar integridade:", error.message)
     return true
   }
 }
@@ -663,11 +663,11 @@ async function resolvePremiumScriptPayload(payload) {
   if (!scriptId) return payload
 
   if (!isAuthValid()) {
-    throw new Error("Acesso negado. Faça login novamente.")
+    throw new Error("Acesso negado. FaÃ§a login novamente.")
   }
 
   if (isFreeSession()) {
-    throw new Error("Esse ajuste é Premium. No modo Free, essa função não está liberada.")
+    throw new Error("Esse ajuste Ã© Premium. No modo Free, essa funÃ§Ã£o nÃ£o estÃ¡ liberada.")
   }
 
   const response = await fetch(`${API_URL}/premium-script`, {
@@ -684,7 +684,7 @@ async function resolvePremiumScriptPayload(payload) {
   const data = await response.json().catch(() => null)
 
   if (!data || !response.ok || !data.success || !data.script) {
-    throw new Error(data?.message || "Não foi possível buscar o script Premium na API.")
+    throw new Error(data?.message || "NÃ£o foi possÃ­vel buscar o script Premium na API.")
   }
 
   if (typeof payload === "object" && payload !== null) {
@@ -720,15 +720,15 @@ async function authorizePowerShellExecution(payload, action = "run-powershell") 
     isFreeGamePriorityPayload(payload) ||
     isFreeResourcesPayload(payload)
 
-  // Se estiver logado no modo Free, libera apenas funções Free, mas ainda valida a sessão na API.
+  // Se estiver logado no modo Free, libera apenas funÃ§Ãµes Free, mas ainda valida a sessÃ£o na API.
   if (isFreeSession() && !isFreeAllowedPayload) {
-    throw new Error("Esse ajuste é Premium. No modo Free, essa função não está liberada.")
+    throw new Error("Esse ajuste Ã© Premium. No modo Free, essa funÃ§Ã£o nÃ£o estÃ¡ liberada.")
   }
 
-  // Segurança: se a sessão sumiu do main, NÃO libera nem Free.
-  // Isso impede que alguém remova a tela de login e execute IPC direto.
+  // SeguranÃ§a: se a sessÃ£o sumiu do main, NÃƒO libera nem Free.
+  // Isso impede que alguÃ©m remova a tela de login e execute IPC direto.
   if (!isAuthValid()) {
-    throw new Error("Acesso negado. Faça login novamente.")
+    throw new Error("Acesso negado. FaÃ§a login novamente.")
   }
 
   const response = await fetch(`${API_URL}/authorize-tweak`, {
@@ -748,11 +748,11 @@ async function authorizePowerShellExecution(payload, action = "run-powershell") 
   const data = await response.json().catch(() => null)
 
   if (!data) {
-    throw new Error("Resposta inválida do servidor.")
+    throw new Error("Resposta invÃ¡lida do servidor.")
   }
 
   if (!response.ok || !data.success || data.allowed !== true) {
-    throw new Error(data.message || "Ajuste não autorizado pelo servidor.")
+    throw new Error(data.message || "Ajuste nÃ£o autorizado pelo servidor.")
   }
 
   return data
@@ -765,7 +765,7 @@ export const logo = "[Maxify]:"
 log.initialize()
 
 // ==================== SENTRY ====================
-// DSN removido do código. Configure SENTRY_DSN no ambiente de build/execução se quiser usar.
+// DSN removido do cÃ³digo. Configure SENTRY_DSN no ambiente de build/execuÃ§Ã£o se quiser usar.
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -836,14 +836,14 @@ export function setupAutoUpdater() {
   autoUpdater.on("checking-for-update", () => {
     sendUpdateStatus({
       type: "checking",
-      message: "Verificando atualizações...",
+      message: "Verificando atualizaÃ§Ãµes...",
     })
   })
 
   autoUpdater.on("update-available", (info) => {
     sendUpdateStatus({
       type: "available",
-      message: "Atualização disponível!",
+      message: "AtualizaÃ§Ã£o disponÃ­vel!",
       version: info.version,
     })
   })
@@ -851,7 +851,7 @@ export function setupAutoUpdater() {
   autoUpdater.on("download-progress", (progress) => {
     sendUpdateStatus({
       type: "progress",
-      message: "Baixando atualização...",
+      message: "Baixando atualizaÃ§Ã£o...",
       percent: Math.round(progress.percent),
     })
   })
@@ -859,7 +859,7 @@ export function setupAutoUpdater() {
   autoUpdater.on("update-downloaded", (info) => {
     sendUpdateStatus({
       type: "downloaded",
-      message: "Atualização baixada. Reinicie para instalar.",
+      message: "AtualizaÃ§Ã£o baixada. Reinicie para instalar.",
       version: info.version,
     })
   })
@@ -867,7 +867,7 @@ export function setupAutoUpdater() {
   autoUpdater.on("update-not-available", () => {
     sendUpdateStatus({
       type: "none",
-      message: "Seu app já está atualizado.",
+      message: "Seu app jÃ¡ estÃ¡ atualizado.",
     })
   })
 
@@ -884,13 +884,13 @@ export function setupAutoUpdater() {
 }
 
 ipcMain.handle("check-for-updates", async () => {
-  console.log("🔥 CHECK UPDATE CHAMADO")
+  console.log("ðŸ”¥ CHECK UPDATE CHAMADO")
 
   try {
     if (!app.isPackaged) {
       return {
         success: false,
-        message: "Só funciona no app instalado",
+        message: "SÃ³ funciona no app instalado",
       }
     }
 
@@ -930,20 +930,20 @@ async function runPowerShell(script) {
 
 function fixPowerShellEncoding(text) {
   return String(text || "")
-    .replace(/opera��o/gi, "operação")
-    .replace(/opera��es/gi, "operações")
-    .replace(/conclu�da/gi, "concluída")
-    .replace(/conclu�do/gi, "concluído")
-    .replace(/�xito/gi, "êxito")
-    .replace(/pr�/gi, "pré")
-    .replace(/aplica��o/gi, "aplicação")
-    .replace(/otimiza��o/gi, "otimização")
-    .replace(/otimiza��es/gi, "otimizações")
-    .replace(/m�dulo/gi, "módulo")
-    .replace(/m�dulos/gi, "módulos")
-    .replace(/n�o/gi, "não")
-    .replace(/autom�tico/gi, "automático")
-    .replace(/poss�vel/gi, "possível")
+    .replace(/operaï¿½ï¿½o/gi, "operaÃ§Ã£o")
+    .replace(/operaï¿½ï¿½es/gi, "operaÃ§Ãµes")
+    .replace(/concluï¿½da/gi, "concluÃ­da")
+    .replace(/concluï¿½do/gi, "concluÃ­do")
+    .replace(/ï¿½xito/gi, "Ãªxito")
+    .replace(/prï¿½/gi, "prÃ©")
+    .replace(/aplicaï¿½ï¿½o/gi, "aplicaÃ§Ã£o")
+    .replace(/otimizaï¿½ï¿½o/gi, "otimizaÃ§Ã£o")
+    .replace(/otimizaï¿½ï¿½es/gi, "otimizaÃ§Ãµes")
+    .replace(/mï¿½dulo/gi, "mÃ³dulo")
+    .replace(/mï¿½dulos/gi, "mÃ³dulos")
+    .replace(/nï¿½o/gi, "nÃ£o")
+    .replace(/automï¿½tico/gi, "automÃ¡tico")
+    .replace(/possï¿½vel/gi, "possÃ­vel")
 }
 
 function buildLivePowerShellScript(script) {
@@ -997,25 +997,14 @@ async function executePowerShellLive(event, payload) {
       const lower = cleanLine.toLowerCase()
       const type =
         lower.includes("[erro]") ||
-<<<<<<< HEAD
           lower.includes("falhou") ||
           lower.includes("error")
           ? "error"
           : lower.includes("[ok]") ||
             lower.includes("sucesso") ||
-            lower.includes("concluído") ||
-            lower.includes("concluída") ||
-            lower.includes("êxito")
-=======
-        lower.includes("falhou") ||
-        lower.includes("error")
-          ? "error"
-          : lower.includes("[ok]") ||
-              lower.includes("sucesso") ||
-              lower.includes("concluído") ||
-              lower.includes("concluída") ||
-              lower.includes("êxito")
->>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
+            lower.includes("concluÃ­do") ||
+            lower.includes("concluÃ­da") ||
+            lower.includes("Ãªxito")
             ? "success"
             : fallbackType
 
@@ -1097,7 +1086,7 @@ function encryptText(text) {
       return safeStorage.encryptString(cleanText).toString("base64")
     }
   } catch (error) {
-    console.warn("safeStorage indisponível:", error.message)
+    console.warn("safeStorage indisponÃ­vel:", error.message)
   }
 
   return Buffer.from(cleanText, "utf8").toString("base64")
@@ -1214,7 +1203,7 @@ async function loginWithKey(cleanKey, cleanHwid) {
   if (!cleanKey || !cleanHwid) {
     return {
       success: false,
-      error: "Key ou HWID inválido.",
+      error: "Key ou HWID invÃ¡lido.",
     }
   }
 
@@ -1235,7 +1224,7 @@ async function loginWithKey(cleanKey, cleanHwid) {
     clearAuthSession()
     return {
       success: false,
-      error: "Resposta inválida do servidor.",
+      error: "Resposta invÃ¡lida do servidor.",
     }
   }
 
@@ -1243,7 +1232,7 @@ async function loginWithKey(cleanKey, cleanHwid) {
     clearAuthSession()
     return {
       success: false,
-      error: data.message || "Key inválida.",
+      error: data.message || "Key invÃ¡lida.",
     }
   }
 
@@ -1251,7 +1240,7 @@ async function loginWithKey(cleanKey, cleanHwid) {
     clearAuthSession()
     return {
       success: false,
-      error: "Servidor não retornou sessão.",
+      error: "Servidor nÃ£o retornou sessÃ£o.",
     }
   }
 
@@ -1262,12 +1251,12 @@ async function loginWithKey(cleanKey, cleanHwid) {
     token: data.sessionToken,
     expiresAt: Date.now() + 1000 * 60 * 60 * 3,
     plan: data.plan || "Lifetime",
-    user: data.user || "Usuário Maxify",
+    user: data.user || "UsuÃ¡rio Maxify",
     licenseExpiresAt: data.expiresAt || "",
     mode: "premium",
   }
 
-  // Inicialização é PRO: só registra os handlers depois do login Premium.
+  // InicializaÃ§Ã£o Ã© PRO: sÃ³ registra os handlers depois do login Premium.
   registerStartupManagerForPremium()
 
   // Nunca retorna sessionToken, key completa ou HWID completo para o renderer.
@@ -1312,7 +1301,7 @@ async function loginFreeWithServer() {
     clearAuthSession()
     return {
       success: false,
-      error: data?.message || "Não foi possível iniciar o modo grátis.",
+      error: data?.message || "NÃ£o foi possÃ­vel iniciar o modo grÃ¡tis.",
     }
   }
 
@@ -1323,13 +1312,13 @@ async function loginFreeWithServer() {
     token: data.sessionToken,
     expiresAt: Date.now() + 1000 * 60 * 60 * 12,
     plan: "Free",
-    user: "Usuário Free",
+    user: "UsuÃ¡rio Free",
     licenseExpiresAt: "",
     mode: "free",
   }
 
   return publicAuthData({
-    message: data.message || "Modo grátis liberado.",
+    message: data.message || "Modo grÃ¡tis liberado.",
   })
 }
 
@@ -1340,7 +1329,7 @@ ipcMain.handle("auth:login-free", async () => {
     clearAuthSession()
     return {
       success: false,
-      error: error.message || "Erro ao iniciar modo grátis.",
+      error: error.message || "Erro ao iniciar modo grÃ¡tis.",
     }
   }
 })
@@ -1410,7 +1399,6 @@ ipcMain.handle("auth:get-account", async () => {
   return publicAuthData()
 })
 
-<<<<<<< HEAD
 
 const FEEDBACK_WEBHOOK_URL =
   process.env.MAXIFY_FEEDBACK_WEBHOOK ||
@@ -1421,7 +1409,7 @@ let lastFeedbackAt = 0
 function safeFeedbackText(value, max = 900) {
   return String(value || "")
     .replace(/[`*_~|]/g, "")
-    .replace(/@everyone|@here/gi, "menção bloqueada")
+    .replace(/@everyone|@here/gi, "menÃ§Ã£o bloqueada")
     .trim()
     .slice(0, max)
 }
@@ -1429,7 +1417,7 @@ function safeFeedbackText(value, max = 900) {
 function maskValue(value, start = 8, end = 4) {
   const text = String(value || "").trim()
   if (!text) return ""
-  if (text.length <= start + end) return "••••"
+  if (text.length <= start + end) return "â€¢â€¢â€¢â€¢"
   return `${text.slice(0, start)}...${text.slice(-end)}`
 }
 
@@ -1475,21 +1463,21 @@ function formatFeedbackUser(payloadUser = {}) {
     discord?.globalName ||
     discord?.tag ||
     discord?.username ||
-    "Usuário Maxify"
+    "UsuÃ¡rio Maxify"
 
   const discordId =
     discord?.id ||
     user?.discordId ||
     user?.id ||
-    "Não informado"
+    "NÃ£o informado"
 
   return {
     username: safeFeedbackText(username, 80),
     discordId: safeFeedbackText(discordId, 60),
-    plan: safeFeedbackText(authSession?.plan || "Não informado", 40),
-    mode: safeFeedbackText(authSession?.mode || "Não informado", 40),
-    key: safeFeedbackText(authSession?.key || "Não informada", 120),
-    hwid: safeFeedbackText(authSession?.hwid || "Não informado", 120),
+    plan: safeFeedbackText(authSession?.plan || "NÃ£o informado", 40),
+    mode: safeFeedbackText(authSession?.mode || "NÃ£o informado", 40),
+    key: safeFeedbackText(authSession?.key || "NÃ£o informada", 120),
+    hwid: safeFeedbackText(authSession?.hwid || "NÃ£o informado", 120),
   }
 }
 
@@ -1535,7 +1523,7 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
   ) {
     return {
       success: false,
-      message: "Webhook de feedback não configurado.",
+      message: "Webhook de feedback nÃ£o configurado.",
     }
   }
 
@@ -1554,8 +1542,8 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
   }
 
   const feedbackUser = formatFeedbackUser(payload.user)
-  const page = safeFeedbackText(payload.page || "Não informado", 120)
-  const userAgent = safeFeedbackText(payload.userAgent || "Não informado", 180)
+  const page = safeFeedbackText(payload.page || "NÃ£o informado", 120)
+  const userAgent = safeFeedbackText(payload.userAgent || "NÃ£o informado", 180)
   const version = app.getVersion?.() || "dev"
   const emoji = getFeedbackEmoji(payload.category || categoryLabel)
   const color = getFeedbackColor(payload.category || categoryLabel)
@@ -1570,14 +1558,14 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
       {
         title: `${emoji} Novo ${categoryLabel} recebido`,
         description:
-          "Um usuário enviou um novo relato pela central de feedback do Maxify.",
+          "Um usuÃ¡rio enviou um novo relato pela central de feedback do Maxify.",
         color,
         fields: [
           {
-            name: "<:icons8user1001:1332620007565299753> Usuário",
+            name: "<:icons8user1001:1332620007565299753> UsuÃ¡rio",
             value:
-              feedbackUser.discordId && feedbackUser.discordId !== "Não informado"
-                ? `<@${feedbackUser.discordId}> • ${feedbackUser.username}`
+              feedbackUser.discordId && feedbackUser.discordId !== "NÃ£o informado"
+                ? `<@${feedbackUser.discordId}> â€¢ ${feedbackUser.username}`
                 : feedbackUser.username,
             inline: false,
           },
@@ -1612,7 +1600,7 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
           url: "https://cdn.discordapp.com/attachments/1331625775803273297/1336432471394222171/Piolho_2.png?ex=6a0e18ba&is=6a0cc73a&hm=dcb32842b6c01be4b95a7f6f450186a2833689162d963fd21b2c27991759bb2c&",
         },
         footer: {
-          text: `Maxify ${version} • Feedback System`,
+          text: `Maxify ${version} â€¢ Feedback System`,
         },
         timestamp: new Date().toISOString(),
       },
@@ -1633,19 +1621,17 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
 
     return {
       success: false,
-      message: "Não consegui enviar para o webhook do Discord.",
+      message: "NÃ£o consegui enviar para o webhook do Discord.",
     }
   }
 })
 
-=======
->>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 ipcMain.handle("auth:logout", async () => {
   clearAuthSession()
   return { success: true }
 })
 
-// ==================== FUNÇÕES AUXILIARES ====================
+// ==================== FUNÃ‡Ã•ES AUXILIARES ====================
 function gerarHWID() {
   const data = [
     os.hostname(),
@@ -1779,7 +1765,7 @@ ipcMain.handle("get-real-time-metrics", async () => {
       temp: 0,
     }
   } catch (err) {
-    console.error("Erro métricas:", err)
+    console.error("Erro mÃ©tricas:", err)
 
     return {
       cpu: 0,
@@ -2144,7 +2130,7 @@ ipcMain.handle("discord-rpc:toggle", async (event, value) => {
 })
 registerEssentialInstallerHandlers()
 registerOfficeInstallerHandlers()
-// Inicialização é PRO: os handlers startup:* só são registrados após login Premium.
+// InicializaÃ§Ã£o Ã© PRO: os handlers startup:* sÃ³ sÃ£o registrados apÃ³s login Premium.
 ipcMain.handle("discord-rpc:get", () => store.get("discord-rpc"))
 
 // ==================== MAIN WINDOW CREATE ====================
@@ -2187,7 +2173,7 @@ function createWindow() {
     mainWindow.show()
     mainWindow.focus()
 
-    // Logs automáticos removidos: agora o log é enviado somente após o usuário autorizar no Discord Auth.
+    // Logs automÃ¡ticos removidos: agora o log Ã© enviado somente apÃ³s o usuÃ¡rio autorizar no Discord Auth.
   })
 
   mainWindow.on("closed", () => {
@@ -2296,11 +2282,11 @@ if (gotTheLock) {
           logsManager.discordUser = userInfo
           console.log(
             logo,
-            `Usuário Discord recebido no LogsManager: ${userInfo.tag}`
+            `UsuÃ¡rio Discord recebido no LogsManager: ${userInfo.tag}`
           )
         } else {
           logsManager.discordUser = null
-          console.log(logo, "Usuário Discord desconectado")
+          console.log(logo, "UsuÃ¡rio Discord desconectado")
         }
       }
     })

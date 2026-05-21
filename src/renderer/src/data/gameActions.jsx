@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import {
     Gamepad2,
     Rocket,
@@ -46,7 +46,7 @@ export const categories = [
     { id: "all", label: "Todos", icon: <Gamepad2 size={16} /> },
     { id: "performance", label: "Performance", icon: <Zap size={16} /> },
     { id: "sistema", label: "Sistema", icon: <Settings size={16} /> },
-    { id: "graficos", label: "Gráficos", icon: <Monitor size={16} /> },
+    { id: "graficos", label: "GrÃ¡ficos", icon: <Monitor size={16} /> },
     { id: "rede", label: "Rede", icon: <Wifi size={16} /> },
 ]
 
@@ -55,7 +55,7 @@ export const gameActions = [
     {
         id: "notifications",
         label: "Modo Foco Total",
-        description: "Silencia notificações e ativa o modo de foco do Windows para máxima concentração.",
+        description: "Silencia notificaÃ§Ãµes e ativa o modo de foco do Windows para mÃ¡xima concentraÃ§Ã£o.",
         icon: <BellOff className="text-orange-500" size={20} />,
         category: "sistema",
         risk: "low",
@@ -99,7 +99,7 @@ try {
     {
         id: "power_plan",
         label: "Modo Desempenho",
-        description: "Ativa o plano de energia de Alto Desempenho para máximo FPS.",
+        description: "Ativa o plano de energia de Alto Desempenho para mÃ¡ximo FPS.",
         icon: <Rocket className="text-purple-500" size={20} />,
         category: "sistema",
         risk: "low",
@@ -217,7 +217,7 @@ try {
     {
         id: "visual_effects",
         label: "Otimizar Efeitos Visuais",
-        description: "Desativa animações e transparências para melhorar FPS.",
+        description: "Desativa animaÃ§Ãµes e transparÃªncias para melhorar FPS.",
         icon: <Monitor className="text-cyan-500" size={20} />,
         category: "performance",
         risk: "low",
@@ -267,8 +267,8 @@ try {
 
     {
         id: "mouse_acceleration",
-        label: "Desativar Aceleração do Mouse",
-        description: "Remove aceleração para precisão máxima em FPS.",
+        label: "Desativar AceleraÃ§Ã£o do Mouse",
+        description: "Remove aceleraÃ§Ã£o para precisÃ£o mÃ¡xima em FPS.",
         icon: <MousePointer className="text-emerald-500" size={20} />,
         category: "performance",
         risk: "low",
@@ -310,7 +310,7 @@ try {
     {
         id: "game_dvr",
         label: "Desabilitar Game DVR",
-        description: "Desativa gravação de vídeo em segundo plano para ganhar FPS.",
+        description: "Desativa gravaÃ§Ã£o de vÃ­deo em segundo plano para ganhar FPS.",
         icon: <VideoOff className="text-pink-500" size={20} />,
         category: "performance",
         risk: "low",
@@ -361,11 +361,11 @@ try {
 `,
     },
 
-    // ==================== GRÁFICOS ====================
+    // ==================== GRÃFICOS ====================
     {
         id: "fullscreen_optimizations",
-        label: "Otimizações Tela Cheia",
-        description: "Desativa otimizações problemáticas do modo tela cheia.",
+        label: "OtimizaÃ§Ãµes Tela Cheia",
+        description: "Desativa otimizaÃ§Ãµes problemÃ¡ticas do modo tela cheia.",
         icon: <Maximize className="text-cyan-600" size={20} />,
         category: "graficos",
         risk: "low",
@@ -404,7 +404,7 @@ try {
     {
         id: "gpu_scheduling",
         label: "Agendamento GPU Hardware",
-        description: "Ativa aceleração de GPU por hardware (Requer reinicialização).",
+        description: "Ativa aceleraÃ§Ã£o de GPU por hardware (Requer reinicializaÃ§Ã£o).",
         icon: <CircuitBoard className="text-violet-500" size={20} />,
         category: "graficos",
         risk: "medium",
@@ -438,8 +438,8 @@ try {
 
     {
         id: "hardware_acceleration",
-        label: "Aceleração Hardware",
-        description: "Otimiza aceleração por hardware para aplicações gráficas.",
+        label: "AceleraÃ§Ã£o Hardware",
+        description: "Otimiza aceleraÃ§Ã£o por hardware para aplicaÃ§Ãµes grÃ¡ficas.",
         icon: <Boxes className="text-blue-500" size={20} />,
         category: "graficos",
         risk: "low",
@@ -474,8 +474,8 @@ try {
     // ==================== REDE ====================
     {
         id: "network_qos",
-        label: "Otimização de Rede",
-        description: "Configura QoS para priorizar tráfego de jogos e reduzir lag.",
+        label: "OtimizaÃ§Ã£o de Rede",
+        description: "Configura QoS para priorizar trÃ¡fego de jogos e reduzir lag.",
         icon: <Network className="text-sky-500" size={20} />,
         category: "rede",
         risk: "low",
@@ -519,8 +519,8 @@ try {
 
     {
         id: "network_throttling",
-        label: "Remover Limitação de Rede",
-        description: "Remove throttling de rede para máximo desempenho online.",
+        label: "Remover LimitaÃ§Ã£o de Rede",
+        description: "Remove throttling de rede para mÃ¡ximo desempenho online.",
         icon: <Wifi className="text-blue-500" size={20} />,
         category: "rede",
         risk: "low",
@@ -556,8 +556,8 @@ try {
     // ==================== EXTRA (Seguros) ====================
     {
         id: "disable_animations",
-        label: "Desativar Animações",
-        description: "Remove todas animações do Windows para máximo desempenho.",
+        label: "Desativar AnimaÃ§Ãµes",
+        description: "Remove todas animaÃ§Ãµes do Windows para mÃ¡ximo desempenho.",
         icon: <Timer className="text-yellow-500" size={20} />,
         category: "performance",
         risk: "low",

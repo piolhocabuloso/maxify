@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from "electron"
+﻿import { BrowserWindow, ipcMain } from "electron"
 import { spawn } from "child_process"
 import path from "path"
 import os from "os"
@@ -49,7 +49,7 @@ export function registerEssentialInstallerHandlers() {
         if (runningProcess) {
             return {
                 started: false,
-                message: "Já existe uma instalação em andamento.",
+                message: "JÃ¡ existe uma instalaÃ§Ã£o em andamento.",
             }
         }
 
@@ -103,7 +103,7 @@ echo Verificando winget...
 where winget > nul 2> nul
 
 if errorlevel 1 (
-  echo Winget não encontrado.
+  echo Winget nÃ£o encontrado.
   echo Atualize ou instale o App Installer pela Microsoft Store.
   exit /b 2
 )
@@ -114,7 +114,7 @@ echo Total de programas: ${safePrograms.length}
 ${commands}
 
 echo.
-echo Instalação finalizada.
+echo InstalaÃ§Ã£o finalizada.
 exit /b 0
 `
 
@@ -168,8 +168,8 @@ exit /b 0
 
                 sendLog(
                     success
-                        ? "Instalação finalizada."
-                        : `Instalação finalizada com código: ${code}`,
+                        ? "InstalaÃ§Ã£o finalizada."
+                        : `InstalaÃ§Ã£o finalizada com cÃ³digo: ${code}`,
                     success ? "success" : "error",
                     100
                 )
@@ -178,8 +178,8 @@ exit /b 0
                     success,
                     code,
                     message: success
-                        ? "Instalação finalizada."
-                        : `Instalação terminou com código ${code}`,
+                        ? "InstalaÃ§Ã£o finalizada."
+                        : `InstalaÃ§Ã£o terminou com cÃ³digo ${code}`,
                 })
 
                 runningProcess = null
@@ -187,7 +187,7 @@ exit /b 0
 
             return {
                 started: true,
-                message: "Instalação iniciada.",
+                message: "InstalaÃ§Ã£o iniciada.",
             }
         } catch (error) {
             runningProcess = null
@@ -203,7 +203,7 @@ exit /b 0
         if (!runningProcess) {
             return {
                 success: false,
-                message: "Nenhuma instalação em andamento.",
+                message: "Nenhuma instalaÃ§Ã£o em andamento.",
             }
         }
 
@@ -213,12 +213,12 @@ exit /b 0
 
             sendToWindows("essential:install-done", {
                 success: false,
-                message: "Instalação cancelada pelo usuário.",
+                message: "InstalaÃ§Ã£o cancelada pelo usuÃ¡rio.",
             })
 
             return {
                 success: true,
-                message: "Instalação cancelada.",
+                message: "InstalaÃ§Ã£o cancelada.",
             }
         } catch (error) {
             return {
