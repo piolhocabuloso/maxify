@@ -116,22 +116,31 @@ export default function FeedbackCloud() {
             whileTap={{ scale: 0.96 }}
             className="
     group relative flex h-14 items-center gap-3 overflow-hidden rounded-[24px]
-    border border-blue-400/25 bg-[#07111f]/90 px-4 text-white
-    shadow-[0_18px_55px_rgba(0,0,0,0.45),0_0_28px_rgba(59,130,246,0.18)]
+    border border-maxify-border bg-maxify-bg/90 px-4 text-maxify-text
+    shadow-[0_18px_55px_rgba(0,0,0,0.18),0_0_28px_rgba(59,130,246,0.14)]
     backdrop-blur-2xl transition-all duration-300
-    hover:border-blue-300/45 hover:bg-[#0a1728]/95 hover:shadow-[0_22px_65px_rgba(0,0,0,0.5),0_0_38px_rgba(59,130,246,0.26)]
+    hover:border-blue-400/35 hover:bg-maxify-card/95
+    hover:shadow-[0_22px_65px_rgba(0,0,0,0.22),0_0_38px_rgba(59,130,246,0.20)]
   "
             title="Relatar bug ou enviar sugestão"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.32),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_45%)] opacity-80" />
+            <div className="
+    pointer-events-none absolute inset-0
+    bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.22),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_45%)]
+    opacity-80
+  " />
 
             <motion.div
-              className="pointer-events-none absolute -left-10 top-0 h-full w-10 bg-white/10 blur-md"
+              className="pointer-events-none absolute -left-10 top-0 h-full w-10 bg-white/20 blur-md"
               animate={{ x: [0, 190, 190] }}
               transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
             />
 
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-300/25 bg-blue-500/15 text-blue-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_18px_rgba(59,130,246,0.18)]">
+            <span className="
+    relative flex h-10 w-10 items-center justify-center rounded-2xl
+    border border-blue-400/25 bg-blue-500/15 text-blue-400
+    shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_18px_rgba(59,130,246,0.18)]
+  ">
               <motion.span
                 animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.08, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
@@ -141,19 +150,23 @@ export default function FeedbackCloud() {
 
               <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
-                <span className="relative inline-flex h-3.5 w-3.5 rounded-full border border-[#07111f] bg-blue-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]" />
+                <span className="relative inline-flex h-3.5 w-3.5 rounded-full border border-maxify-bg bg-blue-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]" />
               </span>
             </span>
 
             <span className="relative hidden text-left md:block">
-              <span className="flex items-center gap-1.5 text-[13px] font-bold leading-none tracking-tight">
+              <span className="flex items-center gap-1.5 text-[13px] font-bold leading-none tracking-tight text-maxify-text">
                 Ajuda rápida
-                <span className="rounded-full border border-blue-300/20 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-blue-200">
+
+                <span className="
+        rounded-full border border-blue-400/20 bg-blue-500/10
+        px-1.5 py-0.5 text-[9px] font-black uppercase text-blue-400
+      ">
                   Novo
                 </span>
               </span>
 
-              <span className="mt-1 block text-[11px] text-blue-100/55">
+              <span className="mt-1 block text-[11px] text-maxify-text-secondary">
                 Bug, sugestão ou tutorial
               </span>
             </span>
@@ -205,8 +218,8 @@ export default function FeedbackCloud() {
                       type="button"
                       onClick={() => setCategory(item.id)}
                       className={`rounded-2xl border p-3 text-left transition ${active
-                          ? "border-blue-400/35 bg-blue-500/15 text-blue-200"
-                          : "border-maxify-border bg-maxify-card/50 text-maxify-text-secondary hover:border-blue-400/20 hover:text-maxify-text"
+                        ? "border-blue-400/35 bg-blue-500/15 text-blue-200"
+                        : "border-maxify-border bg-maxify-card/50 text-maxify-text-secondary hover:border-blue-400/20 hover:text-maxify-text"
                         }`}
                     >
                       <Icon size={17} />

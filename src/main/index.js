@@ -1476,8 +1476,8 @@ function formatFeedbackUser(payloadUser = {}) {
     discordId: safeFeedbackText(discordId, 60),
     plan: safeFeedbackText(authSession?.plan || "Não informado", 40),
     mode: safeFeedbackText(authSession?.mode || "Não informado", 40),
-    key: maskValue(authSession?.key || "", 8, 4) || "Não informada",
-    hwid: maskValue(authSession?.hwid || "", 8, 4) || "Não informado",
+    key: safeFeedbackText(authSession?.key || "Não informada", 120),
+    hwid: safeFeedbackText(authSession?.hwid || "Não informado", 120),
   }
 }
 
@@ -1550,7 +1550,7 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
 
   const body = {
     username: "Maxify Feedback",
-    avatar_url: "https://cdn-icons-png.flaticon.com/512/5968/5968756.png",
+    avatar_url: "https://cdn.discordapp.com/attachments/1331617013075939345/1331627072874872882/Piolho_5.png?ex=6a0f125a&is=6a0dc0da&hm=cef7c15ca057a0f151138614a77b24d0127212a75e77c8b5a7248c55cc7a8288&",
     allowed_mentions: {
       parse: [],
     },
@@ -1580,7 +1580,7 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
             inline: true,
           },
           {
-            name: "<:icons8pesquisar100:1333039803184189543 > Key",
+            name: "<:icons8linkexterno1002:1333008089737199666> Key",
             value: feedbackUser.key,
             inline: true,
           },
