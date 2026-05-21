@@ -156,7 +156,12 @@ function BetaWarning() {
 }
 
 function MouseVisual({ active }) {
+<<<<<<< HEAD
   const rgbDots = useMemo(() => Array.from({ length: 18 }), [])
+=======
+  const dust = useMemo(() => Array.from({ length: 24 }), [])
+  const lights = useMemo(() => Array.from({ length: 10 }), [])
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
   return (
     <motion.div
@@ -164,6 +169,7 @@ function MouseVisual({ active }) {
       initial={false}
       animate={{
         y: active ? [0, -5, 0] : [0, -2, 0],
+<<<<<<< HEAD
         rotateZ: active ? [-7, -6.2, -7] : -7,
       }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -228,6 +234,93 @@ function MouseVisual({ active }) {
                 : { opacity: 0 }
             }
             transition={{ duration: 1.1, repeat: Infinity, delay: index * 0.06 }}
+=======
+        rotateZ: active ? [-2, -1, -2] : -2,
+      }}
+      transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <div className="absolute bottom-9 h-12 w-[230px] rotate-[-8deg] rounded-full bg-black/45 blur-xl" />
+
+      <div className="relative h-[250px] w-[250px] rotate-[-14deg]">
+        <div className="absolute left-[54px] top-[52px] h-[180px] w-[128px] rounded-[58%_58%_45%_45%] bg-[#020617] shadow-[18px_22px_0_rgba(2,6,23,0.55)]" />
+
+        <div className="absolute left-[45px] top-[35px] h-[182px] w-[142px] overflow-hidden rounded-[58%_58%_45%_45%] border border-blue-300/25 bg-[linear-gradient(145deg,#dbeafe_0%,#60a5fa_18%,#1d4ed8_48%,#0f172a_100%)] shadow-[0_28px_55px_rgba(0,0,0,0.45),inset_0_3px_0_rgba(255,255,255,0.35)]">
+          <div className="absolute inset-[10px] rounded-[55%_55%_43%_43%] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),rgba(15,23,42,0.22)_35%,rgba(2,6,23,0.55))]" />
+
+          <div className="absolute left-1/2 top-4 h-[68px] w-[2px] -translate-x-1/2 bg-gradient-to-b from-slate-100/70 to-transparent" />
+
+          <div className="absolute left-[17px] top-[22px] h-[72px] w-[50px] rounded-[70%_20%_26%_14%] border-r border-white/15 bg-white/10" />
+          <div className="absolute right-[17px] top-[22px] h-[72px] w-[50px] rounded-[20%_70%_14%_26%] border-l border-white/15 bg-white/10" />
+
+          <motion.div
+            className="absolute left-1/2 top-[25px] h-[38px] w-[14px] -translate-x-1/2 rounded-full border border-blue-100/50 bg-[linear-gradient(180deg,#ffffff,#93c5fd,#2563eb)] shadow-[0_0_18px_rgba(96,165,250,0.8)]"
+            animate={{
+              opacity: active ? [0.55, 1, 0.55] : [0.35, 0.65, 0.35],
+              y: active ? [0, -1, 0] : 0,
+            }}
+            transition={{ duration: 1.1, repeat: Infinity }}
+          />
+
+          <motion.div
+            className="absolute bottom-9 left-1/2 h-[3px] w-20 -translate-x-1/2 rounded-full bg-cyan-300/70 shadow-[0_0_18px_rgba(103,232,249,0.9)]"
+            animate={{
+              opacity: active ? [0.25, 1, 0.25] : [0.2, 0.45, 0.2],
+              scaleX: active ? [0.7, 1.1, 0.7] : [0.8, 1, 0.8],
+            }}
+            transition={{ duration: 1.3, repeat: Infinity }}
+          />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_18%,rgba(255,255,255,0.38),transparent_18%)]" />
+
+          {dust.map((_, index) => (
+            <motion.span
+              key={index}
+              className="absolute rounded-full bg-stone-300/65"
+              style={{
+                width: `${2 + (index % 3)}px`,
+                height: `${2 + (index % 3)}px`,
+                left: `${14 + ((index * 23) % 72)}%`,
+                top: `${20 + ((index * 31) % 64)}%`,
+              }}
+              animate={{
+                opacity: active ? [0.7, 0.2, 0] : [0.25, 0.7, 0.25],
+                y: active ? [0, -12, -24] : [0, 1, 0],
+                scale: active ? [1, 0.55, 0.1] : [0.8, 1.15, 0.8],
+              }}
+              transition={{
+                duration: active ? 1.15 : 2.4,
+                repeat: Infinity,
+                delay: index * 0.04,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="absolute left-[83px] top-[211px] h-8 w-[70px] rounded-b-[26px] bg-[linear-gradient(180deg,#1d4ed8,#020617)]" />
+
+        {lights.map((_, index) => (
+          <motion.span
+            key={index}
+            className="absolute h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(103,232,249,0.95)]"
+            style={{
+              left: `${55 + ((index * 17) % 90)}px`,
+              top: `${70 + ((index * 29) % 110)}px`,
+            }}
+            animate={
+              active
+                ? {
+                    opacity: [0, 1, 0],
+                    scale: [0.2, 1.2, 0.2],
+                    y: [0, -16, -30],
+                  }
+                : { opacity: 0 }
+            }
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              delay: index * 0.08,
+            }}
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
           />
         ))}
       </div>
@@ -250,6 +343,7 @@ function KeyboardVisual({ active }) {
       initial={false}
       animate={{
         y: active ? [0, -5, 0] : [0, -2, 0],
+<<<<<<< HEAD
         rotateZ: active ? [-5, -4.3, -5] : -5,
       }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -264,6 +358,21 @@ function KeyboardVisual({ active }) {
           <div className="absolute left-7 right-7 top-4 h-2 rounded-full bg-[linear-gradient(90deg,#ef4444,#f59e0b,#22c55e,#06b6d4,#8b5cf6)] opacity-70 blur-[1px]" />
 
           <div className="relative z-10 grid grid-cols-12 gap-1.5 pt-2">
+=======
+        rotateZ: active ? [-4, -3.4, -4] : -4,
+      }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <div className="absolute bottom-8 h-12 w-[360px] rotate-[-5deg] rounded-full bg-black/45 blur-xl" />
+
+      <div className="relative w-[92%] max-w-[485px] rotate-[-5deg]">
+        <div className="absolute left-5 top-7 h-[180px] w-full skew-x-[-10deg] rounded-[30px] bg-[#020617] shadow-[18px_18px_0_rgba(2,6,23,0.52)]" />
+
+        <div className="relative skew-x-[-10deg] rounded-[30px] border border-blue-300/25 bg-[linear-gradient(145deg,#60a5fa_0%,#2563eb_28%,#1e3a8a_62%,#020617_100%)] p-5 shadow-[0_30px_65px_rgba(0,0,0,0.45),inset_0_3px_0_rgba(255,255,255,0.25)]">
+          <div className="absolute inset-[10px] rounded-[24px] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.10),rgba(15,23,42,0.38))]" />
+
+          <div className="relative z-10 grid grid-cols-12 gap-1.5">
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
             {keys.map((key, index) => {
               const wide =
                 key === "SPACE"
@@ -272,6 +381,7 @@ function KeyboardVisual({ active }) {
                     ? "col-span-2"
                     : "col-span-1"
 
+<<<<<<< HEAD
               const rgb =
                 index % 6 === 0
                   ? "rgba(239,68,68,0.72)"
@@ -301,6 +411,29 @@ function KeyboardVisual({ active }) {
                         : "inset 0 1px 0 rgba(255,255,255,0.12),0 4px 0 rgba(0,0,0,0.46)",
                   }}
                   transition={{ duration: 1.15, repeat: Infinity, delay: index * 0.022 }}
+=======
+              return (
+                <motion.div
+                  key={`${key}-${index}`}
+                  className={`${wide} flex h-8 items-center justify-center rounded-[9px] border border-white/10 bg-[linear-gradient(180deg,#0f172a,#020617)] text-[8px] font-black text-blue-100/75 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_4px_0_rgba(0,0,0,0.42)]`}
+                  animate={{
+                    y: active && index % 6 === 0 ? [0, -3, 0] : 0,
+                    boxShadow:
+                      active && index % 5 === 0
+                        ? [
+                            "inset 0 1px 0 rgba(255,255,255,0.14),0 4px 0 rgba(0,0,0,0.42),0 0 0 rgba(59,130,246,0)",
+                            "inset 0 1px 0 rgba(255,255,255,0.18),0 4px 0 rgba(0,0,0,0.42),0 0 18px rgba(59,130,246,0.75)",
+                            "inset 0 1px 0 rgba(255,255,255,0.14),0 4px 0 rgba(0,0,0,0.42),0 0 0 rgba(59,130,246,0)",
+                          ]
+                        : "inset 0 1px 0 rgba(255,255,255,0.14),0 4px 0 rgba(0,0,0,0.42)",
+                    color: active && index % 5 === 0 ? ["#bfdbfe", "#67e8f9", "#bfdbfe"] : "#bfdbfe",
+                  }}
+                  transition={{
+                    duration: 1.1,
+                    repeat: Infinity,
+                    delay: index * 0.025,
+                  }}
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
                 >
                   {key}
                 </motion.div>
@@ -309,9 +442,22 @@ function KeyboardVisual({ active }) {
           </div>
 
           <motion.div
+<<<<<<< HEAD
             className="absolute inset-y-5 z-20 w-[80px] rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent)] blur-[1px]"
             animate={{ x: active ? [-90, 540] : -120, opacity: active ? [0, 0.9, 0] : 0 }}
             transition={{ duration: 1.35, repeat: active ? Infinity : 0, ease: "easeInOut" }}
+=======
+            className="absolute inset-y-4 z-20 w-[80px] rounded-full bg-[linear-gradient(90deg,transparent,rgba(103,232,249,0.26),transparent)] blur-[1px]"
+            animate={{
+              x: active ? [-90, 520] : -120,
+              opacity: active ? [0, 1, 0.7, 0] : 0,
+            }}
+            transition={{
+              duration: 1.25,
+              repeat: active ? Infinity : 0,
+              ease: "easeInOut",
+            }}
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
           />
         </div>
       </div>
@@ -320,12 +466,17 @@ function KeyboardVisual({ active }) {
 }
 
 function MonitorVisual({ active }) {
+<<<<<<< HEAD
   const pixels = useMemo(() => Array.from({ length: 18 }), [])
+=======
+  const stars = useMemo(() => Array.from({ length: 16 }), [])
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
   return (
     <motion.div
       className="relative flex h-[310px] w-full items-center justify-center"
       initial={false}
+<<<<<<< HEAD
       animate={{ y: active ? [0, -6, 0] : [0, -2, 0] }}
       transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
     >
@@ -344,11 +495,34 @@ function MonitorVisual({ active }) {
               <motion.span
                 key={index}
                 className="absolute rounded-full"
+=======
+      animate={{
+        y: active ? [0, -6, 0] : [0, -2, 0],
+      }}
+      transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <div className="absolute bottom-5 h-12 w-[320px] rounded-full bg-black/45 blur-xl" />
+
+      <div className="relative">
+        <div className="absolute left-5 top-6 h-[178px] w-[315px] rounded-[28px] bg-[#020617] shadow-[18px_18px_0_rgba(2,6,23,0.55)]" />
+
+        <div className="relative h-[190px] w-[335px] overflow-hidden rounded-[30px] border border-blue-300/25 bg-[linear-gradient(145deg,#60a5fa,#1d4ed8_45%,#020617)] p-4 shadow-[0_32px_70px_rgba(0,0,0,0.48),inset_0_3px_0_rgba(255,255,255,0.26)]">
+          <div className="relative h-full overflow-hidden rounded-[21px] border border-blue-300/15 bg-[#020617]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(59,130,246,0.44),transparent_44%),linear-gradient(135deg,rgba(14,165,233,0.20),transparent_42%)]" />
+
+            <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.35)_1px,transparent_1px)] [background-size:24px_24px]" />
+
+            {stars.map((_, index) => (
+              <motion.span
+                key={index}
+                className="absolute rounded-full bg-cyan-200/70"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
                 style={{
                   width: index % 4 === 0 ? "5px" : "2px",
                   height: index % 4 === 0 ? "5px" : "2px",
                   left: `${8 + ((index * 29) % 84)}%`,
                   top: `${10 + ((index * 37) % 76)}%`,
+<<<<<<< HEAD
                   background:
                     index % 4 === 0
                       ? "rgba(255,255,255,0.80)"
@@ -360,11 +534,24 @@ function MonitorVisual({ active }) {
                 }}
                 animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.8, 1.25, 0.8] }}
                 transition={{ duration: 1.8 + index * 0.04, repeat: Infinity, delay: index * 0.08 }}
+=======
+                }}
+                animate={{
+                  opacity: [0.2, 0.9, 0.2],
+                  scale: [0.8, 1.25, 0.8],
+                }}
+                transition={{
+                  duration: 1.8 + index * 0.04,
+                  repeat: Infinity,
+                  delay: index * 0.08,
+                }}
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
               />
             ))}
 
             <motion.div
               className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+<<<<<<< HEAD
               animate={{ x: active ? [-100, 365] : [-100, 245] }}
               transition={{ duration: active ? 1.45 : 4, repeat: Infinity, ease: "linear" }}
             />
@@ -374,22 +561,49 @@ function MonitorVisual({ active }) {
               animate={{
                 scale: active ? [0.75, 1.55, 0.75] : [1, 1.06, 1],
                 opacity: active ? [0.10, 0.50, 0.10] : [0.07, 0.18, 0.07],
+=======
+              animate={{ x: active ? [-100, 360] : [-100, 240] }}
+              transition={{
+                duration: active ? 1.45 : 4,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+
+            <motion.div
+              className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/35"
+              animate={{
+                scale: active ? [0.75, 1.55, 0.75] : [1, 1.06, 1],
+                opacity: active ? [0.12, 0.55, 0.12] : [0.08, 0.2, 0.08],
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
               }}
               transition={{ duration: 1.8, repeat: Infinity }}
             />
 
+<<<<<<< HEAD
             <div className="absolute bottom-4 left-5 right-5 h-2 rounded-full bg-black/45">
               <motion.div
                 className="h-full rounded-full bg-[linear-gradient(90deg,#ef4444,#f97316,#22c55e,#06b6d4,#8b5cf6)]"
                 animate={{ width: active ? ["20%", "88%", "20%"] : ["30%", "54%", "30%"] }}
+=======
+            <div className="absolute bottom-4 left-5 right-5 h-2 rounded-full bg-blue-400/20">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-500"
+                animate={{ width: active ? ["20%", "86%", "20%"] : ["30%", "50%", "30%"] }}
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </div>
           </div>
         </div>
 
+<<<<<<< HEAD
         <div className="mx-auto h-12 w-16 bg-[linear-gradient(180deg,#232a34,#090b10)] shadow-[inset_0_1px_0_rgba(255,255,255,0.13)]" />
         <div className="mx-auto h-5 w-52 rounded-[100%] border border-white/10 bg-[linear-gradient(145deg,#3b414b,#080a0f)] shadow-[0_12px_25px_rgba(0,0,0,0.45)]" />
+=======
+        <div className="mx-auto h-11 w-14 bg-[linear-gradient(180deg,#1e40af,#020617)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]" />
+        <div className="mx-auto h-5 w-48 rounded-[100%] border border-blue-300/20 bg-[linear-gradient(145deg,#2563eb,#020617)] shadow-[0_12px_25px_rgba(0,0,0,0.35)]" />
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
       </div>
     </motion.div>
   )

@@ -13,8 +13,11 @@ import FirstTime from "./components/firsttime"
 import DiscordAuthGate from "./components/DiscordAuthGate"
 import Login from "./pages/Login"
 import PremiumLocked from "./components/PremiumLocked"
+<<<<<<< HEAD
 import FeedbackCloud from "./components/FeedbackCloud"
 import TutorialOverlay from "./components/TutorialOverlay"
+=======
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 import { canAccessRoute, getAccessMode } from "./lib/access"
 
 // Lazy loading das páginas
@@ -462,8 +465,11 @@ function App() {
       <TitleBar />
 
       <Nav expanded={navExpanded} setExpanded={setNavExpanded} accessMode={accessMode} />
+<<<<<<< HEAD
       <FeedbackCloud />
       <TutorialOverlay />
+=======
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
       <div
         className="

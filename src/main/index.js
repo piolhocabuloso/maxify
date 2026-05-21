@@ -997,6 +997,7 @@ async function executePowerShellLive(event, payload) {
       const lower = cleanLine.toLowerCase()
       const type =
         lower.includes("[erro]") ||
+<<<<<<< HEAD
           lower.includes("falhou") ||
           lower.includes("error")
           ? "error"
@@ -1005,6 +1006,16 @@ async function executePowerShellLive(event, payload) {
             lower.includes("concluído") ||
             lower.includes("concluída") ||
             lower.includes("êxito")
+=======
+        lower.includes("falhou") ||
+        lower.includes("error")
+          ? "error"
+          : lower.includes("[ok]") ||
+              lower.includes("sucesso") ||
+              lower.includes("concluído") ||
+              lower.includes("concluída") ||
+              lower.includes("êxito")
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
             ? "success"
             : fallbackType
 
@@ -1399,6 +1410,7 @@ ipcMain.handle("auth:get-account", async () => {
   return publicAuthData()
 })
 
+<<<<<<< HEAD
 
 const FEEDBACK_WEBHOOK_URL =
   process.env.MAXIFY_FEEDBACK_WEBHOOK ||
@@ -1626,6 +1638,8 @@ ipcMain.handle("feedback:send", async (_, payload = {}) => {
   }
 })
 
+=======
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 ipcMain.handle("auth:logout", async () => {
   clearAuthSession()
   return { success: true }

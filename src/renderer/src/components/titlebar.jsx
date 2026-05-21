@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Bell, ChevronRight, Minus, Moon, Square, Sun, X } from "lucide-react"
 import { close, minimize, toggleMaximize } from "../lib/electron"
 import maxifylogo from "../../../../resources/maxifylogo.png"
@@ -23,12 +24,22 @@ const updates = [
     tag: "UI",
   },
 ]
+=======
+import { Minus, Square, X, Moon, Sun } from "lucide-react"
+import { close, minimize, toggleMaximize } from "../lib/electron"
+import maxifylogo from "../../../../resources/maxifylogo.png"
+import { motion } from "framer-motion"
+import { useState } from "react"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
 function TitleBar() {
   const [theme, setTheme] = useState(
     document.body.getAttribute("data-theme") || "dark"
   )
+<<<<<<< HEAD
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+=======
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
@@ -41,6 +52,7 @@ function TitleBar() {
     localStorage.setItem("theme", newTheme)
   }
 
+<<<<<<< HEAD
   const startTutorial = () => {
     setNotificationsOpen(false)
     window.dispatchEvent(new CustomEvent("maxify:start-tutorial"))
@@ -55,6 +67,19 @@ function TitleBar() {
 
       {/* CENTRO — MAXIFY */}
       <div className="absolute left-1/2 top-0 flex h-full -translate-x-1/2 items-center gap-4">
+=======
+  return (
+    <div
+      style={{ WebkitAppRegion: "drag" }}
+      className="
+    h-[55px] fixed top-0 left-0 right-0 z-50
+    bg-maxify-bg
+    border-b border-maxify-border-secondary
+  "
+    >
+      {/* CENTRO — MAXIFY */}
+      <div className="absolute left-1/2 top-0 h-full flex items-center gap-4 -translate-x-1/2">
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
         <motion.img
           src={maxifylogo}
           alt="maxify"
@@ -63,12 +88,31 @@ function TitleBar() {
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         />
 
+<<<<<<< HEAD
         <span className="text-base font-semibold tracking-wide text-maxify-text-primary">
           Maxify
         </span>
 
         <motion.div
           className="rounded-xl border border-blue-500/30 bg-blue-500/20 p-1.5 px-3 text-center text-xs font-medium text-blue-400"
+=======
+        <span
+          className="
+    text-base font-semibold tracking-wide
+    text-maxify-text-primary
+  "
+        >
+          Maxify
+        </span>
+
+
+        <motion.div
+          className="
+        bg-blue-500/20 border border-blue-500/30
+        p-1.5 px-3 rounded-xl text-center
+        text-xs text-blue-400 font-medium
+      "
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
           animate={{
             boxShadow: [
               "0 0 0px rgba(59, 130, 246, 0.5)",
@@ -87,6 +131,7 @@ function TitleBar() {
         className="absolute right-0 top-0 flex h-full"
         style={{ WebkitAppRegion: "no-drag" }}
       >
+<<<<<<< HEAD
         <div className="relative">
           <button
             onClick={() => setNotificationsOpen((prev) => !prev)}
@@ -154,35 +199,59 @@ function TitleBar() {
           onClick={toggleTheme}
           className="flex h-[55px] w-14 items-center justify-center transition hover:bg-maxify-accent"
           title="Alternar tema"
+=======
+        <button
+          onClick={toggleTheme}
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
         >
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
+<<<<<<< HEAD
         <button
           onClick={minimize}
           className="flex h-[55px] w-14 items-center justify-center transition hover:bg-maxify-accent"
           title="Minimizar"
+=======
+
+        <button
+          onClick={minimize}
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
         >
           <Minus size={18} />
         </button>
 
         <button
           onClick={toggleMaximize}
+<<<<<<< HEAD
           className="flex h-[55px] w-14 items-center justify-center transition hover:bg-maxify-accent"
           title="Maximizar"
+=======
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-maxify-accent"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
         >
           <Square size={16} />
         </button>
 
         <button
           onClick={close}
+<<<<<<< HEAD
           className="flex h-[55px] w-14 items-center justify-center transition hover:bg-red-600 hover:text-white"
           title="Fechar"
+=======
+          className="h-[55px] w-14 flex items-center justify-center hover:bg-red-600 hover:text-white"
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
         >
           <X size={18} />
         </button>
       </div>
     </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7a6c323f8bfa1d6be6c824dc99da66ca500ae14e
   )
 }
 
